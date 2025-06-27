@@ -13,6 +13,7 @@ export type CarResponse = {
     model: ModelResponse;
     year: string;
     plateNumber: string;
+    color: string;
     createdAt: string;
     updatedAt: string;
 };

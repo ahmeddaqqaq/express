@@ -19,6 +19,7 @@ export namespace UpdateTransactionDto {
         SCHEDULED = 'scheduled',
         STAGE_ONE = 'stageOne',
         STAGE_TWO = 'stageTwo',
+        STAGE_THREE = 'stageThree',
         COMPLETED = 'completed',
         CANCELLED = 'cancelled',
     }

@@ -8,6 +8,9 @@ export type TechnicianResponse = {
     lName: string;
     mobileNumber: string;
     status: boolean;
+    lastAction?: string;
+    totalShiftTime: string;
+    totalBreakTime: string;
     createdAt: string;
     updatedAt: string;
 };

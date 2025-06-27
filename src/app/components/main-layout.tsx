@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   FiUsers,
@@ -10,9 +10,9 @@ import {
   FiSettings,
   FiChevronDown,
   FiChevronRight,
+  FiLogOut,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -20,6 +20,17 @@ import {
 } from "@/components/ui/tooltip";
 import { FaCarAlt } from "react-icons/fa";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { AuthService } from "../../../client";
 
 export default function MainLayout({
   children,
@@ -31,11 +42,13 @@ export default function MainLayout({
   const [isScheduleOpen, setIsScheduleOpen] = useState(
     pathname.startsWith("/schedule")
   );
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const router = useRouter();
 
   const navItems = [
     {
       name: "Dashboard",
-      path: "/home",
+      path: "/dashboard",
       icon: <FiHome className="h-5 w-5" />,
     },
     {
@@ -71,6 +84,12 @@ export default function MainLayout({
 
   const toggleScheduleMenu = () => {
     setIsScheduleOpen(!isScheduleOpen);
+  };
+
+  const handleLogout = async () => {
+    await AuthService.authControllerLogout();
+    router.push("/login");
+    setShowLogoutDialog(false);
   };
 
   return (
@@ -191,20 +210,42 @@ export default function MainLayout({
           ))}
         </nav>
 
-        {/* User Profile */}
+        {/* Logout Button */}
         <div className="mt-auto pt-4 border-t border-indigo-700/50">
-          <div className="flex items-center p-3 rounded-lg hover:bg-indigo-700/50 transition-colors cursor-pointer">
-            <Avatar className="h-9 w-9 mr-3">
-              <AvatarImage src="/user-avatar.jpg" />
-              <AvatarFallback className="bg-indigo-600">AD</AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <p className="font-medium">Admin User</p>
-              <p className="text-xs text-indigo-200">admin@express.com</p>
-            </div>
-          </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowLogoutDialog(true)}
+            className="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-indigo-700/50 text-white"
+          >
+            <FiLogOut className="h-5 w-5 mr-3" />
+            <span className="font-medium">Log Out</span>
+          </motion.button>
         </div>
       </motion.aside>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to logout?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You'll need to sign in again to access the dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLogout}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-indigo-800 shadow-lg z-50">

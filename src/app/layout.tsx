@@ -1,4 +1,3 @@
-import MainLayout from "./components/main-layout";
 import "./globals.css";
 import { Geist, Geist_Mono, Roboto, Nunito } from "next/font/google";
 import { Providers } from "./providers/providers";

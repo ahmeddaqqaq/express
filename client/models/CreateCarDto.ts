@@ -7,6 +7,7 @@ export type CreateCarDto = {
     brandId: string;
     modelId: string;
     plateNumber: string;
-    year: string;
+    year?: string;
+    color?: string;
 };
 

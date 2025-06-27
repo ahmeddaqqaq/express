@@ -47,4 +47,72 @@ export class TechnicianService {
             },
         });
     }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerStartShift({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/technician/{id}/start-shift',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerEndShift({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/technician/{id}/end-shift',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerStartBreak({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/technician/{id}/start-break',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerEndBreak({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/technician/{id}/end-break',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }

@@ -19,6 +19,7 @@ import type { OnCancel } from './CancelablePromise';
 import { OpenAPI, type OpenAPIConfig } from './OpenAPI';
 
 OpenAPI.BASE = 'http://localhost:3000';
+OpenAPI.WITH_CREDENTIALS = true; 
 
 export const isDefined = <T>(
   value: T | null | undefined,

@@ -81,6 +81,16 @@ export class TransactionService {
      * @returns void
      * @throws ApiError
      */
+    public static transactionControllerFindStageThree(): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/transaction/findInProgressStageThree',
+        });
+    }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
     public static transactionControllerFindCompleted(): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -104,33 +114,30 @@ export class TransactionService {
         });
     }
     /**
-     * Upload an image to a transaction
-     * @returns any Image uploaded successfully
+     * Upload image to transaction
+     * @returns any
      * @throws ApiError
      */
-    public static transactionControllerUploadTransactionImage({
+    public static transactionControllerUploadImage({
         id,
         formData,
     }: {
-        /**
-         * Transaction ID (UUID)
-         */
         id: string,
+        /**
+         * Image file upload
+         */
         formData: {
-            image?: Blob;
+            file?: Blob;
         },
     }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/express/transaction/{id}/upload-image',
+            url: '/express/transaction/{id}/upload',
             path: {
                 'id': id,
             },
             formData: formData,
             mediaType: 'multipart/form-data',
-            errors: {
-                404: `Transaction not found`,
-            },
         });
     }
 }

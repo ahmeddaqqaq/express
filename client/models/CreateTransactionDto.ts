@@ -7,6 +7,9 @@ export type CreateTransactionDto = {
     carId: string;
     technicianIds: Array<string>;
     addOnsIds: Array<string>;
+    note: string;
+    supervisorId: string;
+    deliverTime: string;
     serviceId: string;
 };
 
