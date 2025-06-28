@@ -2,8 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { ServicePriceDto } from './ServicePriceDto';
 export type CreateServiceDto = {
     name: string;
-    price: number;
+    prices: Array<ServicePriceDto>;
 };
 

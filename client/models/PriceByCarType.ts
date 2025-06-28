@@ -2,15 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type ModelResponse = {
-    id: string;
-    name: string;
-    brandId: string;
-    carType: ModelResponse.carType;
-    createdAt: string;
-    updatedAt: string;
+export type PriceByCarType = {
+    carType: PriceByCarType.carType;
+    price: number;
 };
-export namespace ModelResponse {
+export namespace PriceByCarType {
     export enum carType {
         BIKE = 'Bike',
         SEDAN = 'Sedan',

@@ -105,7 +105,7 @@ export default function MainLayout({
         <div className="p-4 mb-6 flex items-center space-x-3">
           <div>
             <h1 className="text-2xl font-bold font-poppins">Express</h1>
-            <p className="text-indigo-200 text-sm">Management Dashboard</p>
+            <p className="text-indigo-200 text-sm">Operation Dashboard</p>
           </div>
         </div>
 

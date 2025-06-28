@@ -21,22 +21,35 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
-import { ServiceService } from "../../../../../../client";
+import { ServicePriceDto, ServiceService } from "../../../../../../client";
+
+enum carType {
+  Bike = "Bike",
+  Sedan = "Sedan",
+  Crossover = "Crossover",
+  SUV = "SUV",
+  VAN = "VAN",
+}
 
 interface Service {
   id: string;
   name: string;
-  price: number;
+  prices: {
+    carType: string;
+    price: number;
+  }[];
 }
 
 export default function ServicesTab() {
+  const carTypes = Object.values(carType);
+
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newService, setNewService] = useState({
     name: "",
-    price: 0,
+    prices: carTypes.map((type) => ({ carType: type, price: 0 })),
   });
 
   useEffect(() => {
@@ -52,7 +65,7 @@ export default function ServicesTab() {
           resp.map((service) => ({
             id: service.id,
             name: service.name,
-            price: service.price,
+            prices: service.prices ?? [],
           }))
         );
       }
@@ -63,28 +76,36 @@ export default function ServicesTab() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNewService((prev) => ({
-      ...prev,
-      [name]: name === "price" ? Number(value) : value,
-    }));
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewService((prev) => ({ ...prev, name: e.target.value }));
+  };
+
+  const handlePriceChange = (index: number, value: number) => {
+    const updatedPrices = [...newService.prices];
+    updatedPrices[index].price = value;
+    setNewService((prev) => ({ ...prev, prices: updatedPrices }));
   };
 
   const createService = async () => {
-    if (!newService.name.trim() || newService.price <= 0) return;
+    if (!newService.name.trim()) return;
+
+    const validPrices = newService.prices.filter((p) => p.price > 0);
+    if (validPrices.length === 0) return;
 
     setIsLoading(true);
     try {
       await ServiceService.serviceControllerCreate({
         requestBody: {
           name: newService.name,
-          price: newService.price,
+          prices: newService.prices as unknown as ServicePriceDto[],
         },
       });
 
       await fetchServices();
-      setNewService({ name: "", price: 0 });
+      setNewService({
+        name: "",
+        prices: carTypes.map((type) => ({ carType: type, price: 0 })),
+      });
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Failed to create service:", error);
@@ -118,23 +139,30 @@ export default function ServicesTab() {
                   id="name"
                   name="name"
                   value={newService.name}
-                  onChange={handleInputChange}
+                  onChange={handleNameChange}
                   placeholder="Service name"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Price *</Label>
-                <Input
-                  id="price"
-                  name="price"
-                  type="number"
-                  value={newService.price}
-                  onChange={handleInputChange}
-                  placeholder="Price"
-                  min="0"
-                  step="0.01"
-                />
-              </div>
+
+              {newService.prices.map((item, index) => (
+                <div className="space-y-2" key={item.carType}>
+                  <Label htmlFor={`price-${item.carType}`}>
+                    {item.carType} Price *
+                  </Label>
+                  <Input
+                    id={`price-${item.carType}`}
+                    type="number"
+                    value={item.price}
+                    onChange={(e) =>
+                      handlePriceChange(index, Number(e.target.value))
+                    }
+                    min="0"
+                    step="0.01"
+                    placeholder={`Price for ${item.carType}`}
+                  />
+                </div>
+              ))}
+
               <Button onClick={createService} disabled={isLoading}>
                 {isLoading ? "Creating..." : "Create Service"}
               </Button>
@@ -150,12 +178,14 @@ export default function ServicesTab() {
       ) : services.length === 0 ? (
         <div className="text-center py-8 text-gray-500">No services found</div>
       ) : (
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Service Name</TableHead>
-                <TableHead>Price</TableHead>
+                {carTypes.map((type) => (
+                  <TableHead key={type}>{type} Price</TableHead>
+                ))}
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -163,7 +193,16 @@ export default function ServicesTab() {
               {services.map((service) => (
                 <TableRow key={service.id}>
                   <TableCell>{service.name}</TableCell>
-                  <TableCell>${service.price.toFixed(2)}</TableCell>
+                  {carTypes.map((type) => {
+                    const found = service.prices.find(
+                      (p) => p.carType === type
+                    );
+                    return (
+                      <TableCell key={type}>
+                        {found ? `$${found.price.toFixed(2)}` : "-"}
+                      </TableCell>
+                    );
+                  })}
                   <TableCell>
                     <Button variant="ghost" size="sm">
                       <FiTrash2 className="text-red-500" />

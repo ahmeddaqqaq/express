@@ -45,23 +45,6 @@ export class ImageService {
      * @returns any
      * @throws ApiError
      */
-    public static imageControllerSetBrandLogo({
-        id,
-    }: {
-        id: string,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'PATCH',
-            url: '/express/images/{id}/brand-logo',
-            path: {
-                'id': id,
-            },
-        });
-    }
-    /**
-     * @returns any
-     * @throws ApiError
-     */
     public static imageControllerDeleteImage({
         id,
     }: {

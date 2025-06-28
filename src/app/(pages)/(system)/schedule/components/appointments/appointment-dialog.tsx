@@ -54,7 +54,6 @@ export function AppointmentDialog({
               : status === "stageTwo"
               ? "Stage Two Details"
               : "Stage Three Details"}{" "}
-            // Added Stage 3
           </DialogTitle>
         </DialogHeader>
 
@@ -163,7 +162,6 @@ export function AppointmentDialog({
                 : pendingStatusChange.to === "stageTwo"
                 ? "Move to Phase 2"
                 : "Move to Phase 3"}{" "}
-              // Added Stage 3
             </Button>
           )}
         </div>

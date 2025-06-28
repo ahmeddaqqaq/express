@@ -2,11 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { PriceByCarType } from './PriceByCarType';
 export type ServiceResponse = {
     id: string;
     name: string;
-    price: number;
     createdAt: string;
     updatedAt: string;
+    prices: Array<PriceByCarType>;
 };
 

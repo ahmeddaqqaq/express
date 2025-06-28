@@ -23,6 +23,7 @@ import { FiPlus, FiSearch } from "react-icons/fi";
 import {
   BrandResponse,
   BrandService,
+  CarType,
   ModelResponse,
   ModelService,
 } from "../../../../../client";
@@ -47,6 +48,7 @@ export default function VehiclesPage() {
     open: false,
     name: "",
     brandId: "",
+    type: "Sedan" as CarType,
   });
 
   useEffect(() => {
@@ -101,10 +103,16 @@ export default function VehiclesPage() {
         requestBody: {
           name: modelForm.name,
           brandId: modelForm.brandId,
+          type: modelForm.type,
         },
       });
       await fetchData();
-      setModelForm({ open: false, name: "", brandId: "" });
+      setModelForm({
+        open: false,
+        name: "",
+        brandId: "",
+        type: "Sedan" as CarType,
+      });
     } catch (error) {
       console.error("Error creating model:", error);
     } finally {
@@ -206,6 +214,25 @@ export default function VehiclesPage() {
                     ))}
                   </select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Car Type</Label>
+                  <select
+                    className="w-full p-2 border rounded"
+                    value={modelForm.type}
+                    onChange={(e) =>
+                      setModelForm({
+                        ...modelForm,
+                        type: e.target.value as CarType,
+                      })
+                    }
+                  >
+                    <option value="Bike">Bike</option>
+                    <option value="Sedan">Sedan</option>
+                    <option value="Crossover">Crossover</option>
+                    <option value="SUV">SUV</option>
+                    <option value="VAN">VAN</option>
+                  </select>
+                </div>
                 <Button onClick={handleModelSubmit} disabled={isLoading}>
                   {isLoading ? "Creating..." : "Create Model"}
                 </Button>
@@ -239,7 +266,7 @@ export default function VehiclesPage() {
                         variant="outline"
                         className="px-3 py-1"
                       >
-                        {model.name}
+                        {model.name} ({(model as any).type || "N/A"})
                       </Badge>
                     ))}
                 </div>
@@ -253,6 +280,7 @@ export default function VehiclesPage() {
                       open: true,
                       name: "",
                       brandId: brand.id,
+                      type: "Sedan" as CarType,
                     })
                   }
                 >

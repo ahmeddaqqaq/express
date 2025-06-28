@@ -112,7 +112,9 @@ export function TransactionDetailsDrawer({
                     <p className="font-medium">{transaction.service.name}</p>
                   </div>
                   <p className="font-semibold text-green-600">
-                    {transaction.service.price}
+                    {transaction.service.prices?.find(
+                      (p) => p.carType === transaction.car.model.carType
+                    )?.price ?? "N/A"}
                   </p>
                 </div>
 
