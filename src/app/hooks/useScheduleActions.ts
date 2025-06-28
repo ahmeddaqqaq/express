@@ -12,7 +12,6 @@ export function useScheduleActions({
 
   const handleStatusChange = async (
     id: string,
-    from: "scheduled" | "stageOne" | "stageTwo" | "completed",
     to: "scheduled" | "stageOne" | "stageTwo" | "completed"
   ) => {
     setMovingItemId(id);
