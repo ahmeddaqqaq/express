@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { AuthService } from "../../../../client";
 import { useRouter } from "next/navigation";
