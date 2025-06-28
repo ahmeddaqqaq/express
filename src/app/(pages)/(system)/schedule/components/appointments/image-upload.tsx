@@ -31,7 +31,8 @@ export function ImageUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const API_BASE = `${
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://91.99.164.7:4000"
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    "http://lionsinternationalco.com:4000"
   }/express/transaction`;
 
   const validateFile = (file: File): string | null => {

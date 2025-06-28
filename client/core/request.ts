@@ -19,7 +19,8 @@ import type { OnCancel } from "./CancelablePromise";
 import { OpenAPI, type OpenAPIConfig } from "./OpenAPI";
 
 OpenAPI.BASE =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://91.99.164.7:4000";
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  "http://lionsinternationalco.com:4000";
 OpenAPI.WITH_CREDENTIALS = true;
 
 export const isDefined = <T>(
