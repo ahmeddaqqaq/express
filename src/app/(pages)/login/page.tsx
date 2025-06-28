@@ -47,7 +47,7 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    console.log(process.env.NEXT_API_BASE_URL);
+    console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
   }, []);
 
   const [isLoading, setIsLoading] = useState(false);
