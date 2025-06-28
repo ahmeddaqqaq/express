@@ -30,7 +30,9 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const API_BASE = "http://192.168.100.221:3000/express/transaction";
+  const API_BASE = `${
+    process.env.NEXT_API_BASE_URL ?? "http://localhost:3000"
+  }/express/transaction`;
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {
