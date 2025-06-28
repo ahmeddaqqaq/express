@@ -26,7 +26,7 @@ export function AddOnsField({ addOns }: AddOnsFieldProps) {
     <FormField
       control={form.control}
       name="addOnsIds"
-      render={({ field }) => (
+      render={() => (
         <FormItem>
           <div className="mb-4">
             <FormLabel className="text-base">Add-Ons (Optional)</FormLabel>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FiX } from "react-icons/fi";
 import { Check } from "lucide-react";
 import {

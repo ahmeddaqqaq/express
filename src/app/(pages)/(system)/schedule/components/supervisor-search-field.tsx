@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { FiChevronDown, FiCheck, FiX } from "react-icons/fi";
+import { useState } from "react";
+import { FiChevronDown, FiCheck } from "react-icons/fi";
 import {
   FormControl,
   FormField,
@@ -23,7 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { SupervisorResponse } from "../../../../../client";
+import { SupervisorResponse } from "../../../../../../client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SupervisorSearchFieldProps {
