@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { AuthService } from "../../../../client";
 import { useRouter } from "next/navigation";
@@ -45,6 +45,10 @@ export default function LoginPage() {
       password: "",
     },
   });
+
+  useEffect(() => {
+    console.log(process.env.NEXT_API_BASE_URL);
+  }, []);
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
