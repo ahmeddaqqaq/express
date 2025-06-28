@@ -46,10 +46,6 @@ export default function LoginPage() {
     },
   });
 
-  useEffect(() => {
-    console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
-  }, []);
-
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
