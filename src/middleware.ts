@@ -15,6 +15,9 @@ export default function middleware(req: NextRequest) {
   if (!accessToken) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);
+  } else if (pathname === "/") {
+    const dashboardUrl = new URL("/dashboard", req.url);
+    return NextResponse.redirect(dashboardUrl);
   }
 
   // Token exists, allow access
