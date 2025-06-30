@@ -38,29 +38,57 @@ export function AppointmentDialog({
 }: AppointmentDialogProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
+  // Check if images are required for the current status transition
+  const imagesRequired =
+    pendingStatusChange?.from === "scheduled" ||
+    pendingStatusChange?.from === "stageOne" ||
+    pendingStatusChange?.from === "stageTwo";
+
+  // Check if the action button should be disabled
+  const isActionDisabled = () => {
+    // Disable if already moving
+    if (movingItemId) return true;
+
+    // Disable if images are required but none uploaded
+    if (imagesRequired && uploadedFiles.length === 0) return true;
+
+    return false;
+  };
+
+  const handleConfirm = async () => {
+    // Additional validation if needed
+    if (imagesRequired && uploadedFiles.length === 0) {
+      // You could show a toast message here
+      console.warn("Please upload at least one image before proceeding");
+      return;
+    }
+
+    await onConfirmStatusChange();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[900px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="min-w-[1200px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800">
             {pendingStatusChange?.to === "stageOne"
               ? "Start Phase 1 - Confirmation"
               : pendingStatusChange?.to === "stageTwo"
               ? "Move to Phase 2 - Confirmation"
-              : pendingStatusChange?.to === "stageThree" // Added Stage 3
+              : pendingStatusChange?.to === "stageThree"
               ? "Move to Phase 3 - Confirmation"
               : status === "stageOne"
               ? "Stage One Details"
               : status === "stageTwo"
               ? "Stage Two Details"
-              : "Stage Three Details"}{" "}
+              : "Stage Three Details"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-8 p-4">
-          {/* Left Side: Appointment Info */}
-          <div className="w-1/2 space-y-6">
-            <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
+        <div className="flex gap-6 p-4">
+          {/* First Column: Appointment Info */}
+          <div className="w-1/3 space-y-6">
+            <div className="bg-gray-50 rounded-xl p-6 shadow-sm h-full">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
                 Appointment Information
               </h3>
@@ -131,14 +159,24 @@ export function AppointmentDialog({
             </div>
           </div>
 
-          {/* Right Side: Technician Assignment & Image Upload */}
-          <div className="w-1/2 space-y-6">
+          {/* Second Column: Technician Assignment */}
+          <div className="w-1/3">
             <TechnicianAssignment appointment={appointment} />
+          </div>
+
+          {/* Third Column: Image Upload */}
+          <div className="w-1/3 space-y-6">
             <ImageUpload
               appointment={appointment}
               uploadedFiles={uploadedFiles}
               setUploadedFiles={setUploadedFiles}
             />
+            {imagesRequired && uploadedFiles.length === 0 && (
+              <div className="text-red-500 text-sm mt-2">
+                Please upload at least one image before proceeding to the next
+                phase.
+              </div>
+            )}
           </div>
         </div>
 
@@ -153,15 +191,15 @@ export function AppointmentDialog({
           </Button>
           {pendingStatusChange && (
             <Button
-              onClick={onConfirmStatusChange}
+              onClick={handleConfirm}
               className="px-6"
-              disabled={!!movingItemId}
+              disabled={isActionDisabled()}
             >
               {pendingStatusChange.to === "stageOne"
                 ? "Start Phase 1"
                 : pendingStatusChange.to === "stageTwo"
                 ? "Move to Phase 2"
-                : "Move to Phase 3"}{" "}
+                : "Move to Phase 3"}
             </Button>
           )}
         </div>

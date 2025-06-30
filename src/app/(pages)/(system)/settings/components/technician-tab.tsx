@@ -27,7 +27,6 @@ import {
   FiPause,
   FiPlay,
   FiUser,
-  FiPhone,
   FiActivity,
   FiX,
 } from "react-icons/fi";
@@ -64,8 +63,6 @@ export default function TechniciansTab() {
   const [newTechnician, setNewTechnician] = useState({
     fName: "",
     lName: "",
-    mobileNumber: "",
-    workId: "",
   });
 
   useEffect(() => {
@@ -93,11 +90,7 @@ export default function TechniciansTab() {
   };
 
   const createTechnician = async () => {
-    if (
-      !newTechnician.fName.trim() ||
-      !newTechnician.lName.trim() ||
-      !newTechnician.mobileNumber.trim()
-    ) {
+    if (!newTechnician.fName.trim() || !newTechnician.lName.trim()) {
       return;
     }
 
@@ -107,8 +100,6 @@ export default function TechniciansTab() {
         requestBody: {
           fName: newTechnician.fName,
           lName: newTechnician.lName,
-          mobileNumber: newTechnician.mobileNumber,
-          workId: newTechnician.workId,
         },
       });
 
@@ -116,8 +107,6 @@ export default function TechniciansTab() {
       setNewTechnician({
         fName: "",
         lName: "",
-        mobileNumber: "",
-        workId: "",
       });
       setIsDialogOpen(false);
     } catch (error) {
@@ -228,26 +217,6 @@ export default function TechniciansTab() {
                   placeholder="Last name"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="mobileNumber">Mobile Number *</Label>
-                <Input
-                  id="mobileNumber"
-                  name="mobileNumber"
-                  value={newTechnician.mobileNumber}
-                  onChange={handleInputChange}
-                  placeholder="Mobile number"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="workId">Work ID</Label>
-                <Input
-                  id="workId"
-                  name="workId"
-                  value={newTechnician.workId}
-                  onChange={handleInputChange}
-                  placeholder="Work ID"
-                />
-              </div>
               <Button onClick={createTechnician} disabled={isLoading}>
                 {isLoading ? "Creating..." : "Create Technician"}
               </Button>
@@ -270,7 +239,6 @@ export default function TechniciansTab() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Mobile</TableHead>
                 <TableHead>Current Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -285,7 +253,6 @@ export default function TechniciansTab() {
                   <TableCell>
                     {tech.fName} {tech.lName}
                   </TableCell>
-                  <TableCell>{tech.mobileNumber ?? "No Mobile"}</TableCell>
                   <TableCell>
                     <Badge
                       variant={getStatusBadgeVariant(tech.lastAction || "N/A")}
@@ -402,19 +369,6 @@ export default function TechniciansTab() {
                               <p className="text-sm font-medium">
                                 {selectedTechnician.fName}{" "}
                                 {selectedTechnician.lName}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <FiPhone className="h-4 w-4 text-gray-500" />
-                            <div>
-                              <Label className="text-sm font-medium text-gray-500">
-                                Mobile Number
-                              </Label>
-                              <p className="text-sm font-medium">
-                                {selectedTechnician.mobileNumber ||
-                                  "Not provided"}
                               </p>
                             </div>
                           </div>

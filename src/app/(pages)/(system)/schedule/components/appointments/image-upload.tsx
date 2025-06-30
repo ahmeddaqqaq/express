@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { UploadedFile, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from "./types";
 import {
   FiUploadCloud,
   FiX,
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { UploadedFile, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from "./types";
 import { TransactionResponse } from "../../../../../../../client";
 
 interface ImageUploadProps {
@@ -30,8 +30,9 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const API_BASE = `${
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://lionsinternationalco.com"
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000"
   }/express/transaction`;
 
   const validateFile = (file: File): string | null => {
@@ -54,30 +55,59 @@ export function ImageUpload({
     fileInputRef.current?.click();
   };
 
-  const handleFiles = (files: FileList) => {
-    const newFiles: UploadedFile[] = [];
+  const processFile = async (file: File): Promise<UploadedFile | null> => {
+    try {
+      let convertedFile = file;
 
-    Array.from(files).forEach((file) => {
-      const validationError = validateFile(file);
+      if (file.type === "image/heic") {
+        // Only import when needed
+        const heic2any = (await import("heic2any")).default;
+        const blob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.8,
+        });
 
+        convertedFile = new File(
+          [blob as BlobPart],
+          file.name.replace(/\.heic$/i, ".jpg"),
+          { type: "image/jpeg" }
+        );
+      }
+
+      const validationError = validateFile(convertedFile);
       if (validationError) {
-        toast.error(`Invalid file: ${file.name}`, {
+        toast.error(`Invalid file: ${convertedFile.name}`, {
           description: validationError,
         });
-        return;
+        return null;
       }
 
       const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const preview = URL.createObjectURL(file);
+      const preview = URL.createObjectURL(convertedFile);
 
-      newFiles.push({
+      return {
         id: fileId,
-        file,
+        file: convertedFile,
         preview,
         progress: 0,
         status: "uploading",
+      };
+    } catch (error) {
+      toast.error(`Failed to convert ${file.name}`, {
+        description: error instanceof Error ? error.message : "Unknown error",
       });
-    });
+      return null;
+    }
+  };
+
+  const handleFiles = async (files: FileList) => {
+    const newFiles: UploadedFile[] = [];
+
+    for (const file of Array.from(files)) {
+      const processed = await processFile(file);
+      if (processed) newFiles.push(processed);
+    }
 
     if (newFiles.length > 0) {
       setUploadedFiles([...uploadedFiles, ...newFiles]);
@@ -111,10 +141,8 @@ export function ImageUpload({
         let errorDetails = `${res.status} ${res.statusText}`;
         try {
           const errorBody = await res.text();
-          if (errorBody) {
-            errorDetails += `: ${errorBody}`;
-          }
-        } catch (e) {}
+          if (errorBody) errorDetails += `: ${errorBody}`;
+        } catch (_) {}
         throw new Error(`Upload failed: ${errorDetails}`);
       }
 
@@ -202,7 +230,6 @@ export function ImageUpload({
       </h3>
 
       <div className="space-y-4">
-        {/* Upload Zone */}
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
             isDragOver
@@ -224,13 +251,13 @@ export function ImageUpload({
                 Drop images here or click to browse
               </p>
               <p className="text-xs text-gray-500">
-                JPEG, PNG, WebP up to 5MB each
+                JPEG, PNG, WebP (HEIC auto-converted) – max 5MB
               </p>
             </div>
             <Input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/heic"
               multiple
               className="hidden"
               onChange={handleUpload}
@@ -246,7 +273,6 @@ export function ImageUpload({
           </div>
         </div>
 
-        {/* Uploaded Files List */}
         {uploadedFiles.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-700">
@@ -258,7 +284,6 @@ export function ImageUpload({
                   key={file.id}
                   className="flex items-center gap-3 p-3 bg-white rounded-lg border"
                 >
-                  {/* File Preview */}
                   <div className="flex-shrink-0">
                     <img
                       src={file.preview}
@@ -266,39 +291,26 @@ export function ImageUpload({
                       className="w-10 h-10 object-cover rounded"
                     />
                   </div>
-
-                  {/* File Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {file.file.name}
-                    </p>
                     <p className="text-xs text-gray-500">
                       {(file.file.size / 1024 / 1024).toFixed(1)} MB
                     </p>
-
-                    {/* Progress Bar */}
                     {file.status === "uploading" && (
                       <div className="mt-1">
                         <Progress value={file.progress} className="h-1" />
                       </div>
                     )}
-
-                    {/* Error Message */}
                     {file.status === "error" && file.error && (
                       <p className="text-xs text-red-600 mt-1">{file.error}</p>
                     )}
                   </div>
-
-                  {/* Status Icon & Actions */}
                   <div className="flex items-center gap-2">
                     {file.status === "uploading" && (
                       <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
                     )}
-
                     {file.status === "success" && (
                       <FiCheck className="h-4 w-4 text-green-500" />
                     )}
-
                     {file.status === "error" && (
                       <>
                         <FiAlertCircle className="h-4 w-4 text-red-500" />
@@ -312,7 +324,6 @@ export function ImageUpload({
                         </Button>
                       </>
                     )}
-
                     <Button
                       variant="ghost"
                       size="sm"

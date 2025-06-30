@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AuthService } from "../../../client";
+import Image from "next/image";
 
 export default function MainLayout({
   children,
@@ -93,19 +94,24 @@ export default function MainLayout({
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-white overflow-hidden">
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -300 }}
         animate={{ x: 0 }}
         transition={{ type: "easeInOut", duration: "0.5" }}
-        className="hidden md:flex flex-col w-56 bg-gradient-to-b from-indigo-800 to-indigo-900 text-white p-4 shadow-xl border-r border-indigo-700/50"
+        className="hidden md:flex flex-col w-56 bg-gradient-to-b from-[#4b3526] to-[#3a281d] text-white p-4 shadow-xl border-r border-[#4b3526]/50"
       >
         {/* Logo/Brand */}
-        <div className="p-4 mb-6 flex items-center space-x-3">
+        <div className="flex items-center space-x-3">
           <div>
-            <h1 className="text-2xl font-bold font-poppins">Express</h1>
-            <p className="text-indigo-200 text-sm">Operation Dashboard</p>
+            <Image
+              src="/ahmad.png"
+              alt="Radiant"
+              width={200}
+              height={200}
+              className="mb-3"
+            />
           </div>
         </div>
 
@@ -120,15 +126,15 @@ export default function MainLayout({
                     whileTap={{ scale: 0.98 }}
                     className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 group ${
                       isActive(item.path)
-                        ? "bg-indigo-600 shadow-md"
-                        : "hover:bg-indigo-700/70"
+                        ? "bg-[#5a4233] shadow-md"
+                        : "hover:bg-[#4b3526]/70"
                     }`}
                   >
                     <div
                       className={`mr-3 ${
                         isActive(item.path)
                           ? "text-white"
-                          : "text-indigo-300 group-hover:text-white"
+                          : "text-[#d1c2b8] group-hover:text-white"
                       }`}
                     >
                       {item.icon}
@@ -154,12 +160,12 @@ export default function MainLayout({
                     whileTap={{ scale: 0.98 }}
                     className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 group cursor-pointer ${
                       pathname.startsWith("/schedule")
-                        ? "bg-indigo-700/50"
-                        : "hover:bg-indigo-700/70"
+                        ? "bg-[#4b3526]/50"
+                        : "hover:bg-[#4b3526]/70"
                     }`}
                     onClick={toggleScheduleMenu}
                   >
-                    <div className="mr-3 text-indigo-300 group-hover:text-white">
+                    <div className="mr-3 text-[#d1c2b8] group-hover:text-white">
                       {item.icon}
                     </div>
                     <span className="font-medium">{item.name}</span>
@@ -211,12 +217,12 @@ export default function MainLayout({
         </nav>
 
         {/* Logout Button */}
-        <div className="mt-auto pt-4 border-t border-indigo-700/50">
+        <div className="mt-auto pt-4 border-t border-[#4b3526]/50">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowLogoutDialog(true)}
-            className="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-indigo-700/50 text-white"
+            className="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-[#4b3526]/50 text-white"
           >
             <FiLogOut className="h-5 w-5 mr-3" />
             <span className="font-medium">Log Out</span>
@@ -239,7 +245,7 @@ export default function MainLayout({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleLogout}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-[#4b3526] hover:bg-[#5a4233]"
             >
               Logout
             </AlertDialogAction>
@@ -248,7 +254,7 @@ export default function MainLayout({
       </AlertDialog>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-indigo-800 shadow-lg z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#4b3526] shadow-lg z-50">
         <div className="flex justify-around p-2">
           {navItems.slice(0, 4).map((item) => (
             <Link
@@ -264,14 +270,14 @@ export default function MainLayout({
                       isActive(item.path!) ||
                       (item.submenu &&
                         item.submenu.some((sub) => isActive(sub.path)))
-                        ? "bg-indigo-600 text-white"
-                        : "text-indigo-200 hover:bg-indigo-700/50"
+                        ? "bg-[#5a4233] text-white"
+                        : "text-[#d1c2b8] hover:bg-[#4b3526]/50"
                     }`}
                   >
                     {item.icon}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="bg-indigo-700 text-white">
+                <TooltipContent side="top" className="bg-[#4b3526] text-white">
                   {item.name}
                 </TooltipContent>
               </Tooltip>
@@ -286,7 +292,6 @@ export default function MainLayout({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="bg-white rounded-xl shadow-sm p-6 min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-6rem)]"
         >
           {children}
         </motion.div>

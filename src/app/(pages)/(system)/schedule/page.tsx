@@ -5,12 +5,13 @@ import { FiPlus } from "react-icons/fi";
 import { TransactionResponse, TransactionService } from "../../../../../client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-
+import { format } from "date-fns";
 import { AddTicketDialog } from "./components/schedule/add-ticket-dialog";
 import { TransactionDetailsDrawer } from "./components/schedule/transaction-detail-drawer";
 import { ScheduleColumns } from "./components/schedule/schedule-columns";
 
 export default function Schedule() {
+  const [currentDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [scheduled, setScheduled] = useState<TransactionResponse[]>([]);
   const [stageOne, setStageOne] = useState<TransactionResponse[]>([]);
   const [stageTwo, setStageTwo] = useState<TransactionResponse[]>([]);
@@ -33,6 +34,7 @@ export default function Schedule() {
     async function fetchAllData() {
       try {
         setIsLoading(true);
+
         const [
           scheduledRes,
           stageOneRes,
@@ -40,31 +42,61 @@ export default function Schedule() {
           stageThreeRes,
           completedRes,
         ] = await Promise.all([
-          TransactionService.transactionControllerFindScheduled() as unknown as TransactionResponse[],
-          TransactionService.transactionControllerFindStageOne() as unknown as TransactionResponse[],
-          TransactionService.transactionControllerFindStageTwo() as unknown as TransactionResponse[],
-          TransactionService.transactionControllerFindStageThree() as unknown as TransactionResponse[], // Add this line
-          TransactionService.transactionControllerFindCompleted() as unknown as TransactionResponse[],
+          TransactionService.transactionControllerFindScheduled({
+            date: currentDate,
+          }) as unknown as TransactionResponse[],
+          TransactionService.transactionControllerFindStageOne({
+            date: currentDate,
+          }) as unknown as TransactionResponse[],
+          TransactionService.transactionControllerFindStageTwo({
+            date: currentDate,
+          }) as unknown as TransactionResponse[],
+          TransactionService.transactionControllerFindStageThree({
+            date: currentDate,
+          }) as unknown as TransactionResponse[],
+          TransactionService.transactionControllerFindCompleted({
+            date: currentDate,
+          }) as unknown as TransactionResponse[],
         ]);
 
         setScheduled(scheduledRes);
         setStageOne(stageOneRes);
         setStageTwo(stageTwoRes);
-        setStageThree(stageThreeRes); // Add this line
+        setStageThree(stageThreeRes);
         setCompleted(completedRes);
       } catch (error) {
         console.error("Error fetching appointments:", error);
         setScheduled([]);
         setStageOne([]);
         setStageTwo([]);
-        setStageThree([]); // Add this line
+        setStageThree([]);
         setCompleted([]);
       } finally {
         setIsLoading(false);
       }
     }
     fetchAllData();
-  }, [refreshKey]);
+  }, [refreshKey, currentDate]);
+
+  // Auto-refresh at midnight
+  useEffect(() => {
+    const now = new Date();
+    const midnight = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      0,
+      0,
+      0
+    );
+    const msUntilMidnight = midnight.getTime() - now.getTime();
+
+    const timer = setTimeout(() => {
+      setRefreshKey((prev) => prev + 1);
+    }, msUntilMidnight);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -73,8 +105,8 @@ export default function Schedule() {
 
   const handleStatusChange = async (
     id: string,
-    from: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed", // Add stageThree
-    to: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed" // Add stageThree
+    from: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed",
+    to: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed"
   ) => {
     setMovingItemId(id);
 
@@ -87,7 +119,6 @@ export default function Schedule() {
       } else if (from === "stageTwo") {
         setStageTwo(stageTwo.filter((item) => item.id !== id));
       } else if (from === "stageThree") {
-        // Add this condition
         setStageThree(stageThree.filter((item) => item.id !== id));
       } else if (from === "completed") {
         setCompleted(completed.filter((item) => item.id !== id));
@@ -104,22 +135,32 @@ export default function Schedule() {
               ? TransactionResponse.status.STAGE_ONE
               : to === "stageTwo"
               ? TransactionResponse.status.STAGE_TWO
-              : to === "stageThree" // Add this condition
+              : to === "stageThree"
               ? TransactionResponse.status.STAGE_THREE
               : TransactionResponse.status.COMPLETED,
         },
       });
 
-      // Fetch updated list for the new stage
+      // Fetch updated list for the new stage with current date filter
       const updatedList = (await (to === "scheduled"
-        ? TransactionService.transactionControllerFindScheduled()
+        ? TransactionService.transactionControllerFindScheduled({
+            date: currentDate,
+          })
         : to === "stageOne"
-        ? TransactionService.transactionControllerFindStageOne()
+        ? TransactionService.transactionControllerFindStageOne({
+            date: currentDate,
+          })
         : to === "stageTwo"
-        ? TransactionService.transactionControllerFindStageTwo()
-        : to === "stageThree" // Add this condition
-        ? TransactionService.transactionControllerFindStageThree()
-        : TransactionService.transactionControllerFindCompleted())) as unknown as TransactionResponse[];
+        ? TransactionService.transactionControllerFindStageTwo({
+            date: currentDate,
+          })
+        : to === "stageThree"
+        ? TransactionService.transactionControllerFindStageThree({
+            date: currentDate,
+          })
+        : TransactionService.transactionControllerFindCompleted({
+            date: currentDate,
+          }))) as unknown as TransactionResponse[];
 
       // Update the new stage state
       if (to === "scheduled") {
@@ -129,7 +170,6 @@ export default function Schedule() {
       } else if (to === "stageTwo") {
         setStageTwo(updatedList);
       } else if (to === "stageThree") {
-        // Add this condition
         setStageThree(updatedList);
       } else if (to === "completed") {
         setCompleted(updatedList);
@@ -153,7 +193,6 @@ export default function Schedule() {
           stageTwo.find((item) => item.id === id)!,
         ]);
       } else if (from === "stageThree") {
-        // Add this condition
         setStageThree((prev) => [
           ...prev,
           stageThree.find((item) => item.id === id)!,
@@ -187,7 +226,9 @@ export default function Schedule() {
   return (
     <div className="p-2">
       <div className="flex justify-between items-center mb-6">
-        <div className="text-2xl font-bold text-gray-800">Bookings</div>
+        <div className="text-2xl font-bold text-gray-800">
+          Today's Tickets ({format(new Date(currentDate), "MMMM d, yyyy")})
+        </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -223,11 +264,3 @@ export default function Schedule() {
     </div>
   );
 }
-
-// "use client";
-
-// import Schedules from "./components/schedule/schedule";
-
-// export default function Schedule() {
-//   return <Schedules />;
-// }

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { FiPlus } from "react-icons/fi";
 import {
   Form,
   FormControl,
@@ -170,18 +169,6 @@ export function CarSearchField({ customers }: CarSearchFieldProps) {
                     {car.label}
                   </SelectItem>
                 ))}
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start pl-8 pr-2 text-sm font-normal"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsSelectOpen(false);
-                    setIsDialogOpen(true);
-                  }}
-                >
-                  <FiPlus className="mr-2 h-4 w-4" />
-                  Add New Car
-                </Button>
               </SelectContent>
             </Select>
             <FormMessage />

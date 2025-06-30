@@ -5,7 +5,5 @@
 export type CreateTechnicianDto = {
     fName: string;
     lName: string;
-    mobileNumber: string;
-    workId: string;
 };
 
