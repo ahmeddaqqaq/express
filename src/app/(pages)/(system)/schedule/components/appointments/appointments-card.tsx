@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 import { FiSettings, FiUser } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,14 +25,13 @@ export function AppointmentsCard({
     from: AppointmentStatus;
     to: AppointmentStatus;
   } | null>(null);
-  const [timeLeft, setTimeLeft] = useState<number>(15 * 60); // 15 minutes in seconds
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
   const [timerActive, setTimerActive] = useState(false);
 
   const currentStatus = statusConfigs[status];
   const showInfoButton =
     status === "stageOne" || status === "stageTwo" || status === "stageThree";
 
-  // Start or reset timer when status changes to phase1, phase2, or phase3
   useEffect(() => {
     if (
       status === "stageOne" ||
@@ -40,24 +39,22 @@ export function AppointmentsCard({
       status === "stageThree"
     ) {
       setTimerActive(true);
-      setTimeLeft(15 * 60); // Reset to 15 minutes
     } else {
       setTimerActive(false);
     }
   }, [status]);
 
-  // Countdown timer effect
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
-    if (timerActive && timeLeft > 0) {
+    if (timerActive) {
       interval = setInterval(() => {
-        setTimeLeft((prevTime) => prevTime - 1);
+        setCurrentTime(Date.now());
       }, 1000);
     }
 
     return () => clearInterval(interval);
-  }, [timerActive, timeLeft]);
+  }, [timerActive]);
 
   const handleStatusChangeClick = async (
     from: AppointmentStatus,
@@ -75,7 +72,30 @@ export function AppointmentsCard({
     }
   };
 
-  // Format time for display (MM:SS)
+  const getTimeDisplay = () => {
+    if (!timerActive) return null;
+
+    const updatedAtTime = new Date(appointment.updatedAt).getTime();
+    const elapsedSeconds = Math.floor((currentTime - updatedAtTime) / 1000);
+    const fifteenMinutesInSeconds = 15 * 60;
+
+    if (elapsedSeconds < fifteenMinutesInSeconds) {
+      const remainingSeconds = fifteenMinutesInSeconds - elapsedSeconds;
+      return {
+        time: remainingSeconds,
+        isCountUp: false,
+        isOverdue: false,
+      };
+    } else {
+      const overtimeSeconds = elapsedSeconds - fifteenMinutesInSeconds;
+      return {
+        time: overtimeSeconds,
+        isCountUp: true,
+        isOverdue: true,
+      };
+    }
+  };
+
   const formatCountdown = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -83,6 +103,8 @@ export function AppointmentsCard({
       .toString()
       .padStart(2, "0")}`;
   };
+
+  const timeDisplay = getTimeDisplay();
 
   return (
     <>
@@ -96,9 +118,19 @@ export function AppointmentsCard({
         }}
         exit={{ opacity: 0, x: status === "completed" ? 0 : -100 }}
         transition={{ duration: 0.3 }}
-        className={`bg-white rounded-lg shadow-sm p-3 mb-3 border-l-4 ${currentStatus.borderColor} hover:shadow-md transition-shadow`}
+        className={`rounded-lg shadow-sm p-3 mb-3 border-l-4 ${
+          currentStatus.borderColor
+        } hover:shadow-md transition-shadow ${
+          timeDisplay
+            ? timeDisplay.isOverdue
+              ? "bg-red-100 text-red-700"
+              : timeDisplay.time <= 300
+              ? "bg-orange-100 text-orange-700"
+              : "bg-white"
+            : "bg-white"
+        }`}
       >
-        <div className="flex justify-between">
+        <div className="flex justify-between ">
           <div>
             <div className="flex items-center text-xs text-gray-600 mb-1">
               <FiUser className="mr-1 h-3 w-3" />
@@ -123,18 +155,19 @@ export function AppointmentsCard({
           {appointment.car.brand.name} {appointment.car.model.name}
         </div>
         <div className="flex justify-between items-center mt-1">
-          {/* Updated time display with countdown */}
-          {status === "stageOne" ||
-          status === "stageTwo" ||
-          status === "stageThree" ? (
+          {/* Updated time display with countdown/count-up */}
+          {timeDisplay ? (
             <span
               className={`text-[0.65rem] px-1.5 py-0.5 rounded ${
-                timeLeft <= 300
+                timeDisplay.isOverdue
                   ? "bg-red-100 text-red-700"
+                  : timeDisplay.time <= 300
+                  ? "bg-orange-100 text-orange-700"
                   : "bg-blue-50 text-blue-700"
               }`}
             >
-              {formatCountdown(timeLeft)}
+              {timeDisplay.isCountUp ? "+" : ""}
+              {formatCountdown(timeDisplay.time)}
             </span>
           ) : (
             <span className="text-[0.65rem] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
