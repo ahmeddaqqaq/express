@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { FaDotCircle } from "react-icons/fa";
 import { Clock } from "lucide-react";
@@ -134,6 +136,8 @@ export function AddTicketDialog({
   const [services, setServices] = useState<ServiceResponse[]>([]);
   const [addOns, setAddOns] = useState<AddOnsResponse[]>([]);
   const [brands, setBrands] = useState<BrandResponse[]>([]);
+
+  const [brandOpen, setBrandOpen] = useState(false);
 
   const ticketForm = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -596,8 +600,6 @@ export function AddTicketDialog({
                     control={carForm.control}
                     name="brandId"
                     render={({ field }) => {
-                      const [brandOpen, setBrandOpen] = useState(false);
-
                       return (
                         <FormItem className="flex flex-col flex-1">
                           <FormLabel>Brand</FormLabel>
