@@ -51,50 +51,100 @@ export class TransactionService {
      * @returns void
      * @throws ApiError
      */
-    public static transactionControllerFindScheduled(): CancelablePromise<void> {
+    public static transactionControllerFindScheduled({
+        date,
+    }: {
+        /**
+         * Date filter (YYYY-MM-DD format)
+         */
+        date?: string,
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/transaction/findScheduled',
+            query: {
+                'date': date,
+            },
         });
     }
     /**
      * @returns void
      * @throws ApiError
      */
-    public static transactionControllerFindStageOne(): CancelablePromise<void> {
+    public static transactionControllerFindStageOne({
+        date,
+    }: {
+        /**
+         * Date filter (YYYY-MM-DD format)
+         */
+        date?: string,
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/transaction/findInProgressStageOne',
+            query: {
+                'date': date,
+            },
         });
     }
     /**
      * @returns void
      * @throws ApiError
      */
-    public static transactionControllerFindStageTwo(): CancelablePromise<void> {
+    public static transactionControllerFindStageTwo({
+        date,
+    }: {
+        /**
+         * Date filter (YYYY-MM-DD format)
+         */
+        date?: string,
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/transaction/findInProgressStageTwo',
+            query: {
+                'date': date,
+            },
         });
     }
     /**
      * @returns void
      * @throws ApiError
      */
-    public static transactionControllerFindStageThree(): CancelablePromise<void> {
+    public static transactionControllerFindStageThree({
+        date,
+    }: {
+        /**
+         * Date filter (YYYY-MM-DD format)
+         */
+        date?: string,
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/transaction/findInProgressStageThree',
+            query: {
+                'date': date,
+            },
         });
     }
     /**
      * @returns void
      * @throws ApiError
      */
-    public static transactionControllerFindCompleted(): CancelablePromise<void> {
+    public static transactionControllerFindCompleted({
+        date,
+    }: {
+        /**
+         * Date filter (YYYY-MM-DD format)
+         */
+        date?: string,
+    }): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/transaction/findCompleted',
+            query: {
+                'date': date,
+            },
         });
     }
     /**

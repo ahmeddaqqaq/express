@@ -37,7 +37,7 @@ export default function VehiclesPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(8);
+  const [itemsPerPage] = useState(200);
 
   // Form states
   const [brandForm, setBrandForm] = useState({
