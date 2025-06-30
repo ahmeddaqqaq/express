@@ -395,102 +395,106 @@ export default function Customers() {
         direction="right"
         onOpenChange={setIsDrawerOpen}
       >
-        <DrawerContent>
-          <div className="mx-auto w-full max-w-md">
-            <DrawerHeader>
+        <DrawerContent className="h-full">
+          <div className="mx-auto w-full max-w-md flex flex-col h-full">
+            <DrawerHeader className="flex-shrink-0">
               <DrawerTitle>Customer Details</DrawerTitle>
               <DrawerDescription>
                 View and manage customer information
               </DrawerDescription>
             </DrawerHeader>
-            {selectedCustomer && (
-              <div className="p-4">
-                {/* Customer Header */}
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="flex-shrink-0 h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-blue-600 text-xl font-medium">
-                      {selectedCustomer.fName.charAt(0)}
-                      {selectedCustomer.lName.charAt(0)}
-                    </span>
+
+            {/* Scrollable content area */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {selectedCustomer && (
+                <>
+                  {/* Customer Header */}
+                  <div className="flex items-center space-x-4 mb-6">
+                    <div className="flex-shrink-0 h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-blue-600 text-xl font-medium">
+                        {selectedCustomer.fName.charAt(0)}
+                        {selectedCustomer.lName.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold">
+                        {selectedCustomer.fName} {selectedCustomer.lName}
+                      </h2>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="text-gray-500">
+                          ID: {selectedCustomer.id}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-xl font-bold">
-                      {selectedCustomer.fName} {selectedCustomer.lName}
-                    </h2>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-gray-500">
-                        ID: {selectedCustomer.id}
+
+                  {/* Contact Info */}
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-medium text-gray-700 mb-2">
+                      Contact Information
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <FiPhoneCall className="text-gray-400" />
+                      <span className="text-gray-900">
+                        {selectedCustomer.mobileNumber}
                       </span>
                     </div>
                   </div>
-                </div>
 
-                {/* Contact Info */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-medium text-gray-700 mb-2">
-                    Contact Information
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    <FiPhoneCall className="text-gray-400" />
-                    <span className="text-gray-900">
-                      {selectedCustomer.mobileNumber}
-                    </span>
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500">Total Visits</p>
+                      <p className="text-xl font-bold">
+                        {selectedCustomer.count}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500">Registered Cars</p>
+                      <p className="text-xl font-bold">
+                        {selectedCustomer.cars?.length || 0}
+                      </p>
+                    </div>
                   </div>
-                </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500">Total Visits</p>
-                    <p className="text-xl font-bold">
-                      {selectedCustomer.count}
-                    </p>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500">Registered Cars</p>
-                    <p className="text-xl font-bold">
-                      {selectedCustomer.cars?.length || 0}
-                    </p>
-                  </div>
-                </div>
+                  {/* Cars Section */}
+                  <div>
+                    <h3 className="font-medium text-gray-700 mb-3">
+                      Registered Vehicles
+                    </h3>
 
-                {/* Cars Section */}
-                <div>
-                  <h3 className="font-medium text-gray-700 mb-3">
-                    Registered Vehicles
-                  </h3>
-
-                  {selectedCustomer.cars?.length > 0 ? (
-                    <div className="space-y-3">
-                      {selectedCustomer.cars.map((car) => (
-                        <div
-                          key={car.id}
-                          className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="font-medium">
-                                {car.brand.name} {car.model.name}
-                              </h4>
-                              <div className="text-sm text-gray-500 mt-1">
-                                <span className="inline-block mr-3">
-                                  Year: {car.year}
-                                </span>
-                                <span>Plate: {car.plateNumber}</span>
+                    {selectedCustomer.cars?.length > 0 ? (
+                      <div className="space-y-3">
+                        {selectedCustomer.cars.map((car) => (
+                          <div
+                            key={car.id}
+                            className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="font-medium">
+                                  {car.brand.name} {car.model.name}
+                                </h4>
+                                <div className="text-sm text-gray-500 mt-1">
+                                  <span className="inline-block mr-3">
+                                    Year: {car.year}
+                                  </span>
+                                  <span>Plate: {car.plateNumber}</span>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-4 text-center border-2 border-dashed rounded-lg text-gray-500">
-                      No vehicles registered
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center border-2 border-dashed rounded-lg text-gray-500">
+                        No vehicles registered
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
             <DrawerFooter>
               <Dialog open={isCarDialogOpen} onOpenChange={setIsCarDialogOpen}>
                 <DialogTrigger asChild>
