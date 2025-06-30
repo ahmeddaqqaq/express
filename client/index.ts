@@ -54,6 +54,7 @@ export { CarService } from './services/CarService';
 export { CustomerService } from './services/CustomerService';
 export { ImageService } from './services/ImageService';
 export { ModelService } from './services/ModelService';
+export { SeederService } from './services/SeederService';
 export { ServiceService } from './services/ServiceService';
 export { StatisticsService } from './services/StatisticsService';
 export { SupervisorService } from './services/SupervisorService';
