@@ -50,6 +50,21 @@ import { ServiceSearchField } from "../service-search-field";
 import { SupervisorSearchField } from "../supervisor-search-field";
 import { AddOnsField } from "../add-ons-field";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { FiCheck, FiChevronDown } from "react-icons/fi";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   customerId: z.string().min(1, "Customer is required"),
@@ -109,6 +124,11 @@ export function AddTicketDialog({
   const [supervisorCurrentPage, setSupervisorCurrentPage] = useState(1);
   const [supervisorTotalCount, setSupervisorTotalCount] = useState(0);
   const supervisorItemsPerPage = 5;
+
+  const [brandSearchQuery, setBrandSearchQuery] = useState("");
+  const [brandCurrentPage, setBrandCurrentPage] = useState(1);
+  const [brandTotalCount, setBrandTotalCount] = useState(0);
+  const brandItemsPerPage = 10;
 
   // Other data
   const [services, setServices] = useState<ServiceResponse[]>([]);
@@ -239,8 +259,14 @@ export function AddTicketDialog({
 
   const fetchBrands = async () => {
     try {
-      const response = await BrandService.brandControllerFindMany({});
+      const skip = (brandCurrentPage - 1) * brandItemsPerPage;
+      const response = await BrandService.brandControllerFindMany({
+        search: brandSearchQuery || "",
+        skip,
+        take: brandItemsPerPage,
+      });
       setBrands(response.data);
+      setBrandTotalCount(response.rows || response.data.length);
     } catch (error) {
       console.error("Error fetching brands:", error);
     }
@@ -259,7 +285,7 @@ export function AddTicketDialog({
     fetchServices();
     fetchAddOns();
     fetchBrands();
-  }, []);
+  }, [brandSearchQuery, brandCurrentPage]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -569,29 +595,118 @@ export function AddTicketDialog({
                   <FormField
                     control={carForm.control}
                     name="brandId"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>Brand</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select brand" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {brands.map((brand) => (
-                              <SelectItem key={brand.id} value={brand.id}>
-                                {brand.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const [brandOpen, setBrandOpen] = useState(false);
+
+                      return (
+                        <FormItem className="flex flex-col flex-1">
+                          <FormLabel>Brand</FormLabel>
+                          <Popover open={brandOpen} onOpenChange={setBrandOpen}>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={brandOpen}
+                                  className="justify-between"
+                                >
+                                  <span>
+                                    {field.value
+                                      ? brands.find(
+                                          (brand) => brand.id === field.value
+                                        )?.name
+                                      : "Select brand..."}
+                                  </span>
+                                  <FiChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                              <Command shouldFilter={false}>
+                                <CommandInput
+                                  placeholder="Search brands..."
+                                  className="h-9"
+                                  value={brandSearchQuery}
+                                  onValueChange={(value) => {
+                                    setBrandSearchQuery(value);
+                                    setBrandCurrentPage(1);
+                                  }}
+                                />
+                                <CommandEmpty>No brands found.</CommandEmpty>
+                                <ScrollArea className="h-64">
+                                  <CommandGroup>
+                                    {brands.map((brand) => (
+                                      <CommandItem
+                                        key={brand.id}
+                                        value={brand.id}
+                                        onSelect={async () => {
+                                          field.onChange(brand.id);
+                                          setBrandOpen(false);
+
+                                          // Update brands state with models
+                                        }}
+                                      >
+                                        {brand.name}
+                                        <FiCheck
+                                          className={cn(
+                                            "ml-auto h-4 w-4",
+                                            field.value === brand.id
+                                              ? "opacity-100"
+                                              : "opacity-0"
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </ScrollArea>
+                                <div className="flex items-center justify-between p-2 text-sm text-gray-600 border-t">
+                                  <span>
+                                    Showing{" "}
+                                    {(brandCurrentPage - 1) *
+                                      brandItemsPerPage +
+                                      1}
+                                    -
+                                    {Math.min(
+                                      brandCurrentPage * brandItemsPerPage,
+                                      brandTotalCount
+                                    )}{" "}
+                                    of {brandTotalCount}
+                                  </span>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={brandCurrentPage === 1}
+                                      onClick={() =>
+                                        setBrandCurrentPage((p) =>
+                                          Math.max(1, p - 1)
+                                        )
+                                      }
+                                    >
+                                      Previous
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      disabled={
+                                        brandCurrentPage * brandItemsPerPage >=
+                                        brandTotalCount
+                                      }
+                                      onClick={() =>
+                                        setBrandCurrentPage((p) => p + 1)
+                                      }
+                                    >
+                                      Next
+                                    </Button>
+                                  </div>
+                                </div>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                   <FormField
                     control={carForm.control}
