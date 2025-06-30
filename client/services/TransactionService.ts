@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CalculateTotalDto } from '../models/CalculateTotalDto';
 import type { CreateTransactionDto } from '../models/CreateTransactionDto';
 import type { UpdateTransactionDto } from '../models/UpdateTransactionDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -159,6 +160,22 @@ export class TransactionService {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/express/transaction/update',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static transactionControllerCalculateTotal({
+        requestBody,
+    }: {
+        requestBody: CalculateTotalDto,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/transaction/calculate-total',
             body: requestBody,
             mediaType: 'application/json',
         });

@@ -139,6 +139,10 @@ export function AddTicketDialog({
 
   const [brandOpen, setBrandOpen] = useState(false);
 
+  const [calculation, setCalculation] = useState<{ total: number } | null>(
+    null
+  );
+
   const ticketForm = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -276,7 +280,46 @@ export function AddTicketDialog({
     }
   };
 
+  const calculateTotal = async () => {
+    try {
+      const selectedServiceId = ticketForm.watch("serviceId");
+      const selectedAddOns = ticketForm.watch("addOnsIds") || [];
+
+      if (!selectedCarId || !selectedServiceId) {
+        console.warn("Please select both a car and a service first");
+        return;
+      }
+
+      const response =
+        await TransactionService.transactionControllerCalculateTotal({
+          requestBody: {
+            serviceId: selectedServiceId,
+            carId: selectedCarId,
+            addOnsIds: selectedAddOns,
+          },
+        });
+
+      setCalculation(response as unknown as { total: number });
+      return response;
+    } catch (error) {
+      setCalculation(null);
+      throw error;
+    }
+  };
+
   // Effects
+  useEffect(() => {
+    if (selectedCarId && ticketForm.watch("serviceId")) {
+      calculateTotal();
+    } else {
+      setCalculation(null);
+    }
+  }, [
+    selectedCarId,
+    ticketForm.watch("serviceId"),
+    ticketForm.watch("addOnsIds"),
+  ]);
+
   useEffect(() => {
     fetchCustomers();
   }, [customerSearchQuery, customerCurrentPage]);
@@ -484,8 +527,16 @@ export function AddTicketDialog({
                     </FormItem>
                   )}
                 />
+                <div className="flex gap-2 items-center">
+                  <div>Total: </div>
+                  <div className="text-md text-green-700">
+                    {calculation?.total !== undefined
+                      ? `${calculation.total.toFixed(2)} JOD`
+                      : "0.00 JOD"}
+                  </div>
+                </div>
 
-                <DialogFooter>
+                <DialogFooter className="flex items-center">
                   <Button
                     type="button"
                     variant="outline"
