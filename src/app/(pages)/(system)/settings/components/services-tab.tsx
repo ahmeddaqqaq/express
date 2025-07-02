@@ -21,6 +21,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ServicePriceDto, ServiceService } from "../../../../../../client";
 
 enum carType {
@@ -47,6 +57,8 @@ export default function ServicesTab() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [newService, setNewService] = useState({
     name: "",
     prices: carTypes.map((type) => ({ carType: type, price: 0 })),
@@ -111,6 +123,26 @@ export default function ServicesTab() {
       console.error("Failed to create service:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const deleteService = async (service: Service) => {
+    setServiceToDelete(service);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!serviceToDelete) return;
+
+    try {
+      await ServiceService.serviceControllerDelete({
+        id: serviceToDelete.id,
+      });
+      await fetchServices();
+      setDeleteDialogOpen(false);
+      setServiceToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete service:", error);
     }
   };
 
@@ -204,8 +236,13 @@ export default function ServicesTab() {
                     );
                   })}
                   <TableCell>
-                    <Button variant="ghost" size="sm">
-                      <FiTrash2 className="text-red-500" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteService(service)}
+                      className="hover:bg-red-50"
+                    >
+                      <FiTrash2 className="text-red-500 hover:text-red-700" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -214,6 +251,27 @@ export default function ServicesTab() {
           </Table>
         </div>
       )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{serviceToDelete?.name}"? This action
+              cannot be undone and will affect all appointments using this service.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

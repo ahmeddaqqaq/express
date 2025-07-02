@@ -29,6 +29,7 @@ import {
   FiUser,
   FiActivity,
   FiX,
+  FiTrash2,
 } from "react-icons/fi";
 import {
   TechnicianService,
@@ -49,6 +50,16 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaPerson } from "react-icons/fa6";
 
@@ -62,6 +73,9 @@ export default function TechniciansTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedTechnician, setSelectedTechnician] =
+    useState<TechnicianResponse | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [technicianToDelete, setTechnicianToDelete] =
     useState<TechnicianResponse | null>(null);
   const [newTechnician, setNewTechnician] = useState({
     fName: "",
@@ -166,6 +180,26 @@ export default function TechniciansTab() {
       await fetchTechnicians();
     } catch (error) {
       console.error("Failed to start shift:", error);
+    }
+  };
+
+  const deleteTechnician = async (technician: TechnicianResponse) => {
+    setTechnicianToDelete(technician);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!technicianToDelete) return;
+
+    try {
+      await TechnicianService.technicianControllerDelete({
+        id: technicianToDelete.id,
+      });
+      await fetchTechnicians();
+      setDeleteDialogOpen(false);
+      setTechnicianToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete technician:", error);
     }
   };
 
@@ -276,56 +310,69 @@ export default function TechniciansTab() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <FiMoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startShift(tech.id);
-                          }}
-                          className="flex items-center gap-2"
-                        >
-                          <FiClock className="h-4 w-4" />
-                          <span>Start Shift</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            endShift(tech.id);
-                          }}
-                          className="flex items-center gap-2"
-                        >
-                          <FaClock className="h-4 w-4" />
-                          <span>End Shift</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startBreak(tech.id);
-                          }}
-                          className="flex items-center gap-2"
-                        >
-                          <FiPlay className="h-4 w-4" />
-                          <span>Start Break</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            endBreak(tech.id);
-                          }}
-                          className="flex items-center gap-2"
-                        >
-                          <FiPause className="h-4 w-4" />
-                          <span>End Break</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-1">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <FiMoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startShift(tech.id);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <FiClock className="h-4 w-4" />
+                            <span>Start Shift</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              endShift(tech.id);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <FaClock className="h-4 w-4" />
+                            <span>End Shift</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startBreak(tech.id);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <FiPlay className="h-4 w-4" />
+                            <span>Start Break</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              endBreak(tech.id);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <FiPause className="h-4 w-4" />
+                            <span>End Break</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTechnician(tech);
+                        }}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <FiTrash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -549,6 +596,27 @@ export default function TechniciansTab() {
               </div>
             </DrawerContent>
           </Drawer>
+
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Technician</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete {technicianToDelete?.fName}{" "}
+                  {technicianToDelete?.lName}? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </div>

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FiPlus, FiUser, FiX, FiTrash } from "react-icons/fi";
+import { FiPlus, FiUser, FiX, FiTrash2 } from "react-icons/fi";
 import {
   SupervisorService,
   SupervisorResponse,
@@ -33,6 +33,16 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { FaPerson } from "react-icons/fa6";
 
 export default function SupervisorsTab() {
@@ -42,6 +52,9 @@ export default function SupervisorsTab() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedSupervisor, setSelectedSupervisor] =
+    useState<SupervisorResponse | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [supervisorToDelete, setSupervisorToDelete] =
     useState<SupervisorResponse | null>(null);
   const [newSupervisor, setNewSupervisor] = useState({
     fName: "",
@@ -104,6 +117,26 @@ export default function SupervisorsTab() {
     setIsDrawerOpen(true);
   }
 
+  const deleteSupervisor = async (supervisor: SupervisorResponse) => {
+    setSupervisorToDelete(supervisor);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!supervisorToDelete) return;
+
+    try {
+      await SupervisorService.supervisorControllerDelete({
+        id: supervisorToDelete.id,
+      });
+      await fetchSupervisors();
+      setDeleteDialogOpen(false);
+      setSupervisorToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete supervisor:", error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -165,7 +198,7 @@ export default function SupervisorsTab() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Mobile</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -179,7 +212,17 @@ export default function SupervisorsTab() {
                     {tech.firstName} {tech.lastName}
                   </TableCell>
                   <TableCell className="text-right">
-                    <FiTrash className="h-4 w-4" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteSupervisor(tech);
+                      }}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <FiTrash2 className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -249,6 +292,27 @@ export default function SupervisorsTab() {
               </div>
             </DrawerContent>
           </Drawer>
+
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Supervisor</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete {supervisorToDelete?.firstName}{" "}
+                  {supervisorToDelete?.lastName}? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={confirmDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </div>

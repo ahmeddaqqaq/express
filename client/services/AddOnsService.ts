@@ -47,4 +47,42 @@ export class AddOnsService {
             },
         });
     }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static addOnsControllerUpdate({
+        id,
+        requestBody,
+    }: {
+        id: string,
+        requestBody: CreateAddOnDto,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/express/add-ons/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static addOnsControllerDelete({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/express/add-ons/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }

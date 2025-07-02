@@ -115,4 +115,42 @@ export class TechnicianService {
             },
         });
     }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerUpdate({
+        id,
+        requestBody,
+    }: {
+        id: string,
+        requestBody: CreateTechnicianDto,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/express/technician/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerDelete({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/express/technician/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }

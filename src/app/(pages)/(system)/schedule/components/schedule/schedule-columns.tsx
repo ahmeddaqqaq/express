@@ -31,7 +31,7 @@ export function ScheduleColumns({
   openDetailsDrawer,
 }: ScheduleColumnsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {/* Scheduled Column */}
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
@@ -136,31 +136,6 @@ export function ScheduleColumns({
         </AnimatePresence>
       </div>
 
-      {/* Completed Column */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center">
-            <FiCheckCircle className="mr-2 text-green-500" />
-            Completed
-          </h2>
-          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-            {completed.length}
-          </span>
-        </div>
-        <AnimatePresence>
-          {completed.map((appointment) => (
-            <AppointmentsCard
-              key={appointment.id}
-              appointment={appointment}
-              status="completed"
-              movingItemId={movingItemId}
-              handleStatusChange={handleStatusChange}
-              formatTime={formatTime}
-              openDetailsDrawer={openDetailsDrawer}
-            />
-          ))}
-        </AnimatePresence>
-      </div>
     </div>
   );
 }

@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiCheckCircle } from "react-icons/fi";
 import { TransactionResponse, TransactionService } from "../../../../../client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { AddTicketDialog } from "./components/schedule/add-ticket-dialog";
 import { TransactionDetailsDrawer } from "./components/schedule/transaction-detail-drawer";
+import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-drawer";
 import { ScheduleColumns } from "./components/schedule/schedule-columns";
 
 export default function Schedule() {
@@ -29,6 +30,7 @@ export default function Schedule() {
   const [selectedTransaction, setSelectedTransaction] =
     useState<TransactionResponse | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isCompletedDrawerOpen, setIsCompletedDrawerOpen] = useState(false);
 
   useEffect(() => {
     async function fetchAllData() {
@@ -229,19 +231,28 @@ export default function Schedule() {
         <div className="text-2xl font-bold text-gray-800">
           Today's Tickets ({format(new Date(currentDate), "MMMM d, yyyy")})
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <FiPlus className="w-5 h-5 text-white" />
-              <span className="font-medium text-white">ADD TICKET</span>
-            </Button>
-          </DialogTrigger>
-          <AddTicketDialog
-            isOpen={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
-            onSuccess={handleSuccess}
-          />
-        </Dialog>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setIsCompletedDrawerOpen(true)}
+          >
+            <FiCheckCircle className="w-5 h-5 text-green-600" />
+            <span className="font-medium text-green-600">COMPLETED ({completed.length})</span>
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <FiPlus className="w-5 h-5 text-white" />
+                <span className="font-medium text-white">ADD TICKET</span>
+              </Button>
+            </DialogTrigger>
+            <AddTicketDialog
+              isOpen={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              onSuccess={handleSuccess}
+            />
+          </Dialog>
+        </div>
       </div>
 
       <ScheduleColumns
@@ -260,6 +271,15 @@ export default function Schedule() {
         onOpenChange={setIsDrawerOpen}
         transaction={selectedTransaction}
         formatTime={formatTime}
+      />
+      <CompletedTicketsDrawer
+        isOpen={isCompletedDrawerOpen}
+        onOpenChange={setIsCompletedDrawerOpen}
+        completed={completed}
+        movingItemId={movingItemId}
+        handleStatusChange={handleStatusChange}
+        formatTime={formatTime}
+        openDetailsDrawer={openDetailsDrawer}
       />
     </div>
   );

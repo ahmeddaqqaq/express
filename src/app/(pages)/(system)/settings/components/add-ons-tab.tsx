@@ -99,32 +99,23 @@ export default function AddOnsTab() {
   //     setIsDialogOpen(true);
   //   };
 
-  //   const handleDelete = async () => {
-  //     if (!selectedAddOn) return;
+  const handleDelete = async () => {
+    if (!selectedAddOn) return;
 
-  //     setIsLoading(true);
-  //     try {
-  //       await AddOnsService.addOnsControllerDelete({
-  //         id: selectedAddOn.id,
-  //       });
-  //       toast({
-  //         title: "Success",
-  //         description: "Add-on deleted successfully",
-  //       });
-  //       await fetchAddOns();
-  //       setIsDeleteDialogOpen(false);
-  //       setSelectedAddOn(null);
-  //     } catch (error) {
-  //       console.error("Failed to delete add-on:", error);
-  //       toast({
-  //         title: "Error",
-  //         description: "Failed to delete add-on",
-  //         variant: "destructive",
-  //       });
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+    setIsLoading(true);
+    try {
+      await AddOnsService.addOnsControllerDelete({
+        id: selectedAddOn.id,
+      });
+      await fetchAddOns();
+      setIsDeleteDialogOpen(false);
+      setSelectedAddOn(null);
+    } catch (error) {
+      console.error("Failed to delete add-on:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -260,7 +251,7 @@ export default function AddOnsTab() {
             </Button>
             <Button
               variant="destructive"
-              //   onClick={handleDelete}
+              onClick={handleDelete}
               disabled={isLoading}
             >
               {isLoading ? "Deleting..." : "Delete"}

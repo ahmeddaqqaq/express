@@ -47,4 +47,42 @@ export class SupervisorService {
             },
         });
     }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static supervisorControllerUpdate({
+        id,
+        requestBody,
+    }: {
+        id: string,
+        requestBody: CreateSuperVisorDto,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/express/supervisor/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static supervisorControllerDelete({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/express/supervisor/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }
