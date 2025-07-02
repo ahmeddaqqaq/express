@@ -42,6 +42,27 @@ export class ImageService {
         });
     }
     /**
+     * Serve image with proper CORS headers
+     * @returns any Image served successfully
+     * @throws ApiError
+     */
+    public static imageControllerServeImage({
+        key,
+    }: {
+        key: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/images/serve/{key}',
+            path: {
+                'key': key,
+            },
+            errors: {
+                404: `Image not found`,
+            },
+        });
+    }
+    /**
      * @returns any
      * @throws ApiError
      */

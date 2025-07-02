@@ -24,6 +24,8 @@ export type TransactionResponse = {
     supervisor: SupervisorResponse;
     technicians: Array<TechnicianResponse>;
     deliverTime: string;
+    notes: string;
+    OTP: string;
     createdAt: string;
     updatedAt: string;
 };

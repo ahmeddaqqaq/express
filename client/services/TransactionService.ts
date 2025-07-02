@@ -4,20 +4,22 @@
 /* eslint-disable */
 import type { CalculateTotalDto } from '../models/CalculateTotalDto';
 import type { CreateTransactionDto } from '../models/CreateTransactionDto';
+import type { TransactionResponse } from '../models/TransactionResponse';
 import type { UpdateTransactionDto } from '../models/UpdateTransactionDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class TransactionService {
     /**
-     * @returns void
+     * Create a new transaction
+     * @returns TransactionResponse Transaction created successfully
      * @throws ApiError
      */
     public static transactionControllerCreate({
         requestBody,
     }: {
         requestBody: CreateTransactionDto,
-    }): CancelablePromise<void> {
+    }): CancelablePromise<TransactionResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/express/transaction/create',
@@ -149,14 +151,15 @@ export class TransactionService {
         });
     }
     /**
-     * @returns void
+     * Update transaction status and details
+     * @returns TransactionResponse Transaction updated successfully
      * @throws ApiError
      */
     public static transactionControllerUpdate({
         requestBody,
     }: {
         requestBody: UpdateTransactionDto,
-    }): CancelablePromise<void> {
+    }): CancelablePromise<TransactionResponse> {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/express/transaction/update',

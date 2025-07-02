@@ -42,6 +42,17 @@ export class AuthService {
         });
     }
     /**
+     * Refresh access token
+     * @returns any Tokens refreshed successfully
+     * @throws ApiError
+     */
+    public static authControllerRefresh(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/auth/refresh',
+        });
+    }
+    /**
      * @returns any
      * @throws ApiError
      */
