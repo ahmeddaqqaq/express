@@ -154,6 +154,11 @@ export function AppointmentsCard({
           <FaCar className="mr-1 h-3 w-3" />
           {appointment.car.brand.name} {appointment.car.model.name}
         </div>
+        {appointment.OTP && (
+          <div className="flex text-[0.65rem] font-bold  text-gray-600 px-1.5 py-0.5 rounded ">
+            OTP: {appointment.OTP}
+          </div>
+        )}
         <div className="flex justify-between items-center mt-1">
           {/* Updated time display with countdown/count-up */}
           {timeDisplay ? (
