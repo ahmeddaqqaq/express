@@ -63,7 +63,8 @@ export function AppointmentsCard({
     if (
       (from === "scheduled" && to === "stageOne") ||
       (from === "stageOne" && to === "stageTwo") ||
-      (from === "stageTwo" && to === "stageThree")
+      (from === "stageTwo" && to === "stageThree") ||
+      (from === "stageThree" && to === "completed")
     ) {
       setPendingStatusChange({ from, to });
       setIsDialogOpen(true);

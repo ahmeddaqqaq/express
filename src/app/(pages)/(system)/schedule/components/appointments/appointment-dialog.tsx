@@ -42,7 +42,8 @@ export function AppointmentDialog({
   const imagesRequired =
     pendingStatusChange?.from === "scheduled" ||
     pendingStatusChange?.from === "stageOne" ||
-    pendingStatusChange?.from === "stageTwo";
+    pendingStatusChange?.from === "stageTwo" ||
+    pendingStatusChange?.from === "stageThree";
 
   // Check if the action button should be disabled
   const isActionDisabled = () => {
@@ -77,6 +78,8 @@ export function AppointmentDialog({
               ? "Move to Phase 2 - Confirmation"
               : pendingStatusChange?.to === "stageThree"
               ? "Move to Phase 3 - Confirmation"
+              : pendingStatusChange?.to === "completed"
+              ? "Complete Job - Confirmation"
               : status === "stageOne"
               ? "Stage One Details"
               : status === "stageTwo"
@@ -199,7 +202,9 @@ export function AppointmentDialog({
                 ? "Start Phase 1"
                 : pendingStatusChange.to === "stageTwo"
                 ? "Move to Phase 2"
-                : "Move to Phase 3"}
+                : pendingStatusChange.to === "stageThree"
+                ? "Move to Phase 3"
+                : "Complete Job"}
             </Button>
           )}
         </div>
