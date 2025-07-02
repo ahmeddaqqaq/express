@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { UploadedFile } from "./types";
 
 interface ImageDialogProps {
@@ -49,8 +49,8 @@ export function ImageDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="max-w-4xl w-full max-h-[90vh] p-0" 
+      <DialogContent
+        className="min-w-4xl w-full max-h-[90vh] p-0"
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
@@ -59,14 +59,6 @@ export function ImageDialog({
             <DialogTitle className="text-lg font-semibold">
               Image {currentIndex + 1} of {images.length}
             </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => onOpenChange(false)}
-            >
-              <FiX className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
 
@@ -101,13 +93,6 @@ export function ImageDialog({
         </div>
 
         <div className="p-4 pt-0 border-t">
-          <div className="flex items-center justify-between text-sm text-gray-600">
-            <span className="truncate flex-1">{currentImage.file.name}</span>
-            <span className="ml-2 flex-shrink-0">
-              {(currentImage.file.size / 1024 / 1024).toFixed(1)} MB
-            </span>
-          </div>
-          
           {images.length > 1 && (
             <div className="flex justify-center mt-3 gap-1">
               {images.map((_, index) => (

@@ -160,7 +160,7 @@ export default function SupervisorsTab() {
           No supervisors found
         </div>
       ) : (
-        <div className="rounded-md border">
+        <div>
           <Table>
             <TableHeader>
               <TableRow>

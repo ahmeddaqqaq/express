@@ -56,6 +56,9 @@ export default function TechniciansTab() {
   const [technicians, setTechnicians] = useState<TechnicianResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8);
+  const [totalTechnicians, setTotalTechnicians] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedTechnician, setSelectedTechnician] =
@@ -67,13 +70,19 @@ export default function TechniciansTab() {
 
   useEffect(() => {
     fetchTechnicians();
-  }, []);
+  }, [currentPage]);
 
   const fetchTechnicians = async () => {
     setIsFetching(true);
     try {
-      const resp = await TechnicianService.technicianControllerFindMany({});
+      const skip = (currentPage - 1) * itemsPerPage;
+      const take = itemsPerPage;
+      const resp = await TechnicianService.technicianControllerFindMany({
+        skip,
+        take,
+      });
       setTechnicians(resp.data);
+      setTotalTechnicians(resp.rows);
     } catch (error) {
       console.error("Failed to fetch technicians:", error);
     } finally {
@@ -165,6 +174,12 @@ export default function TechniciansTab() {
     setIsDrawerOpen(true);
   }
 
+  const totalPages = Math.ceil(totalTechnicians / itemsPerPage);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status?.toLowerCase()) {
       case "on shift":
@@ -234,7 +249,7 @@ export default function TechniciansTab() {
           No technicians found
         </div>
       ) : (
-        <div className="rounded-md border">
+        <div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -316,6 +331,40 @@ export default function TechniciansTab() {
               ))}
             </TableBody>
           </Table>
+
+          <div className="flex items-center justify-between mt-4 px-2">
+            <div className="text-sm text-gray-500">
+              Showing{" "}
+              <span className="font-medium">
+                {totalTechnicians === 0
+                  ? 0
+                  : (currentPage - 1) * itemsPerPage + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium">
+                {Math.min(currentPage * itemsPerPage, totalTechnicians)}
+              </span>{" "}
+              of <span className="font-medium">{totalTechnicians}</span> results
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage === 1 || isFetching}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages || isFetching}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
 
           <Drawer
             open={isDrawerOpen}

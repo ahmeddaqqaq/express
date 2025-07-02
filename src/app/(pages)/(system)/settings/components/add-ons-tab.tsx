@@ -199,7 +199,7 @@ export default function AddOnsTab() {
       ) : addOns?.length === 0 ? (
         <div className="text-center py-8 text-gray-500">No add-ons found</div>
       ) : (
-        <div className="rounded-md border">
+        <div>
           <Table>
             <TableHeader>
               <TableRow>

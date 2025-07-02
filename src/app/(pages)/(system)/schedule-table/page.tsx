@@ -33,6 +33,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FiSearch } from "react-icons/fi";
 import { Input } from "@/components/ui/input";
+import { ImageDialog } from "../schedule/components/appointments/image-dialog";
+import { UploadedFile } from "../schedule/components/appointments/types";
 
 export default function TransactionTable() {
   const [transactions, setTransactions] = useState<TransactionResponse[]>([]);
@@ -44,6 +46,11 @@ export default function TransactionTable() {
   const [itemsPerPage] = useState(8);
   const [isLoading, setIsLoading] = useState(false);
   const [totalTransaction, setTotalTransaction] = useState(0);
+
+  // Image dialog state
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [dialogImages, setDialogImages] = useState<UploadedFile[]>([]);
 
   useEffect(() => {
     fetchTransactions();
@@ -122,6 +129,28 @@ export default function TransactionTable() {
     setSelectedTransaction(transaction);
     setIsDrawerOpen(true);
   }
+
+  // Convert ImageResponse to UploadedFile format for dialog
+  const convertImagesToUploadedFiles = (images: any[]): UploadedFile[] => {
+    return images.map((image) => ({
+      id: image.id,
+      file: new File([], image.key || "image", { type: "image/jpeg" }),
+      preview: image.url,
+      progress: 100,
+      status: "success" as const,
+    }));
+  };
+
+  const handleImageClick = (imageIndex: number) => {
+    if (selectedTransaction?.images && selectedTransaction.images.length > 0) {
+      const uploadedFiles = convertImagesToUploadedFiles(
+        selectedTransaction.images
+      );
+      setDialogImages(uploadedFiles);
+      setCurrentImageIndex(imageIndex);
+      setIsImageDialogOpen(true);
+    }
+  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -245,12 +274,16 @@ export default function TransactionTable() {
                   <div>
                     <h3 className="font-medium mb-2">Images</h3>
                     <div className="flex flex-col gap-4">
-                      {selectedTransaction.images.map((image) => (
-                        <div key={image.id} className="relative aspect-square">
+                      {selectedTransaction.images.map((image, index) => (
+                        <div
+                          key={image.id}
+                          className="relative cursor-pointer group"
+                          onClick={() => handleImageClick(index)}
+                        >
                           <img
                             src={image.url}
                             alt={`Transaction image ${image.id}`}
-                            className="rounded-lg object-cover"
+                            className="w-full rounded-lg object-cover transition-opacity group-hover:opacity-90"
                           />
                         </div>
                       ))}
@@ -384,6 +417,15 @@ export default function TransactionTable() {
           </Button>
         </div>
       </div>
+
+      {/* Image Dialog */}
+      <ImageDialog
+        isOpen={isImageDialogOpen}
+        onOpenChange={setIsImageDialogOpen}
+        images={dialogImages}
+        currentIndex={currentImageIndex}
+        onIndexChange={setCurrentImageIndex}
+      />
     </div>
   );
 }

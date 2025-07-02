@@ -178,7 +178,7 @@ export default function ServicesTab() {
       ) : services.length === 0 ? (
         <div className="text-center py-8 text-gray-500">No services found</div>
       ) : (
-        <div className="rounded-md border overflow-auto">
+        <div className="overflow-auto">
           <Table>
             <TableHeader>
               <TableRow>
