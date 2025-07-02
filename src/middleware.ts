@@ -3,24 +3,28 @@ import { NextRequest, NextResponse } from "next/server";
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  if (pathname === "") {
+    const dashboardUrl = new URL("/dashboard", req.url);
+    return NextResponse.redirect(dashboardUrl);
+  }
+
   // Allow access to /login without checking
   if (pathname === "/login") {
     return NextResponse.next();
   }
 
-  // Read token from cookies
-  const accessToken = req.cookies.get("token");
+  // Read access token from cookies
+  const accessToken = req.cookies.get("access_token");
+  const refreshToken = req.cookies.get("refresh_token");
 
-  // If token doesn't exist, redirect to login
-  if (!accessToken) {
+  // If no tokens exist, redirect to login
+  if (!accessToken && !refreshToken) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);
-  } else if (pathname === "") {
-    const dashboardUrl = new URL("/dashboard", req.url);
-    return NextResponse.redirect(dashboardUrl);
   }
 
-  // Token exists, allow access
+  // At least one token exists, allow access
+  // The client-side will handle token refresh if needed
   return NextResponse.next();
 }
 
