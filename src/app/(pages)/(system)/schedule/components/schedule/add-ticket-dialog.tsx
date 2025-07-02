@@ -476,57 +476,64 @@ export function AddTicketDialog({
                   <CarSearchField customers={customers} />
                   <ServiceSearchField services={services} />
                 </div>
-                <SupervisorSearchField
-                  supervisors={supervisors}
-                  searchQuery={supervisorSearchQuery}
-                  onSearchChange={setSupervisorSearchQuery}
-                  currentPage={supervisorCurrentPage}
-                  totalCount={supervisorTotalCount}
-                  itemsPerPage={supervisorItemsPerPage}
-                  onPageChange={setSupervisorCurrentPage}
-                />
-                <AddOnsField addOns={addOns} />
 
-                <FormField
-                  control={ticketForm.control}
-                  name="deliveryTime"
-                  render={({ field }) => (
-                    <FormItem className="grid gap-1">
-                      <FormLabel className="text-sm font-medium">
-                        Delivery Time (Optional)
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type="time"
-                            {...field}
-                            className="[&::-webkit-calendar-picker-indicator]:opacity-0 w-full pl-3 pr-10 bg-background"
-                          />
-                          <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="flex gap-4">
+                  <div className="flex flex-col gap-2 w-1/2">
+                    <SupervisorSearchField
+                      supervisors={supervisors}
+                      searchQuery={supervisorSearchQuery}
+                      onSearchChange={setSupervisorSearchQuery}
+                      currentPage={supervisorCurrentPage}
+                      totalCount={supervisorTotalCount}
+                      itemsPerPage={supervisorItemsPerPage}
+                      onPageChange={setSupervisorCurrentPage}
+                    />
 
-                <FormField
-                  control={ticketForm.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notes</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Any special instructions or notes..."
-                          className="resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={ticketForm.control}
+                      name="deliveryTime"
+                      render={({ field }) => (
+                        <FormItem className="grid gap-1">
+                          <FormLabel className="text-sm font-medium">
+                            Delivery Time (Optional)
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type="time"
+                                {...field}
+                                className="[&::-webkit-calendar-picker-indicator]:opacity-0 w-full pl-3 pr-10 bg-background"
+                              />
+                              <Clock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={ticketForm.control}
+                      name="notes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Notes</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Any special instructions or notes..."
+                              className="resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="w-1/2">
+                    <AddOnsField addOns={addOns} />
+                  </div>
+                </div>
+
                 <div className="flex gap-2 items-center">
                   <div>Total: </div>
                   <div className="text-md text-green-700">

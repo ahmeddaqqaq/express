@@ -92,7 +92,7 @@ export function TechnicianAssignment({
       >
         <div className="bg-gray-50 rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-            Assign Technicians
+            Assign Crew
           </h3>
 
           <TechnicianSearchField
