@@ -5,6 +5,7 @@ import {
   FiSettings,
   FiUserCheck,
   FiDollarSign,
+  FiImage,
 } from "react-icons/fi";
 import { FaCar } from "react-icons/fa";
 import {
@@ -18,6 +19,8 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { TransactionResponse } from "../../../../../../../client";
+import { ImageDialog } from "../appointments/image-dialog";
+import { useState } from "react";
 
 interface TransactionDetailsDrawerProps {
   isOpen: boolean;
@@ -32,7 +35,24 @@ export function TransactionDetailsDrawer({
   transaction,
   formatTime,
 }: TransactionDetailsDrawerProps) {
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
   if (!transaction) return null;
+
+  const handleImageClick = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageDialogOpen(true);
+  };
+
+  // Convert transaction images to UploadedFile format for ImageDialog compatibility
+  const convertedImages = transaction.images?.map((img, index) => ({
+    id: img.id || `img-${index}`,
+    file: { name: `Image ${index + 1}`, size: 0 } as File,
+    preview: img.url || '',
+    progress: 100,
+    status: 'success' as const,
+  })) || [];
 
   return (
     <Drawer open={isOpen} direction="right" onOpenChange={onOpenChange}>
@@ -181,6 +201,28 @@ export function TransactionDetailsDrawer({
                 </div>
               </div>
             </div>
+
+            {/* Work Progress Images */}
+            {transaction.images && transaction.images.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                <h3 className="font-medium text-gray-700 mb-3 flex items-center">
+                  <FiImage className="mr-2" />
+                  Work Progress Images ({transaction.images.length})
+                </h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {transaction.images.map((image, index) => (
+                    <div key={image.id || index} className="relative">
+                      <img
+                        src={image.url}
+                        alt={`Work progress ${index + 1}`}
+                        className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => handleImageClick(index)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <DrawerFooter className="shrink-0 border-t">
@@ -194,6 +236,14 @@ export function TransactionDetailsDrawer({
           </DrawerFooter>
         </div>
       </DrawerContent>
+
+      <ImageDialog
+        isOpen={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        images={convertedImages}
+        currentIndex={selectedImageIndex}
+        onIndexChange={setSelectedImageIndex}
+      />
     </Drawer>
   );
 }

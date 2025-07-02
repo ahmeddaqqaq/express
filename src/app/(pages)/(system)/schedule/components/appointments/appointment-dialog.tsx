@@ -173,7 +173,7 @@ export function AppointmentDialog({
             />
             {imagesRequired && uploadedFiles.length === 0 && (
               <div className="text-red-500 text-sm mt-2">
-                Please upload at least one image before proceeding to the next
+                Please upload at least 15 images before proceeding to the next
                 phase.
               </div>
             )}
