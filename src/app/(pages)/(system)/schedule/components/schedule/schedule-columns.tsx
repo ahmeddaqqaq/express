@@ -1,5 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import { FiClock, FiCheckCircle, FiSettings } from "react-icons/fi";
+import { FiClock, FiSettings } from "react-icons/fi";
 import { TransactionResponse } from "../../../../../../../client";
 import { AppointmentsCard } from "../appointments/appointments-card";
 
@@ -135,7 +135,6 @@ export function ScheduleColumns({
           ))}
         </AnimatePresence>
       </div>
-
     </div>
   );
 }
