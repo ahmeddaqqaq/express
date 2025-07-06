@@ -36,13 +36,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,6 +46,7 @@ import { ServiceSearchField } from "../service-search-field";
 import { SupervisorSearchField } from "../supervisor-search-field";
 import { AddOnsField } from "../add-ons-field";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SearchSelect } from "@/app/components/search-select";
 import {
   Popover,
   PopoverContent,
@@ -312,7 +307,7 @@ export function AddTicketDialog({
   useEffect(() => {
     const currentCarId = ticketForm.watch("carId");
     const currentServiceId = ticketForm.watch("serviceId");
-    
+
     if (currentCarId && currentServiceId) {
       calculateTotal();
     } else {
@@ -787,24 +782,24 @@ export function AddTicketDialog({
                       return (
                         <FormItem className="flex-1">
                           <FormLabel>Model</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            disabled={!selectedBrandId}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select model" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {models.map((model) => (
-                                <SelectItem key={model.id} value={model.id}>
-                                  {model.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <SearchSelect
+                            options={selectedBrandId ? models.map((model) => ({
+                              value: model.id,
+                              label: model.name,
+                            })) : []}
+                            value={selectedBrandId ? field.value : ""}
+                            onChange={(value) => {
+                              if (selectedBrandId) {
+                                field.onChange(value);
+                              }
+                            }}
+                            placeholder={
+                              selectedBrandId
+                                ? "Search models..."
+                                : "Select a brand first"
+                            }
+                            searchPlaceholder="Search models..."
+                          />
                           <FormMessage />
                         </FormItem>
                       );

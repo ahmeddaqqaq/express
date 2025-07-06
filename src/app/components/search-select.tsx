@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { FormControl } from "@/components/ui/form";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface SearchSelectOption {
   value: string;
@@ -44,9 +45,32 @@ export function SearchSelect({
   className,
 }: SearchSelectProps) {
   const [open, setOpen] = React.useState(false);
+  const [searchValue, setSearchValue] = React.useState("");
+  
+  // Filter options based on search value
+  const filteredOptions = React.useMemo(() => {
+    if (!searchValue.trim()) return options;
+    const searchTerm = searchValue.toLowerCase().trim();
+    return options.filter((option) =>
+      option.label.toLowerCase().includes(searchTerm) ||
+      option.value.toLowerCase().includes(searchTerm)
+    );
+  }, [options, searchValue]);
+  
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+    onSearchChange?.(value);
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      setSearchValue(""); // Clear search when closing
+    }
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <FormControl>
           <Button
@@ -66,29 +90,33 @@ export function SearchSelect({
         <Command shouldFilter={false}>
           <CommandInput
             placeholder={searchPlaceholder}
-            onValueChange={onSearchChange}
+            value={searchValue}
+            onValueChange={handleSearchChange}
           />
           <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup>
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={option.value}
-                onSelect={(currentValue) => {
-                  onChange(currentValue === value ? "" : currentValue);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    value === option.value ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
+          <ScrollArea className="h-64 max-h-64">
+            <CommandGroup className="max-h-none">
+              {filteredOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.value}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue === value ? "" : currentValue);
+                    setOpen(false);
+                    setSearchValue(""); // Clear search when selecting
+                  }}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </ScrollArea>
         </Command>
       </PopoverContent>
     </Popover>
