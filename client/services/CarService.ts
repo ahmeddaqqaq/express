@@ -33,4 +33,42 @@ export class CarService {
             url: '/express/car/findMany',
         });
     }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static carControllerUpdate({
+        id,
+        requestBody,
+    }: {
+        id: string,
+        requestBody: CreateCarDto,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/express/car/update/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static carControllerDelete({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/express/car/delete/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }

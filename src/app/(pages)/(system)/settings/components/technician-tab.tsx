@@ -34,6 +34,8 @@ import {
 import {
   TechnicianService,
   TechnicianResponse,
+  AuditLogService,
+  AuditLogResponse,
 } from "../../../../../../client";
 import {
   DropdownMenu,
@@ -81,10 +83,70 @@ export default function TechniciansTab() {
     fName: "",
     lName: "",
   });
+  
+  // Audit log state
+  const [auditLogs, setAuditLogs] = useState<AuditLogResponse[]>([]);
+  const [showAuditLogs, setShowAuditLogs] = useState(false);
+  const [auditLogsLoading, setAuditLogsLoading] = useState(false);
+  const [auditLogPage, setAuditLogPage] = useState(1);
+  const [auditLogTotalCount, setAuditLogTotalCount] = useState(0);
+  const auditLogItemsPerPage = 10;
+  
+  // Time tracking state
+  const [dailyWorkingHours, setDailyWorkingHours] = useState<{[key: string]: any}>({});
+  const [timeTrackingLoading, setTimeTrackingLoading] = useState(false);
+
+  // Helper function to format time duration
+  const formatDuration = (timeString: string | undefined) => {
+    if (!timeString || timeString === '0' || timeString === '00:00:00') {
+      return '0h 0m';
+    }
+    
+    // Handle different time formats
+    if (timeString.includes(':')) {
+      // Format: HH:MM:SS or HH:MM
+      const parts = timeString.split(':');
+      const hours = parseInt(parts[0]) || 0;
+      const minutes = parseInt(parts[1]) || 0;
+      return `${hours}h ${minutes}m`;
+    }
+    
+    // Handle other formats or just return as is
+    return timeString;
+  };
+
+  // Helper function to format dates safely
+  const formatDate = (log: AuditLogResponse) => {
+    // Try different possible timestamp fields
+    const timestamp = log.timeStamp || (log as any).timestamp || (log as any).createdAt || (log as any).updatedAt;
+    
+    if (!timestamp) {
+      console.warn('No timestamp found in log:', log);
+      return 'No Date';
+    }
+    
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date:', timestamp);
+        return 'Invalid Date';
+      }
+      return date.toLocaleString();
+    } catch (error) {
+      console.error('Date formatting error:', error, 'Date string:', timestamp);
+      return 'Invalid Date';
+    }
+  };
 
   useEffect(() => {
     fetchTechnicians();
   }, [currentPage]);
+
+  useEffect(() => {
+    if (showAuditLogs) {
+      fetchAuditLogs();
+    }
+  }, [showAuditLogs, auditLogPage]);
 
   const fetchTechnicians = async () => {
     setIsFetching(true);
@@ -145,6 +207,10 @@ export default function TechniciansTab() {
         id,
       });
       await fetchTechnicians();
+      refreshAuditLogs();
+      if (selectedTechnician?.id === id) {
+        await refreshTimeTracking(id);
+      }
     } catch (error) {
       console.error("Failed to start shift:", error);
     }
@@ -156,6 +222,10 @@ export default function TechniciansTab() {
         id,
       });
       await fetchTechnicians();
+      refreshAuditLogs();
+      if (selectedTechnician?.id === id) {
+        await refreshTimeTracking(id);
+      }
     } catch (error) {
       console.error("Failed to end shift:", error);
     }
@@ -167,8 +237,12 @@ export default function TechniciansTab() {
         id,
       });
       await fetchTechnicians();
+      refreshAuditLogs();
+      if (selectedTechnician?.id === id) {
+        await refreshTimeTracking(id);
+      }
     } catch (error) {
-      console.error("Failed to start shift:", error);
+      console.error("Failed to start break:", error);
     }
   };
 
@@ -178,8 +252,116 @@ export default function TechniciansTab() {
         id,
       });
       await fetchTechnicians();
+      refreshAuditLogs();
+      if (selectedTechnician?.id === id) {
+        await refreshTimeTracking(id);
+      }
     } catch (error) {
-      console.error("Failed to start shift:", error);
+      console.error("Failed to end break:", error);
+    }
+  };
+
+  const startOvertime = async (id: string) => {
+    try {
+      await TechnicianService.technicianControllerStartOvertime({
+        id,
+      });
+      await fetchTechnicians();
+      refreshAuditLogs();
+      if (selectedTechnician?.id === id) {
+        await refreshTimeTracking(id);
+      }
+    } catch (error) {
+      console.error("Failed to start overtime:", error);
+    }
+  };
+
+  const endOvertime = async (id: string) => {
+    try {
+      await TechnicianService.technicianControllerEndOvertime({
+        id,
+      });
+      await fetchTechnicians();
+      refreshAuditLogs();
+      if (selectedTechnician?.id === id) {
+        await refreshTimeTracking(id);
+      }
+    } catch (error) {
+      console.error("Failed to end overtime:", error);
+    }
+  };
+
+  // Fetch audit logs from database
+  const fetchAuditLogs = async () => {
+    setAuditLogsLoading(true);
+    try {
+      const skip = (auditLogPage - 1) * auditLogItemsPerPage;
+      const response = await AuditLogService.auditLogControllerFindMany({
+        skip,
+        take: auditLogItemsPerPage,
+        search: "", // No search filter for now
+      });
+      setAuditLogs(response.data);
+      setAuditLogTotalCount(response.rows);
+      console.log('Fetched audit logs from database:', response.data);
+      
+      // Debug: Log the first audit log to see all fields
+      if (response.data.length > 0) {
+        console.log('First audit log full object:', response.data[0]);
+        console.log('Available fields:', Object.keys(response.data[0]));
+        console.log('timeStamp field:', response.data[0].timeStamp, typeof response.data[0].timeStamp);
+      }
+    } catch (error) {
+      console.error('Failed to fetch audit logs:', error);
+      setAuditLogs([]);
+      setAuditLogTotalCount(0);
+      
+      // If no audit logs exist, let's create a test entry to verify the system works
+      console.log('No audit logs found. The backend might not be automatically creating audit logs.');
+    } finally {
+      setAuditLogsLoading(false);
+    }
+  };
+
+  // Fetch daily working hours for a technician
+  const fetchDailyWorkingHours = async (technicianId: string) => {
+    try {
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+      const response = await TechnicianService.technicianControllerGetDailyWorkingHours({
+        id: technicianId,
+        date: today,
+      });
+      
+      setDailyWorkingHours(prev => ({
+        ...prev,
+        [technicianId]: response
+      }));
+      
+      console.log(`Daily working hours for technician ${technicianId}:`, response);
+      return response;
+    } catch (error) {
+      console.error('Failed to fetch daily working hours:', error);
+      return null;
+    }
+  };
+
+  // Refresh audit logs after actions
+  const refreshAuditLogs = () => {
+    if (showAuditLogs) {
+      fetchAuditLogs();
+    }
+  };
+  
+  // Refresh time tracking for selected technician
+  const refreshTimeTracking = async (technicianId: string) => {
+    setTimeTrackingLoading(true);
+    try {
+      await fetchTechnicians(); // Refresh technician data
+      await fetchDailyWorkingHours(technicianId); // Fetch detailed daily hours
+    } catch (error) {
+      console.error('Failed to refresh time tracking:', error);
+    } finally {
+      setTimeTrackingLoading(false);
     }
   };
 
@@ -206,6 +388,8 @@ export default function TechniciansTab() {
   function openTechnicianDrawer(technician: TechnicianResponse) {
     setSelectedTechnician(technician);
     setIsDrawerOpen(true);
+    // Fetch daily working hours when drawer opens
+    fetchDailyWorkingHours(technician.id);
   }
 
   const totalPages = Math.ceil(totalTechnicians / itemsPerPage);
@@ -231,7 +415,20 @@ export default function TechniciansTab() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Technicians</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowAuditLogs(!showAuditLogs);
+              if (!showAuditLogs) {
+                setAuditLogPage(1); // Reset to first page when showing
+              }
+            }}
+            disabled={auditLogsLoading}
+          >
+            {auditLogsLoading ? "Loading..." : (showAuditLogs ? "Hide" : "Show")} Audit Logs
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <FiPlus className="mr-2" />
@@ -272,7 +469,96 @@ export default function TechniciansTab() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
+
+      {/* Audit Logs Table */}
+      {showAuditLogs && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FiActivity className="h-5 w-5" />
+              Activity Audit Logs
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {auditLogsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto" />
+                <p className="mt-2 text-gray-500">Loading audit logs...</p>
+              </div>
+            ) : auditLogs.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No audit logs found. Actions will appear here after technician activities.
+              </div>
+            ) : (
+              <>
+                <div className="max-h-64 overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Technician</TableHead>
+                        <TableHead>Action</TableHead>
+                        <TableHead>Time</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {auditLogs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="font-medium">
+                            {log.technician.fName} {log.technician.lName}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{log.action}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-500">
+                            {formatDate(log)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                {/* Pagination for audit logs */}
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <div className="text-sm text-gray-500">
+                    Showing{" "}
+                    <span className="font-medium">
+                      {auditLogTotalCount === 0
+                        ? 0
+                        : (auditLogPage - 1) * auditLogItemsPerPage + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min(auditLogPage * auditLogItemsPerPage, auditLogTotalCount)}
+                    </span>{" "}
+                    of <span className="font-medium">{auditLogTotalCount}</span> audit logs
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={auditLogPage === 1 || auditLogsLoading}
+                      onClick={() => setAuditLogPage(auditLogPage - 1)}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={auditLogPage >= Math.ceil(auditLogTotalCount / auditLogItemsPerPage) || auditLogsLoading}
+                      onClick={() => setAuditLogPage(auditLogPage + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {isFetching ? (
         <div className="flex justify-center items-center h-64">
@@ -358,6 +644,26 @@ export default function TechniciansTab() {
                           >
                             <FiPause className="h-4 w-4" />
                             <span>End Break</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startOvertime(tech.id);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <FiActivity className="h-4 w-4" />
+                            <span>Start Overtime</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              endOvertime(tech.id);
+                            }}
+                            className="flex items-center gap-2"
+                          >
+                            <FiActivity className="h-4 w-4" />
+                            <span>End Overtime</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -496,9 +802,24 @@ export default function TechniciansTab() {
                       {/* Time Tracking Card */}
                       <Card>
                         <CardHeader className="pb-3">
-                          <CardTitle className="text-lg flex items-center gap-2">
-                            <FiClock className="h-4 w-4" />
-                            Time Tracking
+                          <CardTitle className="text-lg flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <FiClock className="h-4 w-4" />
+                              Time Tracking
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => refreshTimeTracking(selectedTechnician.id)}
+                              disabled={timeTrackingLoading}
+                              className="h-8 w-8 p-0"
+                            >
+                              {timeTrackingLoading ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-gray-900" />
+                              ) : (
+                                <FiActivity className="h-4 w-4" />
+                              )}
+                            </Button>
                           </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -511,7 +832,7 @@ export default function TechniciansTab() {
                                 </span>
                               </div>
                               <span className="text-sm font-semibold text-blue-700">
-                                {selectedTechnician.totalShiftTime}
+                                {formatDuration(selectedTechnician.totalShiftTime)}
                               </span>
                             </div>
 
@@ -523,9 +844,33 @@ export default function TechniciansTab() {
                                 </span>
                               </div>
                               <span className="text-sm font-semibold text-orange-700">
-                                {selectedTechnician.totalBreakTime}
+                                {formatDuration(selectedTechnician.totalBreakTime)}
                               </span>
                             </div>
+
+                            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 bg-purple-500 rounded-full"></div>
+                                <span className="text-sm font-medium">
+                                  Total Overtime
+                                </span>
+                              </div>
+                              <span className="text-sm font-semibold text-purple-700">
+                                {formatDuration(selectedTechnician.totalOvertimeTime)}
+                              </span>
+                            </div>
+                            
+                            {/* Daily Working Hours Details */}
+                            {dailyWorkingHours[selectedTechnician.id] && (
+                              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                                <h4 className="text-sm font-medium text-gray-800 mb-2">Today's Details</h4>
+                                <div className="text-xs text-gray-600">
+                                  <pre className="whitespace-pre-wrap">
+                                    {JSON.stringify(dailyWorkingHours[selectedTechnician.id], null, 2)}
+                                  </pre>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -586,6 +931,30 @@ export default function TechniciansTab() {
                             >
                               <FiPause className="h-4 w-4" />
                               End Break
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                startOvertime(selectedTechnician.id);
+                                setIsDrawerOpen(false);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <FiActivity className="h-4 w-4" />
+                              Start Overtime
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                endOvertime(selectedTechnician.id);
+                                setIsDrawerOpen(false);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <FiActivity className="h-4 w-4" />
+                              End Overtime
                             </Button>
                           </div>
                         </CardContent>

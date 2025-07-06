@@ -10,6 +10,7 @@ export type TechnicianResponse = {
     lastAction?: string;
     totalShiftTime: string;
     totalBreakTime: string;
+    totalOvertimeTime: string;
     createdAt: string;
     updatedAt: string;
 };

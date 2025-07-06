@@ -47,4 +47,42 @@ export class BrandService {
             },
         });
     }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static brandControllerUpdate({
+        id,
+        requestBody,
+    }: {
+        id: string,
+        requestBody: CreateBrandDto,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/express/brand/update/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static brandControllerDelete({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/express/brand/delete/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }

@@ -119,6 +119,62 @@ export class TechnicianService {
      * @returns any
      * @throws ApiError
      */
+    public static technicianControllerStartOvertime({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/technician/{id}/start-overtime',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerEndOvertime({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/technician/{id}/end-overtime',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerGetDailyWorkingHours({
+        id,
+        date,
+    }: {
+        id: string,
+        date: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/technician/{id}/daily-working-hours',
+            path: {
+                'id': id,
+            },
+            query: {
+                'date': date,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
     public static technicianControllerUpdate({
         id,
         requestBody,

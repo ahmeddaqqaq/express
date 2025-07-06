@@ -33,4 +33,42 @@ export class ModelService {
             url: '/express/model/findMany',
         });
     }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static modelControllerUpdate({
+        id,
+        requestBody,
+    }: {
+        id: string,
+        requestBody: CreateModelDto,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/express/model/update/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static modelControllerDelete({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/express/model/delete/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }

@@ -282,10 +282,11 @@ export function AddTicketDialog({
 
   const calculateTotal = async () => {
     try {
+      const currentCarId = ticketForm.watch("carId");
       const selectedServiceId = ticketForm.watch("serviceId");
       const selectedAddOns = ticketForm.watch("addOnsIds") || [];
 
-      if (!selectedCarId || !selectedServiceId) {
+      if (!currentCarId || !selectedServiceId) {
         console.warn("Please select both a car and a service first");
         return;
       }
@@ -294,7 +295,7 @@ export function AddTicketDialog({
         await TransactionService.transactionControllerCalculateTotal({
           requestBody: {
             serviceId: selectedServiceId,
-            carId: selectedCarId,
+            carId: currentCarId,
             addOnsIds: selectedAddOns,
           },
         });
@@ -309,13 +310,16 @@ export function AddTicketDialog({
 
   // Effects
   useEffect(() => {
-    if (selectedCarId && ticketForm.watch("serviceId")) {
+    const currentCarId = ticketForm.watch("carId");
+    const currentServiceId = ticketForm.watch("serviceId");
+    
+    if (currentCarId && currentServiceId) {
       calculateTotal();
     } else {
       setCalculation(null);
     }
   }, [
-    selectedCarId,
+    ticketForm.watch("carId"),
     ticketForm.watch("serviceId"),
     ticketForm.watch("addOnsIds"),
   ]);
