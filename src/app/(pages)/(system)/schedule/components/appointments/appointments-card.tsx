@@ -11,6 +11,7 @@ import {
 } from "./types";
 import { FaCar, FaDotCircle } from "react-icons/fa";
 import { AppointmentDialog } from "./appointment-dialog";
+import TicketInfoDialog from "./ticket-info-dialog";
 
 export function AppointmentsCard({
   appointment,
@@ -20,7 +21,8 @@ export function AppointmentsCard({
   formatTime,
   openDetailsDrawer,
 }: AppointmentCardProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     from: AppointmentStatus;
     to: AppointmentStatus;
@@ -67,7 +69,7 @@ export function AppointmentsCard({
       (from === "stageThree" && to === "completed")
     ) {
       setPendingStatusChange({ from, to });
-      setIsDialogOpen(true);
+      setIsStatusDialogOpen(true);
     } else {
       await handleStatusChange(appointment.id, from, to);
     }
@@ -131,7 +133,7 @@ export function AppointmentsCard({
             : "bg-white"
         }`}
       >
-        <div className="flex justify-between ">
+        <div className="flex justify-between">
           <div>
             <div className="flex items-center text-xs text-gray-600 mb-1">
               <FiUser className="mr-1 h-3 w-3" />
@@ -144,7 +146,7 @@ export function AppointmentsCard({
               size="icon"
               className="h-5 w-5"
               onClick={() => {
-                setIsDialogOpen(true);
+                setIsInfoDialogOpen(true);
               }}
             >
               <FiSettings className="h-3 w-3" />
@@ -156,12 +158,11 @@ export function AppointmentsCard({
           {appointment.car.brand.name} {appointment.car.model.name}
         </div>
         {appointment.OTP && (
-          <div className="flex text-[0.65rem] font-bold  text-gray-600 px-1.5 py-0.5 rounded ">
+          <div className="flex text-[0.65rem] font-bold text-gray-600 px-1.5 py-0.5 rounded">
             OTP: {appointment.OTP}
           </div>
         )}
         <div className="flex justify-between items-center mt-1">
-          {/* Updated time display with countdown/count-up */}
           {timeDisplay ? (
             <span
               className={`text-[0.65rem] px-1.5 py-0.5 rounded ${
@@ -231,9 +232,15 @@ export function AppointmentsCard({
         </div>
       </motion.div>
 
+      <TicketInfoDialog
+        isOpen={isInfoDialogOpen}
+        onOpenChange={setIsInfoDialogOpen}
+        appointment={appointment}
+      />
+
       <AppointmentDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        isOpen={isStatusDialogOpen}
+        onOpenChange={setIsStatusDialogOpen}
         appointment={appointment}
         pendingStatusChange={pendingStatusChange}
         onConfirmStatusChange={async () => {
@@ -244,7 +251,7 @@ export function AppointmentsCard({
               pendingStatusChange.to
             );
             setPendingStatusChange(null);
-            setIsDialogOpen(false);
+            setIsStatusDialogOpen(false);
           }
         }}
         movingItemId={movingItemId}

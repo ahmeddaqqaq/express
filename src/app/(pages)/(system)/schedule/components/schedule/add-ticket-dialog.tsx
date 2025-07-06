@@ -435,7 +435,10 @@ export function AddTicketDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-4xl">
+      <DialogContent
+        className="min-w-4xl"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Add New Ticket</DialogTitle>
           <DialogDescription>
