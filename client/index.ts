@@ -49,6 +49,7 @@ export type { TransactionManyResponse } from './models/TransactionManyResponse';
 export { TransactionResponse } from './models/TransactionResponse';
 export type { UpdateCustomerDto } from './models/UpdateCustomerDto';
 export { UpdateTransactionDto } from './models/UpdateTransactionDto';
+export { UserInfoResponse } from './models/UserInfoResponse';
 
 export { AddOnsService } from './services/AddOnsService';
 export { AppService } from './services/AppService';

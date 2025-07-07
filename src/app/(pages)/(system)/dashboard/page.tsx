@@ -12,10 +12,6 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
   Tooltip,
   ResponsiveContainer,
   PieChart,
@@ -75,11 +71,6 @@ export default function Dashboard() {
     fetchAllData();
   }, [timeRange]);
 
-  const handleRefresh = () => {
-    // This will trigger the useEffect to refetch data
-    setTimeRange(timeRange);
-  };
-
   const handleTimeRangeChange = (range: "day" | "month" | "year" | "all") => {
     setTimeRange(range);
   };
@@ -118,9 +109,6 @@ export default function Dashboard() {
               </Button>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={handleRefresh}>
-            Refresh
-          </Button>
         </div>
       </div>
 
@@ -129,27 +117,29 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <StatCard
             title="Total Customers"
-            value={stats.activeCustomers?.toLocaleString() || '0'}
+            value={stats.activeCustomers?.toLocaleString() || "0"}
             change={stats.newCustomersToday || 0}
             icon={<FiUsers className="text-gray-600" />}
           />
           <StatCard
             title="Scheduled Services"
-            value={stats.scheduledTransactions?.toLocaleString() || '0'}
+            value={stats.scheduledTransactions?.toLocaleString() || "0"}
             change={stats.inProgressTransaction || 0}
             icon={<FaCalendarAlt className="text-gray-600" />}
           />
           <StatCard
             title="Services Completed"
-            value={stats.completedTransactions?.toLocaleString() || '0'}
+            value={stats.completedTransactions?.toLocaleString() || "0"}
             change={stats.completedTransactionsToday || 0}
             icon={<FiCheckCircle className="text-gray-600" />}
           />
           {revenue && (
             <StatCard
               title="Total Revenue"
-              value={`$${revenue.totalRevenue?.toLocaleString() || '0'}`}
-              change={(revenue.serviceRevenue || 0) + (revenue.addOnRevenue || 0)}
+              value={`$${revenue.totalRevenue?.toLocaleString() || "0"}`}
+              change={
+                (revenue.serviceRevenue || 0) + (revenue.addOnRevenue || 0)
+              }
               icon={<FiDollarSign className="text-gray-600" />}
               isCurrency
             />
@@ -209,9 +199,11 @@ export default function Dashboard() {
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
-                      <div 
+                      <div
                         className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        style={{
+                          backgroundColor: COLORS[index % COLORS.length],
+                        }}
                       />
                       <span className="font-medium">{addOn.name}</span>
                     </div>
@@ -236,7 +228,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-center h-full">
               <div className="text-center space-y-2">
                 <div className="text-4xl font-light">
-                  {ratio.completionRatio?.toFixed(1) || '0.0'}%
+                  {ratio.completionRatio?.toFixed(1) || "0.0"}%
                 </div>
                 <p className="text-gray-500">of services completed on time</p>
                 <div className="w-full bg-gray-100 rounded-full h-2 max-w-xs mx-auto">
@@ -268,7 +260,9 @@ export default function Dashboard() {
                       <FiAward className="text-gray-600 text-xs" />
                     </div>
                     <div>
-                      <p className="font-medium text-sm">{customer.customerName}</p>
+                      <p className="font-medium text-sm">
+                        {customer.customerName}
+                      </p>
                       <p className="text-xs text-gray-500">
                         {customer.mobileNumber}
                       </p>
@@ -276,7 +270,7 @@ export default function Dashboard() {
                   </div>
                   <div className="text-right">
                     <p className="font-medium text-sm">
-                      ${customer.totalSpent?.toLocaleString() || '0'}
+                      ${customer.totalSpent?.toLocaleString() || "0"}
                     </p>
                     <p className="text-xs text-gray-500">
                       {customer.transactionCount || 0} services
@@ -316,7 +310,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
@@ -335,7 +329,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border-2 border-purple-200">
                   <div className="flex items-center space-x-3">
                     <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
@@ -343,9 +337,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <p className="font-medium">Total Revenue</p>
-                      <p className="text-sm text-gray-500">
-                        Combined earnings
-                      </p>
+                      <p className="text-sm text-gray-500">Combined earnings</p>
                     </div>
                   </div>
                   <div className="text-right">

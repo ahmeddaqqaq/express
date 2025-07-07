@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useUser } from "../contexts/UserContext";
 import {
   FiUsers,
   FiCalendar,
@@ -45,12 +46,14 @@ export default function MainLayout({
   );
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const router = useRouter();
+  const { isAdmin, isLoading } = useUser();
 
-  const navItems = [
+  const allNavItems = [
     {
       name: "Dashboard",
       path: "/dashboard",
       icon: <FiHome className="h-5 w-5" />,
+      adminOnly: true,
     },
     {
       name: "Customers",
@@ -83,6 +86,9 @@ export default function MainLayout({
     },
   ];
 
+  // Filter navigation items - hide admin-only items for supervisors
+  const navItems = allNavItems.filter((item) => !item.adminOnly || isAdmin);
+
   const toggleScheduleMenu = () => {
     setIsScheduleOpen(!isScheduleOpen);
   };
@@ -92,6 +98,15 @@ export default function MainLayout({
     router.push("/login");
     setShowLogoutDialog(false);
   };
+
+  // Show loading spinner while user data is being fetched
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4b3526]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-white overflow-hidden">

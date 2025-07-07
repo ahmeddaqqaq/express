@@ -1,12 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export default function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+async function getUserRole(req: NextRequest): Promise<'ADMIN' | 'SUPERVISOR' | null> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://lionsinternationalco.com'}/express/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Cookie': req.headers.get('cookie') || '',
+      },
+    });
 
-  if (pathname === "") {
-    const dashboardUrl = new URL("/dashboard", req.url);
-    return NextResponse.redirect(dashboardUrl);
+    if (response.ok) {
+      const userData = await response.json();
+      return userData.role;
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to fetch user role in middleware:', error);
+    return null;
   }
+}
+
+export default async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
   // Allow access to /login without checking
   if (pathname === "/login") {
@@ -23,8 +38,31 @@ export default function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Handle root path redirect based on user role
+  if (pathname === "" || pathname === "/") {
+    const userRole = await getUserRole(req);
+    
+    if (userRole === 'ADMIN') {
+      const dashboardUrl = new URL("/dashboard", req.url);
+      return NextResponse.redirect(dashboardUrl);
+    } else {
+      // Supervisor or unknown role goes to schedule
+      const scheduleUrl = new URL("/schedule", req.url);
+      return NextResponse.redirect(scheduleUrl);
+    }
+  }
+
+  // Block supervisors from accessing dashboard
+  if (pathname === "/dashboard") {
+    const userRole = await getUserRole(req);
+    
+    if (userRole === 'SUPERVISOR') {
+      const scheduleUrl = new URL("/schedule", req.url);
+      return NextResponse.redirect(scheduleUrl);
+    }
+  }
+
   // At least one token exists, allow access
-  // The client-side will handle token refresh if needed
   return NextResponse.next();
 }
 

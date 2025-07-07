@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { SigninDto } from '../models/SigninDto';
 import type { SignupDto } from '../models/SignupDto';
+import type { UserInfoResponse } from '../models/UserInfoResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -60,6 +61,20 @@ export class AuthService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/express/auth/logout',
+        });
+    }
+    /**
+     * Get current user information
+     * @returns UserInfoResponse User information retrieved successfully
+     * @throws ApiError
+     */
+    public static authControllerGetCurrentUser(): CancelablePromise<UserInfoResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/auth/me',
+            errors: {
+                401: `Unauthorized`,
+            },
         });
     }
 }
