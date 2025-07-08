@@ -17,6 +17,7 @@ interface ScheduleColumnsProps {
   ) => Promise<void>;
   formatTime: (dateString: string) => string;
   openDetailsDrawer: (transaction: TransactionResponse) => void;
+  onRefresh?: () => void;
 }
 
 export function ScheduleColumns({
@@ -27,6 +28,7 @@ export function ScheduleColumns({
   movingItemId,
   handleStatusChange,
   formatTime,
+  onRefresh,
 }: ScheduleColumnsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -51,6 +53,7 @@ export function ScheduleColumns({
               movingItemId={movingItemId}
               handleStatusChange={handleStatusChange}
               formatTime={formatTime}
+              onRefresh={onRefresh}
             />
           ))}
         </AnimatePresence>
@@ -77,6 +80,7 @@ export function ScheduleColumns({
               movingItemId={movingItemId}
               handleStatusChange={handleStatusChange}
               formatTime={formatTime}
+              onRefresh={onRefresh}
             />
           ))}
         </AnimatePresence>
@@ -103,6 +107,7 @@ export function ScheduleColumns({
               movingItemId={movingItemId}
               handleStatusChange={handleStatusChange}
               formatTime={formatTime}
+              onRefresh={onRefresh}
             />
           ))}
         </AnimatePresence>
@@ -129,6 +134,7 @@ export function ScheduleColumns({
               movingItemId={movingItemId}
               handleStatusChange={handleStatusChange}
               formatTime={formatTime}
+              onRefresh={onRefresh}
             />
           ))}
         </AnimatePresence>

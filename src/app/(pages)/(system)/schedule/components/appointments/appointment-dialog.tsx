@@ -11,7 +11,6 @@ import { AppointmentStatus, UploadedFile } from "./types";
 import { useState } from "react";
 import { FiPackage, FiTool, FiUsers } from "react-icons/fi";
 import { TransactionResponse } from "../../../../../../../client";
-import { TechnicianAssignment } from "./technician-assignment";
 import { ImageUpload } from "./image-upload";
 
 interface AppointmentDialogProps {
@@ -69,7 +68,7 @@ export function AppointmentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-[1200px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="min-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-gray-800">
             {pendingStatusChange?.to === "stageOne"
@@ -90,7 +89,7 @@ export function AppointmentDialog({
 
         <div className="flex gap-6 p-4">
           {/* First Column: Appointment Info */}
-          <div className="w-1/3 space-y-6">
+          <div className="w-1/2 space-y-6">
             <div className="bg-gray-50 rounded-xl p-6 shadow-sm h-full">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
                 Appointment Information
@@ -162,13 +161,8 @@ export function AppointmentDialog({
             </div>
           </div>
 
-          {/* Second Column: Technician Assignment */}
-          <div className="w-1/3">
-            <TechnicianAssignment appointment={appointment} />
-          </div>
-
-          {/* Third Column: Image Upload */}
-          <div className="w-1/3 space-y-6">
+          {/* Second Column: Image Upload */}
+          <div className="w-1/2 space-y-6">
             <ImageUpload
               appointment={appointment}
               uploadedFiles={uploadedFiles}

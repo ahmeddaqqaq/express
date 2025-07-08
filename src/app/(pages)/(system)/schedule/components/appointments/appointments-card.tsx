@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { FiSettings, FiUser } from "react-icons/fi";
+import { FiSettings, FiUser, FiUserPlus } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
   AppointmentCardProps,
@@ -12,6 +12,7 @@ import {
 import { FaCar, FaDotCircle } from "react-icons/fa";
 import { AppointmentDialog } from "./appointment-dialog";
 import TicketInfoDialog from "./ticket-info-dialog";
+import { WorkerAssignmentDialog } from "./worker-assignment-dialog";
 
 export function AppointmentsCard({
   appointment,
@@ -20,9 +21,11 @@ export function AppointmentsCard({
   handleStatusChange,
   formatTime,
   openDetailsDrawer,
+  onRefresh,
 }: AppointmentCardProps) {
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [isWorkerDialogOpen, setIsWorkerDialogOpen] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     from: AppointmentStatus;
     to: AppointmentStatus;
@@ -229,6 +232,14 @@ export function AppointmentsCard({
               </button>
             )
           )}
+          <button
+            className="py-0.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+            onClick={() => setIsWorkerDialogOpen(true)}
+            disabled={!!movingItemId}
+          >
+            <FiUserPlus className="mr-1 h-2.5 w-2.5" />
+            Add Worker
+          </button>
         </div>
       </motion.div>
 
@@ -256,6 +267,13 @@ export function AppointmentsCard({
         }}
         movingItemId={movingItemId}
         status={status}
+      />
+
+      <WorkerAssignmentDialog
+        isOpen={isWorkerDialogOpen}
+        onOpenChange={setIsWorkerDialogOpen}
+        appointment={appointment}
+        onSuccess={onRefresh}
       />
     </>
   );

@@ -38,6 +38,7 @@ export interface AppointmentCardProps {
   ) => Promise<void>;
   formatTime: (dateString: string) => string;
   openDetailsDrawer?: (data: TransactionResponse) => void;
+  onRefresh?: () => void;
 }
 
 export interface UploadedFile {

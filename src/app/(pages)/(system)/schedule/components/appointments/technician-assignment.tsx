@@ -23,10 +23,12 @@ const formSchema = z.object({
 
 interface TechnicianAssignmentProps {
   appointment: TransactionResponse;
+  onSuccess?: () => void;
 }
 
 export function TechnicianAssignment({
   appointment,
+  onSuccess,
 }: TechnicianAssignmentProps) {
   const [technicians, setTechnicians] = useState<TechnicianResponse[]>([]);
   const [technicianSearchQuery, setTechnicianSearchQuery] = useState("");
@@ -54,6 +56,7 @@ export function TechnicianAssignment({
 
       toast.success("Technicians assigned successfully");
       await fetchTechnicians();
+      onSuccess?.();
     } catch (error) {
       toast.error("Failed to assign technicians", {
         description:

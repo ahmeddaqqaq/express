@@ -265,6 +265,7 @@ export default function Schedule() {
         handleStatusChange={handleStatusChange}
         formatTime={formatTime}
         openDetailsDrawer={openDetailsDrawer}
+        onRefresh={handleSuccess}
       />
       <TransactionDetailsDrawer
         isOpen={isDrawerOpen}

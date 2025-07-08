@@ -133,6 +133,7 @@ export function ImageUpload({
       const res = await fetch(`${API_BASE}/${appointment.id}/upload`, {
         method: "PATCH",
         body: formData,
+        credentials: "include",
       });
 
       clearInterval(progressInterval);
