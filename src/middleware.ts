@@ -1,26 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-async function getUserRole(req: NextRequest): Promise<'ADMIN' | 'SUPERVISOR' | null> {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://lionsinternationalco.com'}/express/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Cookie': req.headers.get('cookie') || '',
-      },
-    });
-
-    if (response.ok) {
-      const userData = await response.json();
-      return userData.role;
-    }
-    return null;
-  } catch (error) {
-    console.error('Failed to fetch user role in middleware:', error);
-    return null;
-  }
-}
-
-export default async function middleware(req: NextRequest) {
 function decodeJwt(token: string) {
   try {
     const base64Url = token.split('.')[1];
@@ -63,6 +42,26 @@ async function refreshAccessToken(refreshToken: string, baseUrl: string): Promis
     }
     return null;
   } catch (error) {
+    return null;
+  }
+}
+
+async function getUserRole(req: NextRequest): Promise<'ADMIN' | 'SUPERVISOR' | null> {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://lionsinternationalco.com'}/express/auth/me`, {
+      method: 'GET',
+      headers: {
+        'Cookie': req.headers.get('cookie') || '',
+      },
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      return userData.role;
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to fetch user role in middleware:', error);
     return null;
   }
 }
