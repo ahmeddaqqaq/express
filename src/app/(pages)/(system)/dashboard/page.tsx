@@ -18,6 +18,11 @@ import {
   Pie,
   Cell,
   Legend,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
 } from "recharts";
 import { FaCalendarAlt } from "react-icons/fa";
 import {
@@ -26,6 +31,9 @@ import {
   RevenueSummary,
   StatisticsService,
   TopCustomer,
+  PeakAnalysisResponse,
+  TechnicianUtilizationResponse,
+  ServiceStageBottleneckResponse,
 } from "../../../../../client";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
@@ -35,6 +43,9 @@ export default function Dashboard() {
   const [ratio, setRatio] = useState<CompletionRatioResponse>();
   const [revenue, setRevenue] = useState<RevenueSummary>();
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>();
+  const [peakAnalysis, setPeakAnalysis] = useState<PeakAnalysisResponse>();
+  const [technicianUtilization, setTechnicianUtilization] = useState<TechnicianUtilizationResponse[]>();
+  const [stageBottlenecks, setStageBottlenecks] = useState<ServiceStageBottleneckResponse[]>();
   const [timeRange, setTimeRange] = useState<"day" | "month" | "year" | "all">(
     "day"
   );
@@ -42,7 +53,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchAllData() {
       try {
-        const [cardStats, completionRatio, revenueData, topCustomersData] =
+        const [cardStats, completionRatio, revenueData, topCustomersData, peakAnalysisData, technicianUtilizationData, stageBottlenecksData] =
           await Promise.all([
             StatisticsService.statisticsControllerGetCardStats({
               range: timeRange,
@@ -57,12 +68,24 @@ export default function Dashboard() {
               range: timeRange,
               limit: 5,
             }),
+            StatisticsService.statisticsControllerGetPeakAnalysis({
+              range: timeRange,
+            }),
+            StatisticsService.statisticsControllerGetTechnicianUtilization({
+              range: timeRange,
+            }),
+            StatisticsService.statisticsControllerGetServiceStageBottlenecks({
+              range: timeRange,
+            }),
           ]);
 
         setStats(cardStats as unknown as CardStatsResponse);
         setRatio(completionRatio as unknown as CompletionRatioResponse);
         setRevenue(revenueData as unknown as RevenueSummary);
         setTopCustomers(topCustomersData as unknown as TopCustomer[]);
+        setPeakAnalysis(peakAnalysisData as unknown as PeakAnalysisResponse);
+        setTechnicianUtilization(technicianUtilizationData as unknown as TechnicianUtilizationResponse[]);
+        setStageBottlenecks(stageBottlenecksData as unknown as ServiceStageBottleneckResponse[]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -350,6 +373,133 @@ export default function Dashboard() {
             ) : (
               <div className="flex items-center justify-center h-32 text-gray-500">
                 No revenue data available
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* Operational Insights */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold">Operational Insights</h2>
+        
+        {/* Peak Analysis Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Peak Hours */}
+          <Card className="p-4">
+            <h3 className="font-medium mb-4">Peak Hours</h3>
+            <div className="h-64">
+              {peakAnalysis?.peakHours?.length ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={peakAnalysis.peakHours.slice(0, 10)}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="hour" />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => [value, "Transactions"]}
+                      labelFormatter={(label) => `${label}:00`}
+                    />
+                    <Bar dataKey="transactionCount" fill="#0088FE" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  No peak hours data available
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Peak Days */}
+          <Card className="p-4">
+            <h3 className="font-medium mb-4">Peak Days</h3>
+            <div className="h-64">
+              {peakAnalysis?.peakDays?.length ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={peakAnalysis.peakDays}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="dayName" />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [value, "Transactions"]} />
+                    <Bar dataKey="transactionCount" fill="#00C49F" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  No peak days data available
+                </div>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {/* Technician Utilization */}
+        <Card className="p-4">
+          <h3 className="font-medium mb-4">Technician Utilization</h3>
+          <div className="space-y-3">
+            {technicianUtilization?.length ? (
+              technicianUtilization.map((tech, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-blue-600 font-medium">
+                        {tech.technicianName?.split(' ').map(n => n[0]).join('') || 'T'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium">{tech.technicianName}</p>
+                      <p className="text-sm text-gray-500">
+                        {tech.totalTransactions} total • {tech.completedTransactions} completed
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-blue-600">
+                      {tech.completionRate?.toFixed(1) || 0}%
+                    </p>
+                    <p className="text-sm text-gray-500">completion rate</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-32 text-gray-500">
+                No technician data available
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* Service Stage Bottlenecks */}
+        <Card className="p-4">
+          <h3 className="font-medium mb-4">Service Stage Bottlenecks</h3>
+          <div className="space-y-3">
+            {stageBottlenecks?.length ? (
+              stageBottlenecks.map((stage, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                      <span className="text-orange-600 font-medium">
+                        {stage.stage?.charAt(0).toUpperCase() || 'S'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium capitalize">{stage.stage}</p>
+                      <p className="text-sm text-gray-500">
+                        {stage.transactionCount} transactions
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-orange-600">
+                      {stage.averageTimeInStage?.toFixed(1) || 0}h
+                    </p>
+                    <p className="text-sm text-gray-500">avg time</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center h-32 text-gray-500">
+                No bottleneck data available
               </div>
             )}
           </div>

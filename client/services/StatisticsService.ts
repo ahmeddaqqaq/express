@@ -104,4 +104,73 @@ export class StatisticsService {
             },
         });
     }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static statisticsControllerGetPeakAnalysis({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/peakAnalysis',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
+            },
+        });
+    }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static statisticsControllerGetTechnicianUtilization({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/technicianUtilization',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
+            },
+        });
+    }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static statisticsControllerGetServiceStageBottlenecks({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/stageBottlenecks',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
+            },
+        });
+    }
 }
