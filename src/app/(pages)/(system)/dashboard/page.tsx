@@ -12,18 +12,23 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  Legend,
   BarChart,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
 } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { FaCalendarAlt } from "react-icons/fa";
 import {
   CardStatsResponse,
@@ -37,6 +42,24 @@ import {
 } from "../../../../../client";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+
+const serviceRevenueChartConfig: ChartConfig = {
+  value: {
+    label: "Revenue",
+  },
+};
+
+const peakHoursChartConfig: ChartConfig = {
+  transactionCount: {
+    label: "Transactions",
+  },
+};
+
+const peakDaysChartConfig: ChartConfig = {
+  transactionCount: {
+    label: "Transactions",
+  },
+};
 
 export default function Dashboard() {
   const [stats, setStats] = useState<CardStatsResponse>();
@@ -177,7 +200,7 @@ export default function Dashboard() {
           <h2 className="font-medium mb-4">Service Revenue</h2>
           <div className="h-64">
             {serviceRevenueData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ChartContainer config={serviceRevenueChartConfig}>
                 <PieChart>
                   <Pie
                     data={serviceRevenueData}
@@ -198,10 +221,10 @@ export default function Dashboard() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`$${value}`, "Revenue"]} />
-                  <Legend />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
-              </ResponsiveContainer>
+              </ChartContainer>
             ) : (
               <div className="flex items-center justify-center h-full text-gray-500">
                 No revenue data available
@@ -390,18 +413,15 @@ export default function Dashboard() {
             <h3 className="font-medium mb-4">Peak Hours</h3>
             <div className="h-64">
               {peakAnalysis?.peakHours?.length ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ChartContainer config={peakHoursChartConfig}>
                   <BarChart data={peakAnalysis.peakHours.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="hour" />
                     <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [value, "Transactions"]}
-                      labelFormatter={(label) => `${label}:00`}
-                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="transactionCount" fill="#0088FE" />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   No peak hours data available
@@ -415,15 +435,15 @@ export default function Dashboard() {
             <h3 className="font-medium mb-4">Peak Days</h3>
             <div className="h-64">
               {peakAnalysis?.peakDays?.length ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ChartContainer config={peakDaysChartConfig}>
                   <BarChart data={peakAnalysis.peakDays}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="dayName" />
                     <YAxis />
-                    <Tooltip formatter={(value) => [value, "Transactions"]} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="transactionCount" fill="#00C49F" />
                   </BarChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   No peak days data available
