@@ -629,7 +629,7 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="h-80">
                     {technicianUtilization?.length ? (
-                      <ChartContainer config={{}}>
+                      <ChartContainer config={{}} className="w-full h-full">
                         <BarChart data={technicianUtilization}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="technicianName" />
@@ -810,7 +810,7 @@ export default function Dashboard() {
               <CardContent>
                 <div className="h-64">
                   {peakAnalysis?.peakHours?.length ? (
-                    <ChartContainer config={peakHoursChartConfig}>
+                    <ChartContainer config={peakHoursChartConfig} className="w-full h-full">
                       <BarChart data={peakAnalysis.peakHours.slice(0, 10)}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="hour" />
@@ -843,7 +843,7 @@ export default function Dashboard() {
               <CardContent>
                 <div className="h-64">
                   {peakAnalysis?.peakDays?.length ? (
-                    <ChartContainer config={peakDaysChartConfig}>
+                    <ChartContainer config={peakDaysChartConfig} className="w-full h-full">
                       <BarChart data={peakAnalysis.peakDays}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="dayName" />
