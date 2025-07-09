@@ -3,7 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PeakHoursResponse = {
-  hour: number;
-  transactionCount: number;
-  percentage: number;
+    hour: number;
+    transactionCount: number;
+    percentage: number;
 };
+

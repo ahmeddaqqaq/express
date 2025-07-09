@@ -3,8 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PeakDaysResponse = {
-  dayOfWeek: number;
-  dayName: string;
-  transactionCount: number;
-  percentage: number;
+    dayOfWeek: number;
+    dayName: string;
+    transactionCount: number;
+    percentage: number;
 };
+

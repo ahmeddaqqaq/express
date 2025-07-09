@@ -3,11 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 export type TechnicianUtilizationResponse = {
-  technicianId: string;
-  technicianName: string;
-  totalTransactions: number;
-  completedTransactions: number;
-  inProgressTransactions: number;
-  utilizationRate: number;
-  completionRate: number;
+    technicianId: string;
+    technicianName: string;
+    totalTransactions: number;
+    completedTransactions: number;
+    inProgressTransactions: number;
+    utilizationRate: number;
+    completionRate: number;
 };
+

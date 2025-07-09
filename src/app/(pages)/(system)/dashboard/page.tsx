@@ -53,7 +53,18 @@ import {
   ServiceStageBottleneckResponse,
 } from "../../../../../client";
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8", "#82ca9d", "#ffc658", "#ff7c7c", "#8dd1e1", "#d084d0"];
+const COLORS = [
+  "#0088FE",
+  "#00C49F",
+  "#FFBB28",
+  "#FF8042",
+  "#8884D8",
+  "#82ca9d",
+  "#ffc658",
+  "#ff7c7c",
+  "#8dd1e1",
+  "#d084d0",
+];
 
 const MotionCard = motion(Card);
 const MotionDiv = motion.div;
@@ -74,9 +85,7 @@ const staggerContainer = {
 };
 
 const serviceRevenueChartConfig: ChartConfig = {
-  value: {
-    label: "Revenue",
-  },
+  value: {},
 };
 
 const peakHoursChartConfig: ChartConfig = {
@@ -97,8 +106,10 @@ export default function Dashboard() {
   const [revenue, setRevenue] = useState<RevenueSummary>();
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>();
   const [peakAnalysis, setPeakAnalysis] = useState<PeakAnalysisResponse>();
-  const [technicianUtilization, setTechnicianUtilization] = useState<TechnicianUtilizationResponse[]>();
-  const [stageBottlenecks, setStageBottlenecks] = useState<ServiceStageBottleneckResponse[]>();
+  const [technicianUtilization, setTechnicianUtilization] =
+    useState<TechnicianUtilizationResponse[]>();
+  const [stageBottlenecks, setStageBottlenecks] =
+    useState<ServiceStageBottleneckResponse[]>();
   const [timeRange, setTimeRange] = useState<"day" | "month" | "year" | "all">(
     "day"
   );
@@ -106,39 +117,50 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchAllData() {
       try {
-        const [cardStats, completionRatio, revenueData, topCustomersData, peakAnalysisData, technicianUtilizationData, stageBottlenecksData] =
-          await Promise.all([
-            StatisticsService.statisticsControllerGetCardStats({
-              range: timeRange,
-            }),
-            StatisticsService.statisticsControllerGetRatio({
-              range: timeRange,
-            }),
-            StatisticsService.statisticsControllerGetRevenueStatistics({
-              range: timeRange,
-            }),
-            StatisticsService.statisticsControllerGetTopCustomers({
-              range: timeRange,
-              limit: 5,
-            }),
-            StatisticsService.statisticsControllerGetPeakAnalysis({
-              range: timeRange,
-            }),
-            StatisticsService.statisticsControllerGetTechnicianUtilization({
-              range: timeRange,
-            }),
-            StatisticsService.statisticsControllerGetServiceStageBottlenecks({
-              range: timeRange,
-            }),
-          ]);
+        const [
+          cardStats,
+          completionRatio,
+          revenueData,
+          topCustomersData,
+          peakAnalysisData,
+          technicianUtilizationData,
+          stageBottlenecksData,
+        ] = await Promise.all([
+          StatisticsService.statisticsControllerGetCardStats({
+            range: timeRange,
+          }),
+          StatisticsService.statisticsControllerGetRatio({
+            range: timeRange,
+          }),
+          StatisticsService.statisticsControllerGetRevenueStatistics({
+            range: timeRange,
+          }),
+          StatisticsService.statisticsControllerGetTopCustomers({
+            range: timeRange,
+            limit: 5,
+          }),
+          StatisticsService.statisticsControllerGetPeakAnalysis({
+            range: timeRange,
+          }),
+          StatisticsService.statisticsControllerGetTechnicianUtilization({
+            range: timeRange,
+          }),
+          StatisticsService.statisticsControllerGetServiceStageBottlenecks({
+            range: timeRange,
+          }),
+        ]);
 
         setStats(cardStats as unknown as CardStatsResponse);
         setRatio(completionRatio as unknown as CompletionRatioResponse);
         setRevenue(revenueData as unknown as RevenueSummary);
         setTopCustomers(topCustomersData as unknown as TopCustomer[]);
         setPeakAnalysis(peakAnalysisData as unknown as PeakAnalysisResponse);
-        setTechnicianUtilization(technicianUtilizationData as unknown as TechnicianUtilizationResponse[]);
-        setStageBottlenecks(stageBottlenecksData as unknown as ServiceStageBottleneckResponse[]);
+        setTechnicianUtilization(
+          technicianUtilizationData as unknown as TechnicianUtilizationResponse[]
+        );
+        setStageBottlenecks(
+          stageBottlenecksData as unknown as ServiceStageBottleneckResponse[]
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -288,9 +310,38 @@ export default function Dashboard() {
                             outerRadius={80}
                             fill="#8884d8"
                             dataKey="value"
-                            label={({ name, percent }) =>
-                              `${name}: ${(percent * 100).toFixed(0)}%`
-                            }
+                            label={({
+                              cx,
+                              cy,
+                              midAngle,
+                              innerRadius,
+                              outerRadius,
+                              percent,
+                              name,
+                            }) => {
+                              const radius = outerRadius + 30;
+                              const x =
+                                cx +
+                                radius * Math.cos((-midAngle * Math.PI) / 180);
+                              const y =
+                                cy +
+                                radius * Math.sin((-midAngle * Math.PI) / 180);
+
+                              return (
+                                <text
+                                  x={x}
+                                  y={y}
+                                  fill="#374151"
+                                  textAnchor={x > cx ? "start" : "end"}
+                                  dominantBaseline="central"
+                                  fontSize="11"
+                                  fontWeight="600"
+                                  className="dark:fill-gray-300"
+                                >
+                                  {`${name}: ${(percent * 100).toFixed(1)}%`}
+                                </text>
+                              );
+                            }}
                           >
                             {serviceRevenueData.map((_entry, index) => (
                               <Cell
@@ -299,8 +350,41 @@ export default function Dashboard() {
                               />
                             ))}
                           </Pie>
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <ChartLegend content={<ChartLegendContent />} />
+                          <ChartTooltip
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                return (
+                                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border">
+                                    <p className="font-semibold text-gray-900 dark:text-gray-100">
+                                      {data.name}
+                                    </p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      Revenue:{" "}
+                                      <span className="font-medium">
+                                        ${data.value.toLocaleString()}
+                                      </span>
+                                    </p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                      Percentage:{" "}
+                                      <span className="font-medium">
+                                        {(
+                                          (data.value /
+                                            serviceRevenueData.reduce(
+                                              (sum, item) => sum + item.value,
+                                              0
+                                            )) *
+                                          100
+                                        ).toFixed(1)}
+                                        %
+                                      </span>
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
                         </PieChart>
                       </ChartContainer>
                     ) : (
@@ -375,8 +459,8 @@ export default function Dashboard() {
                           of services completed on time
                         </p>
                         <div className="w-full max-w-xs mx-auto">
-                          <Progress 
-                            value={ratio.completionRatio || 0} 
+                          <Progress
+                            value={ratio.completionRatio || 0}
                             className="h-3"
                           />
                         </div>
@@ -409,7 +493,8 @@ export default function Dashboard() {
                             <div>
                               <p className="font-semibold">Service Revenue</p>
                               <p className="text-sm text-muted-foreground">
-                                {revenue.services?.length || 0} different services
+                                {revenue.services?.length || 0} different
+                                services
                               </p>
                             </div>
                           </div>
@@ -452,7 +537,9 @@ export default function Dashboard() {
                             </Avatar>
                             <div>
                               <p className="font-semibold">Total Revenue</p>
-                              <p className="text-sm text-muted-foreground">Combined earnings</p>
+                              <p className="text-sm text-muted-foreground">
+                                Combined earnings
+                              </p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -493,7 +580,10 @@ export default function Dashboard() {
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-10 w-10">
                               <AvatarFallback className="text-xs font-medium">
-                                {customer.customerName?.split(' ').map(n => n[0]).join('') || 'C'}
+                                {customer.customerName
+                                  ?.split(" ")
+                                  .map((n) => n[0])
+                                  .join("") || "C"}
                               </AvatarFallback>
                             </Avatar>
                             <div>
@@ -506,7 +596,10 @@ export default function Dashboard() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <Badge variant="secondary" className="font-semibold">
+                            <Badge
+                              variant="secondary"
+                              className="font-semibold"
+                            >
                               ${customer.totalSpent?.toLocaleString() || "0"}
                             </Badge>
                             <p className="text-xs text-muted-foreground mt-1">
@@ -545,7 +638,11 @@ export default function Dashboard() {
                           <XAxis dataKey="technicianName" />
                           <YAxis />
                           <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="completionRate" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                          <Bar
+                            dataKey="completionRate"
+                            fill="#3b82f6"
+                            radius={[4, 4, 0, 0]}
+                          />
                         </BarChart>
                       </ChartContainer>
                     ) : (
@@ -574,11 +671,11 @@ export default function Dashboard() {
                           <XAxis dataKey="stage" />
                           <YAxis />
                           <ChartTooltip content={<ChartTooltipContent />} />
-                          <Area 
-                            type="monotone" 
-                            dataKey="averageTimeInStage" 
-                            stroke="#f97316" 
-                            fill="#f97316" 
+                          <Area
+                            type="monotone"
+                            dataKey="averageTimeInStage"
+                            stroke="#f97316"
+                            fill="#f97316"
                             fillOpacity={0.6}
                           />
                         </AreaChart>
@@ -606,12 +703,22 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-center space-y-4">
                     <div className="text-4xl font-bold text-green-600">
-                      {ratio?.completionRatio ? (ratio.completionRatio * 0.85).toFixed(1) : "0.0"}%
+                      {ratio?.completionRatio
+                        ? (ratio.completionRatio * 0.85).toFixed(1)
+                        : "0.0"}
+                      %
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Overall system efficiency
                     </p>
-                    <Progress value={ratio?.completionRatio ? ratio.completionRatio * 0.85 : 0} className="h-2" />
+                    <Progress
+                      value={
+                        ratio?.completionRatio
+                          ? ratio.completionRatio * 0.85
+                          : 0
+                      }
+                      className="h-2"
+                    />
                   </div>
                 </CardContent>
               </MotionCard>
@@ -627,10 +734,16 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-center space-y-4">
                     <div className="text-4xl font-bold text-blue-600">
-                      {stageBottlenecks?.length 
-                        ? (stageBottlenecks.reduce((acc, stage) => acc + (stage.averageTimeInStage || 0), 0) / stageBottlenecks.length).toFixed(1)
-                        : "0.0"
-                      }h
+                      {stageBottlenecks?.length
+                        ? (
+                            stageBottlenecks.reduce(
+                              (acc, stage) =>
+                                acc + (stage.averageTimeInStage || 0),
+                              0
+                            ) / stageBottlenecks.length
+                          ).toFixed(1)
+                        : "0.0"}
+                      h
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Per service completion
@@ -655,7 +768,10 @@ export default function Dashboard() {
                 <CardContent>
                   <div className="text-center space-y-4">
                     <div className="text-4xl font-bold text-purple-600">
-                      {topCustomers?.length ? (92 + (topCustomers.length * 0.5)).toFixed(1) : "92.0"}%
+                      {topCustomers?.length
+                        ? (92 + topCustomers.length * 0.5).toFixed(1)
+                        : "92.0"}
+                      %
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Based on repeat customers
@@ -672,7 +788,6 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
 
-
         {/* Operational Insights */}
         <MotionDiv
           initial={{ opacity: 0, y: 20 }}
@@ -684,7 +799,7 @@ export default function Dashboard() {
             <FiActivity className="h-6 w-6 text-blue-600" />
             <h2 className="text-2xl font-bold">Operational Insights</h2>
           </div>
-          
+
           {/* Peak Analysis Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Peak Hours */}
@@ -704,7 +819,11 @@ export default function Dashboard() {
                         <XAxis dataKey="hour" />
                         <YAxis />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="transactionCount" fill="#0088FE" radius={[4, 4, 0, 0]} />
+                        <Bar
+                          dataKey="transactionCount"
+                          fill="#0088FE"
+                          radius={[4, 4, 0, 0]}
+                        />
                       </BarChart>
                     </ChartContainer>
                   ) : (
@@ -733,7 +852,11 @@ export default function Dashboard() {
                         <XAxis dataKey="dayName" />
                         <YAxis />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="transactionCount" fill="#00C49F" radius={[4, 4, 0, 0]} />
+                        <Bar
+                          dataKey="transactionCount"
+                          fill="#00C49F"
+                          radius={[4, 4, 0, 0]}
+                        />
                       </BarChart>
                     </ChartContainer>
                   ) : (
@@ -768,22 +891,34 @@ export default function Dashboard() {
                       <div className="flex items-center space-x-4">
                         <Avatar className="h-12 w-12 bg-blue-100 dark:bg-blue-900">
                           <AvatarFallback className="text-blue-600 dark:text-blue-400 font-medium">
-                            {tech.technicianName?.split(' ').map(n => n[0]).join('') || 'T'}
+                            {tech.technicianName
+                              ?.split(" ")
+                              .map((n) => n[0])
+                              .join("") || "T"}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-semibold">{tech.technicianName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {tech.totalTransactions} total • {tech.completedTransactions} completed
+                            {tech.totalTransactions} total •{" "}
+                            {tech.completedTransactions} completed
                           </p>
                         </div>
                       </div>
                       <div className="text-right space-y-2">
-                        <Badge variant="secondary" className="text-lg font-bold">
+                        <Badge
+                          variant="secondary"
+                          className="text-lg font-bold"
+                        >
                           {tech.completionRate?.toFixed(1) || 0}%
                         </Badge>
-                        <p className="text-sm text-muted-foreground">completion rate</p>
-                        <Progress value={tech.completionRate || 0} className="w-24" />
+                        <p className="text-sm text-muted-foreground">
+                          completion rate
+                        </p>
+                        <Progress
+                          value={tech.completionRate || 0}
+                          className="w-24"
+                        />
                       </div>
                     </MotionDiv>
                   ))
@@ -818,21 +953,28 @@ export default function Dashboard() {
                       <div className="flex items-center space-x-4">
                         <Avatar className="h-12 w-12 bg-orange-100 dark:bg-orange-900">
                           <AvatarFallback className="text-orange-600 dark:text-orange-400 font-medium">
-                            {stage.stage?.charAt(0).toUpperCase() || 'S'}
+                            {stage.stage?.charAt(0).toUpperCase() || "S"}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-semibold capitalize">{stage.stage}</p>
+                          <p className="font-semibold capitalize">
+                            {stage.stage}
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             {stage.transactionCount} transactions
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <Badge variant="outline" className="text-lg font-bold text-orange-600">
+                        <Badge
+                          variant="outline"
+                          className="text-lg font-bold text-orange-600"
+                        >
                           {stage.averageTimeInStage?.toFixed(1) || 0}h
                         </Badge>
-                        <p className="text-sm text-muted-foreground mt-1">avg time</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          avg time
+                        </p>
                       </div>
                     </MotionDiv>
                   ))
@@ -868,12 +1010,15 @@ function EnhancedStatCard({
   isCurrency?: boolean;
 }) {
   const isPositive = change >= 0;
-  
+
   const colorClasses = {
     blue: "from-blue-500 to-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-900/20",
-    green: "from-green-500 to-green-600 text-green-600 bg-green-50 dark:bg-green-900/20",
-    orange: "from-orange-500 to-orange-600 text-orange-600 bg-orange-50 dark:bg-orange-900/20",
-    purple: "from-purple-500 to-purple-600 text-purple-600 bg-purple-50 dark:bg-purple-900/20",
+    green:
+      "from-green-500 to-green-600 text-green-600 bg-green-50 dark:bg-green-900/20",
+    orange:
+      "from-orange-500 to-orange-600 text-orange-600 bg-orange-50 dark:bg-orange-900/20",
+    purple:
+      "from-purple-500 to-purple-600 text-purple-600 bg-purple-50 dark:bg-purple-900/20",
   };
 
   return (
@@ -881,7 +1026,11 @@ function EnhancedStatCard({
       variants={cardVariants}
       className="relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105"
     >
-      <div className={`absolute inset-0 bg-gradient-to-br ${colorClasses[color as keyof typeof colorClasses]} opacity-5`} />
+      <div
+        className={`absolute inset-0 bg-gradient-to-br ${
+          colorClasses[color as keyof typeof colorClasses]
+        } opacity-5`}
+      />
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
@@ -890,7 +1039,13 @@ function EnhancedStatCard({
             </CardTitle>
             <div className="text-3xl font-bold">{value}</div>
           </div>
-          <div className={`p-3 rounded-full ${colorClasses[color as keyof typeof colorClasses].split(' ')[2]} ${colorClasses[color as keyof typeof colorClasses].split(' ')[3]}`}>
+          <div
+            className={`p-3 rounded-full ${
+              colorClasses[color as keyof typeof colorClasses].split(" ")[2]
+            } ${
+              colorClasses[color as keyof typeof colorClasses].split(" ")[3]
+            }`}
+          >
             {icon}
           </div>
         </div>
@@ -898,16 +1053,20 @@ function EnhancedStatCard({
       <CardContent className="pt-0">
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground">{description}</p>
-          <div className={`flex items-center text-sm ${
-            isPositive ? "text-green-600" : "text-red-600"
-          }`}>
+          <div
+            className={`flex items-center text-sm ${
+              isPositive ? "text-green-600" : "text-red-600"
+            }`}
+          >
             {isPositive ? (
               <FiTrendingUp className="mr-1 h-4 w-4" />
             ) : (
               <FiTrendingDown className="mr-1 h-4 w-4" />
             )}
             {!isCurrency && change > 0 ? "+" : ""}
-            {isCurrency ? `$${change.toLocaleString()}` : change.toLocaleString()}
+            {isCurrency
+              ? `$${change.toLocaleString()}`
+              : change.toLocaleString()}
             {!isCurrency ? " Today" : ""}
           </div>
         </div>

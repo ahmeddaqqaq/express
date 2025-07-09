@@ -3,8 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 export type ServiceStageBottleneckResponse = {
-  stage: string;
-  averageTimeInStage: number;
-  transactionCount: number;
-  bottleneckScore: number;
+    stage: string;
+    averageTimeInStage: number;
+    transactionCount: number;
+    bottleneckScore: number;
 };
+
