@@ -36,8 +36,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from "@/components/ui/chart";
 import { FaCalendarAlt } from "react-icons/fa";
@@ -314,7 +312,6 @@ export default function Dashboard() {
                               cx,
                               cy,
                               midAngle,
-                              innerRadius,
                               outerRadius,
                               percent,
                               name,
@@ -880,48 +877,52 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-4">
                 {technicianUtilization?.length ? (
-                  technicianUtilization.map((tech, index) => (
-                    <MotionDiv
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
-                    >
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="h-12 w-12 bg-blue-100 dark:bg-blue-900">
-                          <AvatarFallback className="text-blue-600 dark:text-blue-400 font-medium">
-                            {tech.technicianName
-                              ?.split(" ")
-                              .map((n) => n[0])
-                              .join("") || "T"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold">{tech.technicianName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {tech.totalTransactions} total •{" "}
-                            {tech.completedTransactions} completed
-                          </p>
+                  technicianUtilization.map((tech, index) =>
+                    tech.totalTransactions > 0 ? (
+                      <MotionDiv
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-12 w-12 bg-blue-100 dark:bg-blue-900">
+                            <AvatarFallback className="text-blue-600 dark:text-blue-400 font-medium">
+                              {tech.technicianName
+                                ?.split(" ")
+                                .map((n) => n[0])
+                                .join("") || "T"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold">
+                              {tech.technicianName}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {tech.totalTransactions} total •{" "}
+                              {tech.completedTransactions} completed
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <Badge
-                          variant="secondary"
-                          className="text-lg font-bold"
-                        >
-                          {tech.completionRate?.toFixed(1) || 0}%
-                        </Badge>
-                        <p className="text-sm text-muted-foreground">
-                          completion rate
-                        </p>
-                        <Progress
-                          value={tech.completionRate || 0}
-                          className="w-24"
-                        />
-                      </div>
-                    </MotionDiv>
-                  ))
+                        <div className="text-right space-y-2">
+                          <Badge
+                            variant="secondary"
+                            className="text-lg font-bold"
+                          >
+                            {tech.completionRate?.toFixed(1) || 0}%
+                          </Badge>
+                          <p className="text-sm text-muted-foreground">
+                            completion rate
+                          </p>
+                          <Progress
+                            value={tech.completionRate || 0}
+                            className="w-24"
+                          />
+                        </div>
+                      </MotionDiv>
+                    ) : null
+                  )
                 ) : (
                   <div className="flex items-center justify-center h-32 text-muted-foreground">
                     No technician data available
