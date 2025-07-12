@@ -30,7 +30,7 @@ export type { CreateTechnicianDto } from './models/CreateTechnicianDto';
 export type { CreateTransactionDto } from './models/CreateTransactionDto';
 export type { CustomerResponse } from './models/CustomerResponse';
 export type { CustomersManyResponse } from './models/CustomersManyResponse';
-export type { ImageResponse } from './models/ImageResponse';
+export { ImageResponse } from './models/ImageResponse';
 export type { InvoiceResponse } from './models/InvoiceResponse';
 export { ModelResponse } from './models/ModelResponse';
 export type { PeakAnalysisResponse } from './models/PeakAnalysisResponse';

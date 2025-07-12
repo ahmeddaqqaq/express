@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { UploadedFile, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from "./types";
-import { TransactionResponse } from "../../../../../../../client";
+import { TransactionResponse, TransactionService } from "../../../../../../../client";
 
 interface ImageUploadProps {
   appointment: TransactionResponse;
@@ -21,19 +21,17 @@ interface ImageUploadProps {
   setUploadedFiles: (
     files: UploadedFile[] | ((prev: UploadedFile[]) => UploadedFile[])
   ) => void;
+  onUploadSuccess?: () => void;
 }
 
 export function ImageUpload({
   appointment,
   uploadedFiles,
   setUploadedFiles,
+  onUploadSuccess,
 }: ImageUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const API_BASE = `${
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://lionsinternationalco.com"
-  }/express/transaction`;
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {
@@ -116,10 +114,13 @@ export function ImageUpload({
   };
 
   const uploadFile = async (uploadedFile: UploadedFile) => {
-    const formData = new FormData();
-    formData.append("file", uploadedFile.file);
-
     try {
+      // Show initial loading toast
+      toast.loading(`Uploading ${uploadedFile.file.name}...`, { 
+        id: `upload-${uploadedFile.id}`,
+        duration: Infinity // Keep until replaced
+      });
+
       const progressInterval = setInterval(() => {
         setUploadedFiles((prev: UploadedFile[]) =>
           prev.map((f) =>
@@ -130,22 +131,15 @@ export function ImageUpload({
         );
       }, 200);
 
-      const res = await fetch(`${API_BASE}/${appointment.id}/upload`, {
-        method: "PATCH",
-        body: formData,
-        credentials: "include",
+      // Use the proper TransactionService API
+      await TransactionService.transactionControllerUploadImage({
+        id: appointment.id,
+        formData: {
+          file: uploadedFile.file,
+        },
       });
 
       clearInterval(progressInterval);
-
-      if (!res.ok) {
-        let errorDetails = `${res.status} ${res.statusText}`;
-        try {
-          const errorBody = await res.text();
-          if (errorBody) errorDetails += `: ${errorBody}`;
-        } catch (_) {}
-        throw new Error(`Upload failed: ${errorDetails}`);
-      }
 
       setUploadedFiles((prev: UploadedFile[]) =>
         prev.map((f) =>
@@ -155,7 +149,15 @@ export function ImageUpload({
         )
       );
 
-      toast.success(`${uploadedFile.file.name} uploaded successfully`);
+      toast.success(`${uploadedFile.file.name} uploaded successfully`, {
+        id: `upload-${uploadedFile.id}`,
+        duration: 3000
+      });
+
+      // Call the success callback to refresh appointment data
+      if (onUploadSuccess) {
+        onUploadSuccess();
+      }
     } catch (error) {
       console.error("Upload error:", error);
       const errorMessage =
@@ -170,7 +172,9 @@ export function ImageUpload({
       );
 
       toast.error(`Failed to upload ${uploadedFile.file.name}`, {
+        id: `upload-${uploadedFile.id}`,
         description: errorMessage,
+        duration: 5000,
       });
     }
   };

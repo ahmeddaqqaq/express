@@ -12,6 +12,7 @@ import {
   FiChevronDown,
   FiChevronRight,
   FiLogOut,
+  FiClock,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AuthService } from "../../../client";
 import Image from "next/image";
+import { AuditLogTable } from "./audit-log-table";
 
 export default function MainLayout({
   children,
@@ -45,6 +47,7 @@ export default function MainLayout({
     pathname.startsWith("/schedule")
   );
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isAuditLogOpen, setIsAuditLogOpen] = useState(false);
   const router = useRouter();
   const { isAdmin, isLoading } = useUser();
 
@@ -83,6 +86,12 @@ export default function MainLayout({
       name: "Vehicles",
       path: "/vehicles",
       icon: <FaCarAlt className="h-5 w-5" />,
+    },
+    {
+      name: "Audit Log",
+      action: () => setIsAuditLogOpen(true),
+      icon: <FiClock className="h-5 w-5" />,
+      adminOnly: true,
     },
   ];
 
@@ -168,6 +177,18 @@ export default function MainLayout({
                     )}
                   </motion.div>
                 </Link>
+              ) : item.action ? (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center w-full p-3 rounded-lg transition-all duration-200 group cursor-pointer hover:bg-[#4b3526]/70"
+                  onClick={item.action}
+                >
+                  <div className="mr-3 text-[#d1c2b8] group-hover:text-white">
+                    {item.icon}
+                  </div>
+                  <span className="font-medium">{item.name}</span>
+                </motion.div>
               ) : (
                 <>
                   <motion.div
@@ -271,33 +292,58 @@ export default function MainLayout({
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#4b3526] shadow-lg z-50">
         <div className="flex justify-around p-2">
-          {navItems.slice(0, 4).map((item) => (
-            <Link
-              href={item.path || (item.submenu ? item.submenu[0].path : "#")}
-              key={item.name}
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={`rounded-full h-12 w-12 ${
-                      isActive(item.path!) ||
-                      (item.submenu &&
-                        item.submenu.some((sub) => isActive(sub.path)))
-                        ? "bg-[#5a4233] text-white"
-                        : "text-[#d1c2b8] hover:bg-[#4b3526]/50"
-                    }`}
+          {navItems.slice(0, 4).map((item) =>
+            item.action ? (
+              <div key={item.name} onClick={item.action}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="rounded-full h-12 w-12 text-[#d1c2b8] hover:bg-[#4b3526]/50"
+                    >
+                      {item.icon}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className="bg-[#4b3526] text-white"
                   >
-                    {item.icon}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="bg-[#4b3526] text-white">
-                  {item.name}
-                </TooltipContent>
-              </Tooltip>
-            </Link>
-          ))}
+                    {item.name}
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            ) : (
+              <Link
+                href={item.path || (item.submenu ? item.submenu[0].path : "#")}
+                key={item.name}
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`rounded-full h-12 w-12 ${
+                        isActive(item.path!) ||
+                        (item.submenu &&
+                          item.submenu.some((sub) => isActive(sub.path)))
+                          ? "bg-[#5a4233] text-white"
+                          : "text-[#d1c2b8] hover:bg-[#4b3526]/50"
+                      }`}
+                    >
+                      {item.icon}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className="bg-[#4b3526] text-white"
+                  >
+                    {item.name}
+                  </TooltipContent>
+                </Tooltip>
+              </Link>
+            )
+          )}
         </div>
       </div>
 
@@ -311,6 +357,9 @@ export default function MainLayout({
           {children}
         </motion.div>
       </main>
+
+      {/* Audit Log Table */}
+      <AuditLogTable isOpen={isAuditLogOpen} onOpenChange={setIsAuditLogOpen} />
     </div>
   );
 }

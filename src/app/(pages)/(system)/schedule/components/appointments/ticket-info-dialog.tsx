@@ -1,17 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FiUser, FiMail } from "react-icons/fi";
+import { Button } from "@/components/ui/button";
+import { FiUser, FiMail, FiImage, FiUsers } from "react-icons/fi";
 import { FaCar, FaIdCard } from "react-icons/fa";
 import { GiCarDoor } from "react-icons/gi";
 import { IoMdColorPalette } from "react-icons/io";
 import { BsCalendarDate } from "react-icons/bs";
 import { TransactionResponse } from "../../../../../../../client";
+import { StageImagesViewer } from "./stage-images-viewer";
 
 interface TicketInfoDialogProps {
   isOpen: boolean;
@@ -24,7 +27,10 @@ export default function TicketInfoDialog({
   onOpenChange,
   appointment,
 }: TicketInfoDialogProps) {
+  const [isStageViewerOpen, setIsStageViewerOpen] = useState(false);
+
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -106,8 +112,29 @@ export default function TicketInfoDialog({
               <p className="text-2xl font-bold">{appointment.OTP}</p>
             </div>
           )}
+
+          {/* Stage Images and Technicians Button */}
+          <div className="pt-4 border-t border-gray-200">
+            <Button
+              onClick={() => setIsStageViewerOpen(true)}
+              className="w-full flex items-center justify-center gap-2"
+              variant="outline"
+            >
+              <FiImage className="h-4 w-4" />
+              <FiUsers className="h-4 w-4" />
+              View Work Progress by Stage
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Stage Images Viewer */}
+    <StageImagesViewer
+      isOpen={isStageViewerOpen}
+      onOpenChange={setIsStageViewerOpen}
+      appointment={appointment}
+    />
+    </>
   );
 }

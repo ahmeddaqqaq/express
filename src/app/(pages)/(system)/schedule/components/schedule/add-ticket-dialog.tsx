@@ -20,6 +20,7 @@ import {
   TransactionService,
   CarService,
 } from "../../../../../../../client";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -346,7 +347,15 @@ export function AddTicketDialog({
 
   const createSchedule = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+
+    const toastId = "create-ticket";
+
     try {
+      toast.loading("Creating new ticket...", {
+        id: toastId,
+        duration: Infinity,
+      });
+
       await TransactionService.transactionControllerCreate({
         requestBody: {
           customerId: values.customerId,
@@ -360,11 +369,24 @@ export function AddTicketDialog({
         },
       });
 
+      toast.success("Ticket created successfully", {
+        id: toastId,
+        duration: 3000,
+      });
+
       onOpenChange(false);
       ticketForm.reset();
       onSuccess?.();
     } catch (error) {
       console.error("Error creating schedule:", error);
+      toast.error("Failed to create ticket", {
+        id: toastId,
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+        duration: 5000,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -372,18 +394,37 @@ export function AddTicketDialog({
 
   const createCustomer = async (values: z.infer<typeof customerSchema>) => {
     setIsCreatingCustomer(true);
+
+    const toastId = "create-customer";
+
     try {
+      toast.loading("Creating customer...", {
+        id: toastId,
+        duration: Infinity,
+      });
+
       await CustomerService.customerControllerCreate({
         requestBody: values,
+      });
+
+      toast.success("Customer created successfully", {
+        id: toastId,
+        duration: 3000,
       });
 
       await fetchCustomers();
       setActiveTab("ticket");
       customerForm.reset();
-
-      console.log("Customer created successfully");
     } catch (error) {
       console.error("Error creating customer:", error);
+      toast.error("Failed to create customer", {
+        id: toastId,
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+        duration: 5000,
+      });
     } finally {
       setIsCreatingCustomer(false);
     }
@@ -391,13 +432,16 @@ export function AddTicketDialog({
 
   const createCar = async (values: z.infer<typeof carSchema>) => {
     setIsCreatingCar(true);
+
+    const toastId = "create-car";
+
     try {
-      console.log("Creating car with values:", {
-        ...values,
-        customerId: selectedCustomerId,
+      toast.loading("Creating car...", {
+        id: toastId,
+        duration: Infinity,
       });
 
-      const response = await CarService.carControllerCreate({
+      await CarService.carControllerCreate({
         requestBody: {
           brandId: values.brandId,
           modelId: values.modelId,
@@ -408,17 +452,24 @@ export function AddTicketDialog({
         },
       });
 
-      console.log("Car created successfully:", response);
+      toast.success("Car created successfully", {
+        id: toastId,
+        duration: 3000,
+      });
 
       await fetchCustomers();
-
       setActiveTab("ticket");
       carForm.reset();
-
-      console.log("Switched back to ticket tab");
     } catch (error) {
       console.error("Error creating car:", error);
-      console.error("Error details:", error);
+      toast.error("Failed to create car", {
+        id: toastId,
+        description:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+        duration: 5000,
+      });
     } finally {
       setIsCreatingCar(false);
     }
@@ -783,10 +834,14 @@ export function AddTicketDialog({
                         <FormItem className="flex-1">
                           <FormLabel>Model</FormLabel>
                           <SearchSelect
-                            options={selectedBrandId ? models.map((model) => ({
-                              value: model.id,
-                              label: model.name,
-                            })) : []}
+                            options={
+                              selectedBrandId
+                                ? models.map((model) => ({
+                                    value: model.id,
+                                    label: model.name,
+                                  }))
+                                : []
+                            }
                             value={selectedBrandId ? field.value : ""}
                             onChange={(value) => {
                               if (selectedBrandId) {

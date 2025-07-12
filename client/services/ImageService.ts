@@ -32,13 +32,24 @@ export class ImageService {
         });
     }
     /**
-     * @returns any
+     * Get all images with optional stage filtering
+     * @returns any Images retrieved successfully
      * @throws ApiError
      */
-    public static imageControllerFetchAll(): CancelablePromise<any> {
+    public static imageControllerFetchAll({
+        uploadedAtStage,
+    }: {
+        /**
+         * Filter images by upload stage
+         */
+        uploadedAtStage?: 'scheduled' | 'stageOne' | 'stageTwo' | 'stageThree' | 'completed' | 'cancelled',
+    }): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/images',
+            query: {
+                'uploadedAtStage': uploadedAtStage,
+            },
         });
     }
     /**

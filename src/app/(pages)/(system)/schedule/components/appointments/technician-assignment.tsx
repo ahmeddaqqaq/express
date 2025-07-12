@@ -46,7 +46,16 @@ export function TechnicianAssignment({
 
   async function assignTechnicians(values: z.infer<typeof formSchema>) {
     setIsAssigningTechnicians(true);
+    
+    const technicianCount = values.technicianId.length;
+    const toastId = `assign-${appointment.id}`;
+    
     try {
+      toast.loading(`Assigning ${technicianCount} technician${technicianCount > 1 ? 's' : ''}...`, { 
+        id: toastId,
+        duration: Infinity 
+      });
+
       await TransactionService.transactionControllerUpdate({
         requestBody: {
           id: appointment.id,
@@ -54,13 +63,18 @@ export function TechnicianAssignment({
         },
       });
 
-      toast.success("Technicians assigned successfully");
+      toast.success(`Successfully assigned ${technicianCount} technician${technicianCount > 1 ? 's' : ''}`, {
+        id: toastId,
+        duration: 3000
+      });
+      
       await fetchTechnicians();
       onSuccess?.();
     } catch (error) {
       toast.error("Failed to assign technicians", {
-        description:
-          error instanceof Error ? error.message : "Unknown error occurred",
+        id: toastId,
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        duration: 5000,
       });
     } finally {
       setIsAssigningTechnicians(false);

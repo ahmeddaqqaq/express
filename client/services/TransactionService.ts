@@ -210,4 +210,64 @@ export class TransactionService {
             mediaType: 'multipart/form-data',
         });
     }
+    /**
+     * Get transaction images filtered by stage
+     * @returns any Images retrieved successfully
+     * @throws ApiError
+     */
+    public static transactionControllerGetTransactionImages({
+        id,
+        stage,
+    }: {
+        id: string,
+        /**
+         * Filter images by upload stage
+         */
+        stage?: 'scheduled' | 'stageOne' | 'stageTwo' | 'stageThree' | 'completed' | 'cancelled',
+    }): CancelablePromise<Array<{
+        id?: string;
+        key?: string;
+        url?: string;
+        isActive?: boolean;
+        uploadedAtStage?: 'scheduled' | 'stageOne' | 'stageTwo' | 'stageThree' | 'completed' | 'cancelled';
+        createdAt?: string;
+        updatedAt?: string;
+    }>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/transaction/{id}/images',
+            path: {
+                'id': id,
+            },
+            query: {
+                'stage': stage,
+            },
+        });
+    }
+    /**
+     * Get transaction images grouped by upload stage
+     * @returns any Images grouped by stage retrieved successfully
+     * @throws ApiError
+     */
+    public static transactionControllerGetTransactionImagesGrouped({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<Record<string, Array<{
+        id?: string;
+        key?: string;
+        url?: string;
+        isActive?: boolean;
+        uploadedAtStage?: 'scheduled' | 'stageOne' | 'stageTwo' | 'stageThree' | 'completed' | 'cancelled';
+        createdAt?: string;
+        updatedAt?: string;
+    }>>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/transaction/{id}/images/grouped',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }

@@ -13,6 +13,10 @@ export type UpdateTransactionDto = {
      * IDs of technicians to assign to this transaction
      */
     technicianIds?: Array<string>;
+    /**
+     * ID of the technician making this update
+     */
+    updatedByTechnicianId?: string;
 };
 export namespace UpdateTransactionDto {
     export enum status {

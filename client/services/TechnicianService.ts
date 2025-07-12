@@ -209,4 +209,85 @@ export class TechnicianService {
             },
         });
     }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerStartWorkOnTransaction({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/technician/{id}/start-work',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerCompleteWorkOnTransaction({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/technician/{id}/complete-work',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerGetTechnicianAssignments({
+        id,
+        isActive,
+    }: {
+        id: string,
+        isActive: boolean,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/technician/{id}/assignments',
+            path: {
+                'id': id,
+            },
+            query: {
+                'isActive': isActive,
+            },
+        });
+    }
+    /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static technicianControllerGetTechnicianAuditLogs({
+        id,
+        skip,
+        take,
+    }: {
+        id: string,
+        skip?: number,
+        take?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/technician/{id}/audit-logs',
+            path: {
+                'id': id,
+            },
+            query: {
+                'skip': skip,
+                'take': take,
+            },
+        });
+    }
 }

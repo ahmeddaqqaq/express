@@ -7,11 +7,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AppointmentStatus, UploadedFile } from "./types";
-import { useState } from "react";
+import { AppointmentStatus } from "./types";
 import { FiPackage, FiTool, FiUsers } from "react-icons/fi";
 import { TransactionResponse } from "../../../../../../../client";
-import { ImageUpload } from "./image-upload";
+import { toast } from "sonner";
 
 interface AppointmentDialogProps {
   isOpen: boolean;
@@ -35,35 +34,73 @@ export function AppointmentDialog({
   movingItemId,
   status,
 }: AppointmentDialogProps) {
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
-  // Check if images are required for the current status transition
-  const imagesRequired =
-    pendingStatusChange?.from === "scheduled" ||
-    pendingStatusChange?.from === "stageOne" ||
-    pendingStatusChange?.from === "stageTwo" ||
-    pendingStatusChange?.from === "stageThree";
+  // Check required images based on backend validation rules
+  const getRequiredImages = () => {
+    if (!pendingStatusChange) return 0;
+    
+    const { from, to } = pendingStatusChange;
+    
+    if (from === "scheduled" && to === "stageOne") return 4;
+    if (from === "stageOne" && to === "stageTwo") return 1;
+    if (from === "stageTwo" && to === "stageThree") return 1;
+    if (from === "stageThree" && to === "completed") return 1;
+    
+    return 0;
+  };
+
+  const requiredImages = getRequiredImages();
+  const imagesRequired = requiredImages > 0;
 
   // Check if the action button should be disabled
   const isActionDisabled = () => {
     // Disable if already moving
     if (movingItemId) return true;
 
-    // Disable if images are required but none uploaded
-    if (imagesRequired && uploadedFiles.length === 0) return true;
+    // Check current images (only existing ones since upload is separate)
+    const currentImages = appointment.images?.length || 0;
+    
+    // Disable if required images not met
+    if (imagesRequired && currentImages < requiredImages) return true;
 
     return false;
   };
 
   const handleConfirm = async () => {
-    // Additional validation if needed
-    if (imagesRequired && uploadedFiles.length === 0) {
-      // You could show a toast message here
-      console.warn("Please upload at least one image before proceeding");
+    // Additional validation based on backend requirements
+    const currentImages = appointment.images?.length || 0;
+    
+    if (imagesRequired && currentImages < requiredImages) {
+      toast.error("Images required", {
+        description: `Please upload at least ${requiredImages} image${requiredImages > 1 ? 's' : ''} before proceeding. Currently have ${currentImages} image${currentImages !== 1 ? 's' : ''}. Use the camera button on the card to upload photos.`,
+        duration: 6000,
+      });
       return;
     }
 
-    await onConfirmStatusChange();
+    try {
+      const statusName = pendingStatusChange?.to === "stageOne" ? "Phase 1" 
+        : pendingStatusChange?.to === "stageTwo" ? "Phase 2"
+        : pendingStatusChange?.to === "stageThree" ? "Phase 3"
+        : pendingStatusChange?.to === "completed" ? "Completed"
+        : "next phase";
+
+      toast.loading(`Moving to ${statusName}...`, { id: `confirm-${appointment.id}` });
+      
+      await onConfirmStatusChange();
+      
+      toast.success(`Successfully moved to ${statusName}`, { 
+        id: `confirm-${appointment.id}`,
+        duration: 3000 
+      });
+    } catch (error) {
+      console.error("Status change confirmation error:", error);
+      toast.error("Failed to update status", {
+        id: `confirm-${appointment.id}`,
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        duration: 5000,
+      });
+    }
   };
 
   return (
@@ -161,19 +198,60 @@ export function AppointmentDialog({
             </div>
           </div>
 
-          {/* Second Column: Image Upload */}
+          {/* Second Column: Image Status */}
           <div className="w-1/2 space-y-6">
-            <ImageUpload
-              appointment={appointment}
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-            />
-            {imagesRequired && uploadedFiles.length === 0 && (
-              <div className="text-red-500 text-sm mt-2">
-                Please upload at least 15 images before proceeding to the next
-                phase.
-              </div>
-            )}
+            <div className="bg-gray-50 rounded-xl p-6 shadow-sm h-full">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
+                Photo Requirements
+              </h3>
+              
+              {imagesRequired ? (
+                <div className={`p-4 rounded-lg border-2 ${(() => {
+                  const currentImages = appointment.images?.length || 0;
+                  const remaining = Math.max(0, requiredImages - currentImages);
+                  return remaining > 0 ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50';
+                })()}`}>
+                  <div className={`text-sm font-medium ${(() => {
+                    const currentImages = appointment.images?.length || 0;
+                    const remaining = Math.max(0, requiredImages - currentImages);
+                    return remaining > 0 ? 'text-red-700' : 'text-green-700';
+                  })()}`}>
+                    {(() => {
+                      const currentImages = appointment.images?.length || 0;
+                      const remaining = Math.max(0, requiredImages - currentImages);
+                      
+                      if (remaining > 0) {
+                        return `⚠️ ${remaining} more image${remaining !== 1 ? 's' : ''} required`;
+                      }
+                      
+                      return `✅ Image requirement met`;
+                    })()}
+                  </div>
+                  
+                  <div className="text-xs text-gray-600 mt-2">
+                    Current: {appointment.images?.length || 0} / Required: {requiredImages}
+                  </div>
+                  
+                  {(() => {
+                    const currentImages = appointment.images?.length || 0;
+                    const remaining = Math.max(0, requiredImages - currentImages);
+                    
+                    if (remaining > 0) {
+                      return (
+                        <div className="text-xs text-gray-600 mt-2 italic">
+                          💡 Use the camera button on the card to upload photos
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              ) : (
+                <div className="text-gray-500 italic">
+                  No photo requirements for this transition
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

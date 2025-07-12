@@ -2,17 +2,19 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { FiSettings, FiUser, FiUserPlus } from "react-icons/fi";
+import { FiSettings, FiUser, FiUserPlus, FiCamera } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
   AppointmentCardProps,
   AppointmentStatus,
   statusConfigs,
 } from "./types";
+import { TransactionService } from "../../../../../../../client";
 import { FaCar, FaDotCircle } from "react-icons/fa";
-import { AppointmentDialog } from "./appointment-dialog";
 import TicketInfoDialog from "./ticket-info-dialog";
 import { WorkerAssignmentDialog } from "./worker-assignment-dialog";
+import { PhotoUploadDialog } from "./photo-upload-dialog";
+import { toast } from "sonner";
 
 export function AppointmentsCard({
   appointment,
@@ -24,12 +26,8 @@ export function AppointmentsCard({
   onRefresh,
 }: AppointmentCardProps) {
   const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false);
-  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [isWorkerDialogOpen, setIsWorkerDialogOpen] = useState(false);
-  const [pendingStatusChange, setPendingStatusChange] = useState<{
-    from: AppointmentStatus;
-    to: AppointmentStatus;
-  } | null>(null);
+  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
   const [timerActive, setTimerActive] = useState(false);
 
@@ -65,16 +63,81 @@ export function AppointmentsCard({
     from: AppointmentStatus,
     to: AppointmentStatus
   ) => {
-    if (
-      (from === "scheduled" && to === "stageOne") ||
-      (from === "stageOne" && to === "stageTwo") ||
-      (from === "stageTwo" && to === "stageThree") ||
-      (from === "stageThree" && to === "completed")
-    ) {
-      setPendingStatusChange({ from, to });
-      setIsStatusDialogOpen(true);
-    } else {
+    try {
+      // Fetch current stage images using the API to get real-time data
+      const currentStageImages = await TransactionService.transactionControllerGetTransactionImages({
+        id: appointment.id,
+        stage: from,
+      });
+      
+      // Check if there are images for the current stage
+      if (!currentStageImages || currentStageImages.length === 0) {
+        let stageDisplayName = "";
+        switch (from) {
+          case "scheduled":
+            stageDisplayName = "Scheduled";
+            break;
+          case "stageOne":
+            stageDisplayName = "Phase 1";
+            break;
+          case "stageTwo":
+            stageDisplayName = "Phase 2";
+            break;
+          case "stageThree":
+            stageDisplayName = "Phase 3";
+            break;
+        }
+        
+        toast.error(`Images required for ${stageDisplayName}`, {
+          description: `Please upload at least one image for the current ${stageDisplayName} stage before proceeding to the next phase. Use the camera button to upload photos.`,
+          duration: 6000,
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Failed to check stage images:", error);
+      toast.error("Failed to validate images", {
+        description: "Please try again",
+        duration: 3000,
+      });
+      return;
+    }
+
+    try {
+      toast.loading("Updating status...", { id: `status-${appointment.id}` });
       await handleStatusChange(appointment.id, from, to);
+
+      let successMessage = "Status updated successfully";
+      if (to === "stageOne") successMessage = "Successfully started Phase 1";
+      if (to === "stageTwo") successMessage = "Successfully moved to Phase 2";
+      if (to === "stageThree") successMessage = "Successfully moved to Phase 3";
+      if (to === "completed") successMessage = "Job completed successfully";
+
+      toast.success(successMessage, {
+        id: `status-${appointment.id}`,
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Status change error:", error);
+
+      // Enhanced error handling for backend validation errors
+      let errorMessage = "Failed to update status";
+      let errorDescription = "An unexpected error occurred";
+
+      if (error instanceof Error) {
+        errorDescription = error.message;
+
+        // Check if it's a backend validation error
+        if (error.message.includes("images are required")) {
+          errorMessage = "Image requirement not met";
+        }
+      }
+
+      toast.error(errorMessage, {
+        id: `status-${appointment.id}`,
+        description: errorDescription,
+        duration: 6000,
+      });
     }
   };
 
@@ -124,7 +187,7 @@ export function AppointmentsCard({
         }}
         exit={{ opacity: 0, x: status === "completed" ? 0 : -100 }}
         transition={{ duration: 0.3 }}
-        className={`rounded-lg shadow-sm p-3 mb-3 border-l-4 ${
+        className={`rounded-lg shadow-sm flex flex-col gap-1 p-3 mb-3 border-l-4 ${
           currentStatus.borderColor
         } hover:shadow-md transition-shadow ${
           timeDisplay
@@ -143,22 +206,37 @@ export function AppointmentsCard({
               {appointment.customer.fName} {appointment.customer.lName}
             </div>
           </div>
-          {showInfoButton && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5"
-              onClick={() => {
-                setIsInfoDialogOpen(true);
-              }}
-            >
-              <FiSettings className="h-3 w-3" />
-            </Button>
-          )}
+          <div className="flex flex-col gap-1">
+            {showInfoButton && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5"
+                onClick={() => {
+                  setIsInfoDialogOpen(true);
+                }}
+              >
+                <FiSettings className="h-3 w-3" />
+              </Button>
+            )}
+            {/* Camera icon button for photo upload (all statuses except completed) */}
+          </div>
         </div>
-        <div className="flex items-center text-xs text-gray-600 mb-1">
-          <FaCar className="mr-1 h-3 w-3" />
-          {appointment.car.brand.name} {appointment.car.model.name}
+        <div className="flex justify-between">
+          <div className="flex items-center text-xs text-gray-600 mb-1">
+            <FaCar className="mr-1 h-3 w-3" />
+            {appointment.car.brand.name} {appointment.car.model.name}
+          </div>
+          {status !== "completed" && (
+            <button
+              className="h-5 w-5 bg-green-500 hover:bg-green-600 text-white rounded transition-colors flex items-center justify-center"
+              onClick={() => setIsPhotoDialogOpen(true)}
+              disabled={!!movingItemId}
+              title="Upload Photos"
+            >
+              <FiCamera className="h-3 w-3" />
+            </button>
+          )}
         </div>
         {appointment.OTP && (
           <div className="flex text-[0.65rem] font-bold text-gray-600 px-1.5 py-0.5 rounded">
@@ -232,14 +310,17 @@ export function AppointmentsCard({
               </button>
             )
           )}
-          <button
-            className="py-0.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors flex items-center justify-center"
-            onClick={() => setIsWorkerDialogOpen(true)}
-            disabled={!!movingItemId}
-          >
-            <FiUserPlus className="mr-1 h-2.5 w-2.5" />
-            Add Worker
-          </button>
+          {/* Only show Add Worker button for non-scheduled tickets */}
+          {status !== "scheduled" && (
+            <button
+              className="py-0.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+              onClick={() => setIsWorkerDialogOpen(true)}
+              disabled={!!movingItemId}
+            >
+              <FiUserPlus className="mr-1 h-2.5 w-2.5" />
+              Add Worker
+            </button>
+          )}
         </div>
       </motion.div>
 
@@ -249,31 +330,18 @@ export function AppointmentsCard({
         appointment={appointment}
       />
 
-      <AppointmentDialog
-        isOpen={isStatusDialogOpen}
-        onOpenChange={setIsStatusDialogOpen}
-        appointment={appointment}
-        pendingStatusChange={pendingStatusChange}
-        onConfirmStatusChange={async () => {
-          if (pendingStatusChange) {
-            await handleStatusChange(
-              appointment.id,
-              pendingStatusChange.from,
-              pendingStatusChange.to
-            );
-            setPendingStatusChange(null);
-            setIsStatusDialogOpen(false);
-          }
-        }}
-        movingItemId={movingItemId}
-        status={status}
-      />
-
       <WorkerAssignmentDialog
         isOpen={isWorkerDialogOpen}
         onOpenChange={setIsWorkerDialogOpen}
         appointment={appointment}
         onSuccess={onRefresh}
+      />
+
+      <PhotoUploadDialog
+        isOpen={isPhotoDialogOpen}
+        onOpenChange={setIsPhotoDialogOpen}
+        appointment={appointment}
+        onRefresh={onRefresh}
       />
     </>
   );
