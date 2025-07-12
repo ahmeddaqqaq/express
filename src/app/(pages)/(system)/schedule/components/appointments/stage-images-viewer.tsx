@@ -92,11 +92,13 @@ export function StageImagesViewer({
       const processedStageData: StageImageData[] = stages.map(stage => {
         const stageImages = imagesGrouped[stage.key] || [];
         const stageTechnicians = assignments.filter((assignment: any) => 
-          assignment.stage === stage.key || assignment.phase === stage.key
+          assignment.stage === stage.key || 
+          assignment.phase === stage.key ||
+          assignment.status === stage.key
         ).map((assignment: any) => ({
-          id: assignment.technician?.id || assignment.technicianId,
-          fName: assignment.technician?.fName || "",
-          lName: assignment.technician?.lName || "",
+          id: assignment.technician?.id || assignment.technicianId || assignment.id,
+          fName: assignment.technician?.fName || assignment.fName || "Unknown",
+          lName: assignment.technician?.lName || assignment.lName || "Technician",
           assignedAt: assignment.assignedAt || assignment.createdAt || assignment.timeStamp,
         }));
 

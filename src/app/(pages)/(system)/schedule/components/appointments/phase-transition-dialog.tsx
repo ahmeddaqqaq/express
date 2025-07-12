@@ -90,11 +90,13 @@ export function PhaseTransitionDialog({
       
       // Filter technicians assigned to the current stage (from which we're transitioning)
       const stageTechnicians = assignments.filter((assignment: any) => 
-        assignment.stage === pendingStatusChange.from || assignment.phase === pendingStatusChange.from
+        assignment.stage === pendingStatusChange.from || 
+        assignment.phase === pendingStatusChange.from ||
+        assignment.status === pendingStatusChange.from
       ).map((assignment: any) => ({
-        id: assignment.technician?.id || assignment.technicianId,
-        fName: assignment.technician?.fName || "",
-        lName: assignment.technician?.lName || "",
+        id: assignment.technician?.id || assignment.technicianId || assignment.id,
+        fName: assignment.technician?.fName || assignment.fName || "Unknown",
+        lName: assignment.technician?.lName || assignment.lName || "Technician",
         assignedAt: assignment.assignedAt || assignment.createdAt || assignment.timeStamp,
       }));
       

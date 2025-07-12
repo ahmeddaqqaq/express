@@ -51,7 +51,7 @@ export function TechnicianAssignment({
     const toastId = `assign-${appointment.id}`;
     
     try {
-      toast.loading(`Assigning ${technicianCount} technician${technicianCount > 1 ? 's' : ''}...`, { 
+      toast.loading(`Assigning ${technicianCount} technician${technicianCount > 1 ? 's' : ''} to ${appointment.status}...`, { 
         id: toastId,
         duration: Infinity 
       });
@@ -60,10 +60,11 @@ export function TechnicianAssignment({
         requestBody: {
           id: appointment.id,
           technicianIds: values.technicianId,
+          status: appointment.status, // Include current status to ensure stage-specific assignment
         },
       });
 
-      toast.success(`Successfully assigned ${technicianCount} technician${technicianCount > 1 ? 's' : ''}`, {
+      toast.success(`Successfully assigned ${technicianCount} technician${technicianCount > 1 ? 's' : ''} to ${appointment.status}`, {
         id: toastId,
         duration: 3000
       });

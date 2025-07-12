@@ -136,7 +136,7 @@ export function AppointmentDialog({
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <FiUsers className="text-gray-500" />
-                    Technicians
+                    Technicians ({appointment.status})
                   </h4>
                   {appointment.technicians?.length > 0 ? (
                     <ul className="space-y-2 pl-1">
@@ -157,7 +157,7 @@ export function AppointmentDialog({
                     </ul>
                   ) : (
                     <div className="text-gray-400 italic p-2 bg-white rounded-lg">
-                      No technicians assigned
+                      No technicians assigned to {appointment.status}
                     </div>
                   )}
                 </div>
