@@ -21,6 +21,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TransactionService, AuditLogService, TransactionResponse } from "../../../../../../../client";
 import { toast } from "sonner";
+import { ImageDialog } from "./image-dialog";
+import { UploadedFile } from "./types";
 
 interface StageImagesViewerProps {
   isOpen: boolean;
@@ -55,6 +57,9 @@ export function StageImagesViewer({
 }: StageImagesViewerProps) {
   const [stageData, setStageData] = useState<StageImageData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedStageImages, setSelectedStageImages] = useState<UploadedFile[]>([]);
 
   const stages = [
     { key: "scheduled", displayName: "Scheduled" },
@@ -121,6 +126,20 @@ export function StageImagesViewer({
     } else {
       return { color: "bg-red-100 text-red-800 border-red-200", text: "⚠ No Images" };
     }
+  };
+
+  const handleImageClick = (stageImages: any[], imageIndex: number) => {
+    const convertedImages: UploadedFile[] = stageImages.map((img, index) => ({
+      id: img.id || `img-${index}`,
+      file: { name: `Image ${index + 1}`, size: 0 } as File,
+      preview: img.url || '',
+      progress: 100,
+      status: 'success' as const,
+    }));
+    
+    setSelectedStageImages(convertedImages);
+    setSelectedImageIndex(imageIndex);
+    setImageDialogOpen(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -200,7 +219,7 @@ export function StageImagesViewer({
                                 src={image.url}
                                 alt={`${stage.displayName} work photo ${imageIndex + 1}`}
                                 className="w-full h-20 object-cover rounded border hover:opacity-80 transition-opacity cursor-pointer"
-                                onClick={() => window.open(image.url, "_blank")}
+                                onClick={() => handleImageClick(stage.images, imageIndex)}
                               />
                               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded transition-all" />
                               <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 rounded">
@@ -271,6 +290,14 @@ export function StageImagesViewer({
           </Button>
         </div>
       </DialogContent>
+
+      <ImageDialog
+        isOpen={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        images={selectedStageImages}
+        currentIndex={selectedImageIndex}
+        onIndexChange={setSelectedImageIndex}
+      />
     </Dialog>
   );
 }

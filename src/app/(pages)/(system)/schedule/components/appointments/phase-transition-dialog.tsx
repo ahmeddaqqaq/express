@@ -7,10 +7,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AppointmentStatus } from "./types";
-import { FiUser, FiCamera, FiArrowRight, FiX } from "react-icons/fi";
-import { TransactionResponse } from "../../../../../../../client";
+import { AppointmentStatus, UploadedFile } from "./types";
+import { FiUser, FiCamera, FiArrowRight, FiX, FiClock } from "react-icons/fi";
+import { TransactionResponse, AuditLogService } from "../../../../../../../client";
 import { toast } from "sonner";
+import { ImageDialog } from "./image-dialog";
+import { useState, useEffect } from "react";
 
 interface PhaseTransitionDialogProps {
   isOpen: boolean;
@@ -32,6 +34,10 @@ export function PhaseTransitionDialog({
   onConfirmStatusChange,
   movingItemId,
 }: PhaseTransitionDialogProps) {
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [currentStageTechnicians, setCurrentStageTechnicians] = useState<any[]>([]);
+  const [isLoadingTechnicians, setIsLoadingTechnicians] = useState(false);
   
   const getPhaseTitle = () => {
     if (!pendingStatusChange) return "";
@@ -57,6 +63,62 @@ export function PhaseTransitionDialog({
     if (from === "stageThree" && to === "completed") return "Mark this job as completed?";
     
     return "Confirm this phase transition";
+  };
+
+  const handleImageClick = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageDialogOpen(true);
+  };
+
+  const convertedImages: UploadedFile[] = appointment.images?.map((img, index) => ({
+    id: img.id || `img-${index}`,
+    file: { name: `Image ${index + 1}`, size: 0 } as File,
+    preview: img.url || '',
+    progress: 100,
+    status: 'success' as const,
+  })) || [];
+
+  // Fetch technicians assigned to the current stage
+  const fetchCurrentStageTechnicians = async () => {
+    if (!pendingStatusChange) return;
+    
+    setIsLoadingTechnicians(true);
+    try {
+      const assignments = await AuditLogService.auditLogControllerGetTransactionAssignments({
+        transactionId: appointment.id,
+      });
+      
+      // Filter technicians assigned to the current stage (from which we're transitioning)
+      const stageTechnicians = assignments.filter((assignment: any) => 
+        assignment.stage === pendingStatusChange.from || assignment.phase === pendingStatusChange.from
+      ).map((assignment: any) => ({
+        id: assignment.technician?.id || assignment.technicianId,
+        fName: assignment.technician?.fName || "",
+        lName: assignment.technician?.lName || "",
+        assignedAt: assignment.assignedAt || assignment.createdAt || assignment.timeStamp,
+      }));
+      
+      setCurrentStageTechnicians(stageTechnicians);
+    } catch (error) {
+      console.error("Failed to fetch stage technicians:", error);
+      setCurrentStageTechnicians([]);
+    } finally {
+      setIsLoadingTechnicians(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && pendingStatusChange) {
+      fetchCurrentStageTechnicians();
+    }
+  }, [isOpen, pendingStatusChange]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString(),
+      time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
   };
 
   const handleConfirm = async () => {
@@ -112,27 +174,40 @@ export function PhaseTransitionDialog({
             <div className="bg-white rounded-lg border p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                 <FiUser className="text-blue-600" />
-                Assigned Technicians ({appointment.technicians?.length || 0})
+                Assigned Technicians ({currentStageTechnicians.length})
               </h3>
               
-              {appointment.technicians && appointment.technicians.length > 0 ? (
+              {isLoadingTechnicians ? (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                  <p className="text-sm">Loading technicians...</p>
+                </div>
+              ) : currentStageTechnicians.length > 0 ? (
                 <div className="space-y-3">
-                  {appointment.technicians.map((technician) => (
-                    <div
-                      key={technician.id}
-                      className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg"
-                    >
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
-                        {technician.fName.charAt(0)}{technician.lName.charAt(0)}
+                  {currentStageTechnicians.map((technician, index) => {
+                    const assignedTime = technician.assignedAt ? formatDate(technician.assignedAt) : null;
+                    return (
+                      <div
+                        key={`${technician.id}-${index}`}
+                        className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg"
+                      >
+                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
+                          {technician.fName?.charAt(0) || "T"}{technician.lName?.charAt(0) || "N"}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800">
+                            {technician.fName} {technician.lName}
+                          </p>
+                          {assignedTime && (
+                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                              <FiClock className="h-3 w-3" />
+                              Assigned: {assignedTime.date} at {assignedTime.time}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-800">
-                          {technician.fName} {technician.lName}
-                        </p>
-                        <p className="text-sm text-gray-500">Technician</p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
@@ -158,7 +233,7 @@ export function PhaseTransitionDialog({
                         src={image.url}
                         alt={`Work photo ${index + 1}`}
                         className="w-full h-20 object-cover rounded-lg border hover:opacity-80 transition-opacity cursor-pointer"
-                        onClick={() => window.open(image.url, "_blank")}
+                        onClick={() => handleImageClick(index)}
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-lg transition-all" />
                       <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 rounded">
@@ -223,6 +298,14 @@ export function PhaseTransitionDialog({
           )}
         </div>
       </DialogContent>
+
+      <ImageDialog
+        isOpen={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        images={convertedImages}
+        currentIndex={selectedImageIndex}
+        onIndexChange={setSelectedImageIndex}
+      />
     </Dialog>
   );
 }

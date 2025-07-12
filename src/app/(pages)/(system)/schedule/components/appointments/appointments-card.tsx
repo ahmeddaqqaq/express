@@ -9,7 +9,7 @@ import {
   AppointmentStatus,
   statusConfigs,
 } from "./types";
-import { TransactionService } from "../../../../../../../client";
+import { TransactionService, AuditLogService } from "../../../../../../../client";
 import { FaCar, FaDotCircle } from "react-icons/fa";
 import TicketInfoDialog from "./ticket-info-dialog";
 import { WorkerAssignmentDialog } from "./worker-assignment-dialog";
@@ -97,6 +97,49 @@ export function AppointmentsCard({
     } catch (error) {
       console.error("Failed to check stage images:", error);
       toast.error("Failed to validate images", {
+        description: "Please try again",
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Check if technicians are assigned to the current stage before allowing progression
+    try {
+      const assignments = await AuditLogService.auditLogControllerGetTransactionAssignments({
+        transactionId: appointment.id,
+      });
+      
+      // Check if there are technicians assigned to the current stage
+      const currentStageAssignments = assignments.filter((assignment: any) => 
+        assignment.stage === from || assignment.phase === from
+      );
+      
+      if (!currentStageAssignments || currentStageAssignments.length === 0) {
+        let stageDisplayName = "";
+        switch (from) {
+          case "scheduled":
+            stageDisplayName = "Scheduled";
+            break;
+          case "stageOne":
+            stageDisplayName = "Phase 1";
+            break;
+          case "stageTwo":
+            stageDisplayName = "Phase 2";
+            break;
+          case "stageThree":
+            stageDisplayName = "Phase 3";
+            break;
+        }
+        
+        toast.error(`Technician required for ${stageDisplayName}`, {
+          description: `Please assign at least one technician to the current ${stageDisplayName} stage before proceeding to the next phase. Use the "Add Worker" button to assign technicians.`,
+          duration: 6000,
+        });
+        return;
+      }
+    } catch (error) {
+      console.error("Failed to check technician assignments:", error);
+      toast.error("Failed to validate technician assignments", {
         description: "Please try again",
         duration: 3000,
       });
@@ -310,8 +353,8 @@ export function AppointmentsCard({
               </button>
             )
           )}
-          {/* Only show Add Worker button for non-scheduled tickets */}
-          {status !== "scheduled" && (
+          {/* Show Add Worker button for all non-completed tickets */}
+          {status !== "completed" && (
             <button
               className="py-0.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors flex items-center justify-center"
               onClick={() => setIsWorkerDialogOpen(true)}

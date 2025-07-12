@@ -13,6 +13,7 @@ import { ImageUpload } from "./image-upload";
 import { UploadedFile } from "./types";
 import { TransactionResponse, TransactionService } from "../../../../../../../client";
 import { toast } from "sonner";
+import { ImageDialog } from "./image-dialog";
 
 interface PhotoUploadDialogProps {
   isOpen: boolean;
@@ -32,6 +33,8 @@ export function PhotoUploadDialog({
     useState<TransactionResponse>(appointment);
   const [existingImages, setExistingImages] = useState<any[]>([]);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   // Update current appointment when prop changes
   useEffect(() => {
@@ -71,6 +74,19 @@ export function PhotoUploadDialog({
       onRefresh(); // Refresh parent appointment data
     }
   };
+
+  const handleImageClick = (index: number) => {
+    setSelectedImageIndex(index);
+    setImageDialogOpen(true);
+  };
+
+  const convertedImages: UploadedFile[] = existingImages.map((img, index) => ({
+    id: img.id || `img-${index}`,
+    file: { name: `Image ${index + 1}`, size: 0 } as File,
+    preview: img.url || '',
+    progress: 100,
+    status: 'success' as const,
+  }));
 
   const handleClose = () => {
     setUploadedFiles([]);
@@ -123,7 +139,7 @@ export function PhotoUploadDialog({
                       src={image.url}
                       alt={`Work photo ${index + 1}`}
                       className="w-full h-20 object-cover rounded border hover:opacity-80 transition-opacity cursor-pointer"
-                      onClick={() => window.open(image.url, "_blank")}
+                      onClick={() => handleImageClick(index)}
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded transition-all" />
                     <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 rounded">
@@ -151,6 +167,14 @@ export function PhotoUploadDialog({
           </Button>
         </div>
       </DialogContent>
+
+      <ImageDialog
+        isOpen={imageDialogOpen}
+        onOpenChange={setImageDialogOpen}
+        images={convertedImages}
+        currentIndex={selectedImageIndex}
+        onIndexChange={setSelectedImageIndex}
+      />
     </Dialog>
   );
 }
