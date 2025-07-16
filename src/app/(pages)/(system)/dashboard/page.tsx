@@ -185,8 +185,8 @@ export default function Dashboard() {
     })) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="p-6 space-y-6">
+    <div className="min-h-screen">
+      <div className="space-y-6">
         {/* Enhanced Header */}
         <MotionDiv
           initial={{ opacity: 0, y: -20 }}
@@ -810,7 +810,10 @@ export default function Dashboard() {
               <CardContent>
                 <div className="h-64">
                   {peakAnalysis?.peakHours?.length ? (
-                    <ChartContainer config={peakHoursChartConfig} className="w-full h-full">
+                    <ChartContainer
+                      config={peakHoursChartConfig}
+                      className="w-full h-full"
+                    >
                       <BarChart data={peakAnalysis.peakHours.slice(0, 10)}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="hour" />
@@ -843,7 +846,10 @@ export default function Dashboard() {
               <CardContent>
                 <div className="h-64">
                   {peakAnalysis?.peakDays?.length ? (
-                    <ChartContainer config={peakDaysChartConfig} className="w-full h-full">
+                    <ChartContainer
+                      config={peakDaysChartConfig}
+                      className="w-full h-full"
+                    >
                       <BarChart data={peakAnalysis.peakDays}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="dayName" />
