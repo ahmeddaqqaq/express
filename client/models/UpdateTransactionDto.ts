@@ -3,18 +3,23 @@
 /* tslint:disable */
 /* eslint-disable */
 export type UpdateTransactionDto = {
+    /**
+     * Transaction ID to update
+     */
     id: string;
+    /**
+     * New status for the transaction
+     */
     status?: UpdateTransactionDto.status;
     /**
-     * IDs of images to attach
+     * ID of the technician making this update (for audit logging)
      */
-    imageIds?: Array<string>;
-    /**
-     * IDs of technicians to assign to this transaction
-     */
-    technicianIds?: Array<string>;
+    updatedByTechnicianId?: string;
 };
 export namespace UpdateTransactionDto {
+    /**
+     * New status for the transaction
+     */
     export enum status {
         SCHEDULED = 'scheduled',
         STAGE_ONE = 'stageOne',

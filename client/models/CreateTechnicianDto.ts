@@ -3,7 +3,13 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreateTechnicianDto = {
+    /**
+     * Technician first name
+     */
     fName: string;
+    /**
+     * Technician last name
+     */
     lName: string;
 };
 

@@ -61,6 +61,7 @@ export default function ServicesTab() {
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [newService, setNewService] = useState({
     name: "",
+    posServiceId: "",
     prices: carTypes.map((type) => ({ carType: type, price: 0 })),
   });
 
@@ -92,6 +93,10 @@ export default function ServicesTab() {
     setNewService((prev) => ({ ...prev, name: e.target.value }));
   };
 
+  const handlePosServiceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewService((prev) => ({ ...prev, posServiceId: e.target.value }));
+  };
+
   const handlePriceChange = (index: number, value: number) => {
     const updatedPrices = [...newService.prices];
     updatedPrices[index].price = value;
@@ -100,6 +105,11 @@ export default function ServicesTab() {
 
   const createService = async () => {
     if (!newService.name.trim()) return;
+    if (
+      !newService.posServiceId.trim() ||
+      parseInt(newService.posServiceId) <= 0
+    )
+      return;
 
     const validPrices = newService.prices.filter((p) => p.price > 0);
     if (validPrices.length === 0) return;
@@ -109,6 +119,7 @@ export default function ServicesTab() {
       await ServiceService.serviceControllerCreate({
         requestBody: {
           name: newService.name,
+          posServiceId: parseInt(newService.posServiceId),
           prices: newService.prices as unknown as ServicePriceDto[],
         },
       });
@@ -116,6 +127,7 @@ export default function ServicesTab() {
       await fetchServices();
       setNewService({
         name: "",
+        posServiceId: "",
         prices: carTypes.map((type) => ({ carType: type, price: 0 })),
       });
       setIsDialogOpen(false);
@@ -173,6 +185,19 @@ export default function ServicesTab() {
                   value={newService.name}
                   onChange={handleNameChange}
                   placeholder="Service name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="posServiceId">POS Service ID *</Label>
+                <Input
+                  id="posServiceId"
+                  name="posServiceId"
+                  type="number"
+                  value={newService.posServiceId}
+                  onChange={handlePosServiceIdChange}
+                  placeholder="POS Service ID"
+                  min="1"
                 />
               </div>
 
@@ -257,8 +282,9 @@ export default function ServicesTab() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Service</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{serviceToDelete?.name}"? This action
-              cannot be undone and will affect all appointments using this service.
+              Are you sure you want to delete "{serviceToDelete?.name}"? This
+              action cannot be undone and will affect all appointments using
+              this service.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

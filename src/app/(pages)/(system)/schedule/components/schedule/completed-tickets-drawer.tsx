@@ -24,7 +24,6 @@ interface CompletedTicketsDrawerProps {
     to: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed"
   ) => Promise<void>;
   formatTime: (dateString: string) => string;
-  openDetailsDrawer: (transaction: TransactionResponse) => void;
 }
 
 export function CompletedTicketsDrawer({
@@ -34,7 +33,6 @@ export function CompletedTicketsDrawer({
   movingItemId,
   handleStatusChange,
   formatTime,
-  openDetailsDrawer,
 }: CompletedTicketsDrawerProps) {
   return (
     <Drawer open={isOpen} direction="right" onOpenChange={onOpenChange}>
@@ -60,7 +58,6 @@ export function CompletedTicketsDrawer({
                   movingItemId={movingItemId}
                   handleStatusChange={handleStatusChange}
                   formatTime={formatTime}
-                  openDetailsDrawer={openDetailsDrawer}
                 />
               ))}
             </AnimatePresence>

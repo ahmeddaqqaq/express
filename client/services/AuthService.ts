@@ -11,6 +11,7 @@ import { request as __request } from '../core/request';
 export class AuthService {
     /**
      * Register a new user
+     * Create a new user account with mobile number, password, and role
      * @returns any User registered successfully
      * @throws ApiError
      */
@@ -18,46 +19,84 @@ export class AuthService {
         requestBody,
     }: {
         requestBody: SignupDto,
-    }): CancelablePromise<any> {
+    }): CancelablePromise<{
+        /**
+         * JWT access token
+         */
+        access_token?: string;
+        /**
+         * JWT refresh token
+         */
+        refresh_token?: string;
+    }> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/express/auth/signup',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                400: `Validation failed`,
+                409: `Mobile number already in use`,
+            },
         });
     }
     /**
-     * @returns any
+     * Sign in user
+     * Authenticate user with mobile number and password. Sets httpOnly cookies for tokens.
+     * @returns any User signed in successfully
      * @throws ApiError
      */
     public static authControllerSignin({
         requestBody,
     }: {
         requestBody: SigninDto,
-    }): CancelablePromise<any> {
+    }): CancelablePromise<{
+        message?: string;
+        /**
+         * JWT access token (also set as httpOnly cookie)
+         */
+        access_token?: string;
+    }> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/express/auth/signin',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                401: `Invalid credentials`,
+            },
         });
     }
     /**
      * Refresh access token
+     * Generate new access and refresh tokens using existing refresh token from cookies. This endpoint is also automatically called by middleware when refresh token is present without access token.
      * @returns any Tokens refreshed successfully
      * @throws ApiError
      */
-    public static authControllerRefresh(): CancelablePromise<any> {
+    public static authControllerRefresh(): CancelablePromise<{
+        message?: string;
+        /**
+         * New JWT access token (also set as httpOnly cookie)
+         */
+        access_token?: string;
+    }> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/express/auth/refresh',
+            errors: {
+                401: `Refresh token not found or invalid`,
+            },
         });
     }
     /**
-     * @returns any
+     * Logout user
+     * Clear authentication cookies and sign out the user
+     * @returns any User logged out successfully
      * @throws ApiError
      */
-    public static authControllerLogout(): CancelablePromise<any> {
+    public static authControllerLogout(): CancelablePromise<{
+        message?: string;
+    }> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/express/auth/logout',

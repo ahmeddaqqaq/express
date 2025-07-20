@@ -19,8 +19,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { TransactionResponse } from "../../../../../../../client";
-import { ImageDialog } from "../appointments/image-dialog";
-import { useState } from "react";
+import { PhaseImagesDisplay } from "../appointments/phase-images-display";
 
 interface TransactionDetailsDrawerProps {
   isOpen: boolean;
@@ -35,24 +34,7 @@ export function TransactionDetailsDrawer({
   transaction,
   formatTime,
 }: TransactionDetailsDrawerProps) {
-  const [imageDialogOpen, setImageDialogOpen] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-
   if (!transaction) return null;
-
-  const handleImageClick = (index: number) => {
-    setSelectedImageIndex(index);
-    setImageDialogOpen(true);
-  };
-
-  // Convert transaction images to UploadedFile format for ImageDialog compatibility
-  const convertedImages = transaction.images?.map((img, index) => ({
-    id: img.id || `img-${index}`,
-    file: { name: `Image ${index + 1}`, size: 0 } as File,
-    preview: img.url || '',
-    progress: 100,
-    status: 'success' as const,
-  })) || [];
 
   return (
     <Drawer open={isOpen} direction="right" onOpenChange={onOpenChange}>
@@ -157,32 +139,53 @@ export function TransactionDetailsDrawer({
               </div>
             </div>
 
+            {/* Phase Technician Assignments */}
             <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
               <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                 <FiUserCheck className="mr-2 text-blue-500" />
-                Assigned Technician
+                Phase Technician Assignments
               </h3>
 
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="h-12 w-12 rounded-full bg-blue-50 flex items-center justify-center">
-                    <span className="text-blue-600 text-lg font-medium">
-                      TN
-                    </span>
-                  </div>
-                  <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-white"></span>
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium">Tech Name</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        General Technician
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              <div className="space-y-3">
+                {transaction.assignments && transaction.assignments.length > 0 ? (
+                  transaction.assignments
+                    .filter(assignment => assignment.isActive)
+                    .map((assignment) => {
+                      const phaseLabels = {
+                        scheduled: 'Scheduled',
+                        stageOne: 'Phase 1',
+                        stageTwo: 'Phase 2',
+                        stageThree: 'Phase 3',
+                        completed: 'Completed'
+                      };
+                      
+                      return (
+                        <div key={assignment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-blue-600 text-sm font-medium">
+                                {assignment.technician?.fName?.charAt(0)}
+                                {assignment.technician?.lName?.charAt(0)}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">
+                                {assignment.technician?.fName} {assignment.technician?.lName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {phaseLabels[assignment.phase as keyof typeof phaseLabels] || assignment.phase}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {assignment.assignedAt && new Date(assignment.assignedAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      );
+                    })
+                ) : (
+                  <p className="text-gray-500 text-sm">No technicians assigned</p>
+                )}
               </div>
             </div>
 
@@ -202,27 +205,14 @@ export function TransactionDetailsDrawer({
               </div>
             </div>
 
-            {/* Work Progress Images */}
-            {transaction.images && transaction.images.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
-                <h3 className="font-medium text-gray-700 mb-3 flex items-center">
-                  <FiImage className="mr-2" />
-                  Work Progress Images ({transaction.images.length})
-                </h3>
-                <div className="grid grid-cols-3 gap-2">
-                  {transaction.images.map((image, index) => (
-                    <div key={image.id || index} className="relative">
-                      <img
-                        src={image.url}
-                        alt={`Work progress ${index + 1}`}
-                        className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => handleImageClick(index)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Phase Images */}
+            <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+              <h3 className="font-medium text-gray-700 mb-3 flex items-center">
+                <FiImage className="mr-2" />
+                Phase Images
+              </h3>
+              <PhaseImagesDisplay appointment={transaction} />
+            </div>
           </div>
 
           <DrawerFooter className="shrink-0 border-t">
@@ -236,14 +226,6 @@ export function TransactionDetailsDrawer({
           </DrawerFooter>
         </div>
       </DrawerContent>
-
-      <ImageDialog
-        isOpen={imageDialogOpen}
-        onOpenChange={setImageDialogOpen}
-        images={convertedImages}
-        currentIndex={selectedImageIndex}
-        onIndexChange={setSelectedImageIndex}
-      />
     </Drawer>
   );
 }

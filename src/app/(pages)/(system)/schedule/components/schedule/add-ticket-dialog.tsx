@@ -46,7 +46,6 @@ import { ServiceSearchField } from "../service-search-field";
 import { SupervisorSearchField } from "../supervisor-search-field";
 import { AddOnsField } from "../add-ons-field";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SearchSelect } from "@/app/components/search-select";
 import {
   Popover,
   PopoverContent,
@@ -127,12 +126,19 @@ export function AddTicketDialog({
   const [brandTotalCount, setBrandTotalCount] = useState(0);
   const brandItemsPerPage = 10;
 
+  const [modelSearchQuery, setModelSearchQuery] = useState("");
+  const [modelCurrentPage, setModelCurrentPage] = useState(1);
+  const [modelTotalCount, setModelTotalCount] = useState(0);
+  const modelItemsPerPage = 10;
+
   // Other data
   const [services, setServices] = useState<ServiceResponse[]>([]);
   const [addOns, setAddOns] = useState<AddOnsResponse[]>([]);
   const [brands, setBrands] = useState<BrandResponse[]>([]);
+  const [models, setModels] = useState<any[]>([]);
 
   const [brandOpen, setBrandOpen] = useState(false);
+  const [modelOpen, setModelOpen] = useState(false);
 
   const [calculation, setCalculation] = useState<{ total: number } | null>(
     null
@@ -275,6 +281,33 @@ export function AddTicketDialog({
     }
   };
 
+  const fetchModels = async (brandId: string) => {
+    if (!brandId) {
+      setModels([]);
+      setModelTotalCount(0);
+      return;
+    }
+    
+    // Use brand models with client-side search and pagination
+    const selectedBrand = brands.find(b => b.id === brandId);
+    if (selectedBrand?.models) {
+      // Filter models based on search query
+      const filteredModels = selectedBrand.models.filter(model => 
+        !modelSearchQuery || model.name.toLowerCase().includes(modelSearchQuery.toLowerCase())
+      );
+      
+      // Apply pagination
+      const skip = (modelCurrentPage - 1) * modelItemsPerPage;
+      const paginatedModels = filteredModels.slice(skip, skip + modelItemsPerPage);
+      
+      setModels(paginatedModels);
+      setModelTotalCount(filteredModels.length);
+    } else {
+      setModels([]);
+      setModelTotalCount(0);
+    }
+  };
+
   const calculateTotal = async () => {
     try {
       const currentCarId = ticketForm.watch("carId");
@@ -334,10 +367,25 @@ export function AddTicketDialog({
   }, [brandSearchQuery, brandCurrentPage]);
 
   useEffect(() => {
+    const selectedBrandId = carForm.watch("brandId");
+    if (selectedBrandId) {
+      fetchModels(selectedBrandId);
+    } else {
+      setModels([]);
+      setModelTotalCount(0);
+    }
+  }, [carForm.watch("brandId"), modelSearchQuery, modelCurrentPage, brands]);
+
+  useEffect(() => {
     if (!isOpen) {
       setActiveTab("ticket");
       setSelectedCustomerId("");
       setSelectedCarId("");
+      setBrandSearchQuery("");
+      setBrandCurrentPage(1);
+      setModelSearchQuery("");
+      setModelCurrentPage(1);
+      setModels([]);
       ticketForm.reset();
       customerForm.reset();
       carForm.reset();
@@ -351,11 +399,10 @@ export function AddTicketDialog({
         requestBody: {
           customerId: values.customerId,
           carId: values.carId,
-          technicianIds: [],
+          createdById: values.supervisorId,
           serviceId: values.serviceId,
           addOnsIds: values.addOnsIds || [],
           note: values.notes ?? "No Notes",
-          supervisorId: values.supervisorId,
           deliverTime: values.deliveryTime ?? "",
         },
       });
@@ -704,8 +751,11 @@ export function AddTicketDialog({
                                         onSelect={async () => {
                                           field.onChange(brand.id);
                                           setBrandOpen(false);
-
-                                          // Update brands state with models
+                                          
+                                          // Reset model selection and search when brand changes
+                                          carForm.setValue("modelId", "");
+                                          setModelSearchQuery("");
+                                          setModelCurrentPage(1);
                                         }}
                                       >
                                         {brand.name}
@@ -775,31 +825,118 @@ export function AddTicketDialog({
                     name="modelId"
                     render={({ field }) => {
                       const selectedBrandId = carForm.watch("brandId");
-                      const models =
-                        brands.find((b) => b.id === selectedBrandId)?.models ||
-                        [];
 
                       return (
-                        <FormItem className="flex-1">
+                        <FormItem className="flex flex-col flex-1">
                           <FormLabel>Model</FormLabel>
-                          <SearchSelect
-                            options={selectedBrandId ? models.map((model) => ({
-                              value: model.id,
-                              label: model.name,
-                            })) : []}
-                            value={selectedBrandId ? field.value : ""}
-                            onChange={(value) => {
-                              if (selectedBrandId) {
-                                field.onChange(value);
-                              }
-                            }}
-                            placeholder={
-                              selectedBrandId
-                                ? "Search models..."
-                                : "Select a brand first"
-                            }
-                            searchPlaceholder="Search models..."
-                          />
+                          <Popover open={modelOpen} onOpenChange={setModelOpen}>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={modelOpen}
+                                  className="justify-between"
+                                  disabled={!selectedBrandId}
+                                >
+                                  <span>
+                                    {field.value && selectedBrandId
+                                      ? models.find(
+                                          (model) => model.id === field.value
+                                        )?.name
+                                      : selectedBrandId
+                                      ? "Select model..."
+                                      : "Select a brand first"}
+                                  </span>
+                                  <FiChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                              <Command shouldFilter={false}>
+                                <CommandInput
+                                  placeholder="Search models..."
+                                  className="h-9"
+                                  value={modelSearchQuery}
+                                  onValueChange={(value) => {
+                                    setModelSearchQuery(value);
+                                    setModelCurrentPage(1);
+                                  }}
+                                  disabled={!selectedBrandId}
+                                />
+                                <CommandEmpty>
+                                  {!selectedBrandId ? "Select a brand first" : "No models found."}
+                                </CommandEmpty>
+                                <ScrollArea className="h-64">
+                                  <CommandGroup>
+                                    {models.map((model) => (
+                                      <CommandItem
+                                        key={model.id}
+                                        value={model.id}
+                                        onSelect={() => {
+                                          field.onChange(model.id);
+                                          setModelOpen(false);
+                                        }}
+                                      >
+                                        {model.name}
+                                        <FiCheck
+                                          className={cn(
+                                            "ml-auto h-4 w-4",
+                                            field.value === model.id
+                                              ? "opacity-100"
+                                              : "opacity-0"
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </ScrollArea>
+                                {selectedBrandId && modelTotalCount > modelItemsPerPage && (
+                                  <div className="flex items-center justify-between p-2 text-sm text-gray-600 border-t">
+                                    <span>
+                                      Showing{" "}
+                                      {(modelCurrentPage - 1) *
+                                        modelItemsPerPage +
+                                        1}
+                                      -
+                                      {Math.min(
+                                        modelCurrentPage * modelItemsPerPage,
+                                        modelTotalCount
+                                      )}{" "}
+                                      of {modelTotalCount}
+                                    </span>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={modelCurrentPage === 1}
+                                        onClick={() =>
+                                          setModelCurrentPage((p) =>
+                                            Math.max(1, p - 1)
+                                          )
+                                        }
+                                      >
+                                        Previous
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        disabled={
+                                          modelCurrentPage * modelItemsPerPage >=
+                                          modelTotalCount
+                                        }
+                                        onClick={() =>
+                                          setModelCurrentPage((p) => p + 1)
+                                        }
+                                      >
+                                        Next
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                           <FormMessage />
                         </FormItem>
                       );

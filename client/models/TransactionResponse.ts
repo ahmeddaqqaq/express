@@ -9,10 +9,10 @@ import type { ImageResponse } from './ImageResponse';
 import type { InvoiceResponse } from './InvoiceResponse';
 import type { ServiceResponse } from './ServiceResponse';
 import type { SupervisorResponse } from './SupervisorResponse';
-import type { TechnicianResponse } from './TechnicianResponse';
 export type TransactionResponse = {
     id: string;
     status: TransactionResponse.status;
+    isPaid: boolean;
     customerId: string;
     carId: string;
     customer: CustomerResponse;
@@ -21,8 +21,18 @@ export type TransactionResponse = {
     addOns: Array<AddOnsResponse>;
     invoice: InvoiceResponse;
     images: Array<ImageResponse>;
-    supervisor: SupervisorResponse;
-    technicians: Array<TechnicianResponse>;
+    createdBy: SupervisorResponse;
+    assignments: Array<{
+        id?: string;
+        technicianId?: string;
+        transactionId?: string;
+        phase?: string;
+        assignedAt?: string;
+        startedAt?: string | null;
+        completedAt?: string | null;
+        isActive?: boolean;
+        technician?: Record<string, any>;
+    }>;
     deliverTime: string;
     notes: string;
     OTP: string;

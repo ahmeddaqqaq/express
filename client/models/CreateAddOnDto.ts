@@ -5,5 +5,6 @@
 export type CreateAddOnDto = {
     name: string;
     price: number;
+    posServiceId: number;
 };
 

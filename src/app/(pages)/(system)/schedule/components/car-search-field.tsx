@@ -28,7 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { SearchSelect } from "@/app/components/search-select";
+import { SearchSelectPaginated } from "@/app/components/search-select-paginated";
 import {
   BrandResponse,
   BrandService,
@@ -61,6 +61,15 @@ export function CarSearchField({ customers }: CarSearchFieldProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   const [brands, setBrands] = useState<BrandResponse[]>([]);
+  const [brandSearchQuery, setBrandSearchQuery] = useState("");
+  const [brandCurrentPage, setBrandCurrentPage] = useState(1);
+  const [brandTotalCount, setBrandTotalCount] = useState(0);
+  const brandItemsPerPage = 10;
+  const [modelSearchQuery, setModelSearchQuery] = useState("");
+  const [modelCurrentPage, setModelCurrentPage] = useState(1);
+  const [modelTotalCount, setModelTotalCount] = useState(0);
+  const modelItemsPerPage = 10;
+  const [models, setModels] = useState<any[]>([]);
   const [selectedCustomer, setSelectedCustomer] =
     useState<CustomerResponse | null>(null);
 
@@ -74,17 +83,58 @@ export function CarSearchField({ customers }: CarSearchFieldProps) {
     },
   });
 
-  useEffect(() => {
-    async function fetchBrands() {
-      try {
-        const response = await BrandService.brandControllerFindMany({});
-        setBrands(response.data);
-      } catch (error) {
-        console.error("Error fetching brands:", error);
-      }
+  const fetchBrands = async () => {
+    try {
+      const skip = (brandCurrentPage - 1) * brandItemsPerPage;
+      const response = await BrandService.brandControllerFindMany({
+        search: brandSearchQuery || "",
+        skip,
+        take: brandItemsPerPage,
+      });
+      setBrands(response.data);
+      setBrandTotalCount(response.rows || response.data.length);
+    } catch (error) {
+      console.error("Error fetching brands:", error);
     }
+  };
+
+  const fetchModels = async (brandId: string) => {
+    if (!brandId) {
+      setModels([]);
+      setModelTotalCount(0);
+      return;
+    }
+
+    // Use brand models with client-side search and pagination
+    const selectedBrand = brands.find(b => b.id === brandId);
+    if (selectedBrand?.models) {
+      // Filter models based on search query
+      const filteredModels = selectedBrand.models.filter(model => 
+        !modelSearchQuery || model.name.toLowerCase().includes(modelSearchQuery.toLowerCase())
+      );
+
+      // Apply pagination
+      const skip = (modelCurrentPage - 1) * modelItemsPerPage;
+      const paginatedModels = filteredModels.slice(skip, skip + modelItemsPerPage);
+      
+      setModels(paginatedModels);
+      setModelTotalCount(filteredModels.length);
+    } else {
+      setModels([]);
+      setModelTotalCount(0);
+    }
+  };
+
+  useEffect(() => {
     fetchBrands();
-  }, []);
+  }, [brandSearchQuery, brandCurrentPage]);
+
+  useEffect(() => {
+    const selectedBrandId = carForm.watch("brandId");
+    if (selectedBrandId) {
+      fetchModels(selectedBrandId);
+    }
+  }, [carForm.watch("brandId"), modelSearchQuery, modelCurrentPage, brands]);
 
   useEffect(() => {
     if (selectedCustomerId) {
@@ -193,7 +243,7 @@ export function CarSearchField({ customers }: CarSearchFieldProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Brand</FormLabel>
-                      <SearchSelect
+                      <SearchSelectPaginated
                         options={brands.map((brand) => ({
                           value: brand.id,
                           label: brand.name,
@@ -202,9 +252,18 @@ export function CarSearchField({ customers }: CarSearchFieldProps) {
                         onChange={(value) => {
                           field.onChange(value);
                           carForm.setValue("modelId", "");
+                          setBrandCurrentPage(1);
+                          setModelSearchQuery("");
+                          setModelCurrentPage(1);
                         }}
                         placeholder="Select brand..."
                         searchPlaceholder="Search brands..."
+                        searchQuery={brandSearchQuery}
+                        onSearchChange={setBrandSearchQuery}
+                        currentPage={brandCurrentPage}
+                        totalCount={brandTotalCount}
+                        itemsPerPage={brandItemsPerPage}
+                        onPageChange={setBrandCurrentPage}
                       />
                       <FormMessage />
                     </FormItem>
@@ -216,19 +275,15 @@ export function CarSearchField({ customers }: CarSearchFieldProps) {
                   name="modelId"
                   render={({ field }) => {
                     const selectedBrandId = carForm.watch("brandId");
-                    const models =
-                      brands
-                        .find((b) => b.id === selectedBrandId)
-                        ?.models.map((m) => ({
-                          value: m.id,
-                          label: m.name,
-                        })) || [];
 
                     return (
                       <FormItem>
                         <FormLabel>Model</FormLabel>
-                        <SearchSelect
-                          options={models}
+                        <SearchSelectPaginated
+                          options={models.map((m) => ({
+                            value: m.id,
+                            label: m.name,
+                          }))}
                           value={field.value}
                           onChange={field.onChange}
                           placeholder={
@@ -237,6 +292,14 @@ export function CarSearchField({ customers }: CarSearchFieldProps) {
                               : "Select a brand first"
                           }
                           searchPlaceholder="Search models..."
+                          searchQuery={modelSearchQuery}
+                          onSearchChange={setModelSearchQuery}
+                          currentPage={modelCurrentPage}
+                          totalCount={modelTotalCount}
+                          itemsPerPage={modelItemsPerPage}
+                          onPageChange={setModelCurrentPage}
+                          disabled={!selectedBrandId}
+                          emptyMessage={!selectedBrandId ? "Select a brand first" : "No models found."}
                         />
                         <FormMessage />
                       </FormItem>

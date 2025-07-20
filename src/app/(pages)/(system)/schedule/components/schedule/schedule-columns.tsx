@@ -8,7 +8,6 @@ interface ScheduleColumnsProps {
   stageOne: TransactionResponse[];
   stageTwo: TransactionResponse[];
   stageThree: TransactionResponse[];
-  completed: TransactionResponse[];
   movingItemId: string | null;
   handleStatusChange: (
     id: string,
@@ -16,7 +15,6 @@ interface ScheduleColumnsProps {
     to: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed"
   ) => Promise<void>;
   formatTime: (dateString: string) => string;
-  openDetailsDrawer: (transaction: TransactionResponse) => void;
   onRefresh?: () => void;
 }
 
@@ -117,10 +115,10 @@ export function ScheduleColumns({
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold flex items-center">
-            <FiSettings className="mr-2 text-orange-500" />
+            <FiSettings className="mr-2 text-green-500" />
             Phase Three
           </h2>
-          <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
             {stageThree.length}
           </span>
         </div>

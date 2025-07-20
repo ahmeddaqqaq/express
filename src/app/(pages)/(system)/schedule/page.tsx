@@ -1,18 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FiPlus, FiCheckCircle } from "react-icons/fi";
+import { FiPlus, FiCalendar, FiCheckCircle } from "react-icons/fi";
 import { TransactionResponse, TransactionService } from "../../../../../client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { AddTicketDialog } from "./components/schedule/add-ticket-dialog";
-import { TransactionDetailsDrawer } from "./components/schedule/transaction-detail-drawer";
-import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-drawer";
 import { ScheduleColumns } from "./components/schedule/schedule-columns";
+import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-drawer";
 
 export default function Schedule() {
-  const [currentDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+  const [currentDate, setCurrentDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [scheduled, setScheduled] = useState<TransactionResponse[]>([]);
   const [stageOne, setStageOne] = useState<TransactionResponse[]>([]);
   const [stageTwo, setStageTwo] = useState<TransactionResponse[]>([]);
@@ -21,16 +25,13 @@ export default function Schedule() {
   const [isLoading, setIsLoading] = useState(true);
   const [movingItemId, setMovingItemId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCompletedDrawerOpen, setIsCompletedDrawerOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleSuccess = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
-  const [selectedTransaction, setSelectedTransaction] =
-    useState<TransactionResponse | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isCompletedDrawerOpen, setIsCompletedDrawerOpen] = useState(false);
 
   useEffect(() => {
     async function fetchAllData() {
@@ -72,13 +73,20 @@ export default function Schedule() {
         setStageOne([]);
         setStageTwo([]);
         setStageThree([]);
-        setCompleted([]);
       } finally {
         setIsLoading(false);
       }
     }
     fetchAllData();
   }, [refreshKey, currentDate]);
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      setCurrentDate(format(date, "yyyy-MM-dd"));
+      setIsCalendarOpen(false);
+    }
+  };
 
   // Auto-refresh at midnight
   useEffect(() => {
@@ -139,43 +147,46 @@ export default function Schedule() {
               ? TransactionResponse.status.STAGE_TWO
               : to === "stageThree"
               ? TransactionResponse.status.STAGE_THREE
-              : TransactionResponse.status.COMPLETED,
+              : to === "completed"
+              ? TransactionResponse.status.COMPLETED
+              : TransactionResponse.status.STAGE_THREE,
         },
       });
 
-      // Fetch updated list for the new stage with current date filter
-      const updatedList = (await (to === "scheduled"
-        ? TransactionService.transactionControllerFindScheduled({
-            date: currentDate,
-          })
-        : to === "stageOne"
-        ? TransactionService.transactionControllerFindStageOne({
-            date: currentDate,
-          })
-        : to === "stageTwo"
-        ? TransactionService.transactionControllerFindStageTwo({
-            date: currentDate,
-          })
-        : to === "stageThree"
-        ? TransactionService.transactionControllerFindStageThree({
-            date: currentDate,
-          })
-        : TransactionService.transactionControllerFindCompleted({
-            date: currentDate,
-          }))) as unknown as TransactionResponse[];
+      // Fetch updated list for the new stage with current date filter (only if not completed)
+      if (to !== "completed") {
+        const updatedList = (await (to === "scheduled"
+          ? TransactionService.transactionControllerFindScheduled({
+              date: currentDate,
+            })
+          : to === "stageOne"
+          ? TransactionService.transactionControllerFindStageOne({
+              date: currentDate,
+            })
+          : to === "stageTwo"
+          ? TransactionService.transactionControllerFindStageTwo({
+              date: currentDate,
+            })
+          : to === "stageThree"
+          ? TransactionService.transactionControllerFindStageThree({
+              date: currentDate,
+            })
+          : TransactionService.transactionControllerFindStageThree({
+              date: currentDate,
+            }))) as unknown as TransactionResponse[];
 
-      // Update the new stage state
-      if (to === "scheduled") {
-        setScheduled(updatedList);
-      } else if (to === "stageOne") {
-        setStageOne(updatedList);
-      } else if (to === "stageTwo") {
-        setStageTwo(updatedList);
-      } else if (to === "stageThree") {
-        setStageThree(updatedList);
-      } else if (to === "completed") {
-        setCompleted(updatedList);
+        // Update the new stage state
+        if (to === "scheduled") {
+          setScheduled(updatedList);
+        } else if (to === "stageOne") {
+          setStageOne(updatedList);
+        } else if (to === "stageTwo") {
+          setStageTwo(updatedList);
+        } else if (to === "stageThree") {
+          setStageThree(updatedList);
+        }
       }
+      // If completed, transaction is removed from all columns and not added anywhere
     } catch (error) {
       console.error("Error updating status:", error);
       // Revert changes if there's an error
@@ -220,24 +231,76 @@ export default function Schedule() {
     );
   }
 
-  function openDetailsDrawer(transaction: TransactionResponse) {
-    setSelectedTransaction(transaction);
-    setIsDrawerOpen(true);
-  }
 
   return (
     <div className="p-2">
       <div className="flex justify-between items-center mb-6">
-        <div className="text-2xl font-bold text-gray-800">
-          Today's Tickets ({format(new Date(currentDate), "MMMM d, yyyy")})
+        <div className="flex items-center gap-4">
+          <div className="text-2xl font-bold text-gray-800">
+            Tickets ({format(new Date(currentDate), "MMMM d, yyyy")})
+          </div>
+          <div className="flex items-center gap-2">
+            <FiCalendar className="text-gray-500" />
+            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-60 justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <FiCalendar className="mr-2 h-4 w-4" />
+                  {selectedDate ? (
+                    format(selectedDate, "EEEE, MMMM d, yyyy")
+                  ) : (
+                    "Pick a date"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="p-3 border-b border-gray-200">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDateSelect(new Date())}
+                      className="text-xs"
+                    >
+                      Today
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const yesterday = new Date();
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        handleDateSelect(yesterday);
+                      }}
+                      className="text-xs"
+                    >
+                      Yesterday
+                    </Button>
+                  </div>
+                </div>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  disabled={(date) => date > new Date()}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
         <div className="flex gap-3">
           <Button
             variant="outline"
             onClick={() => setIsCompletedDrawerOpen(true)}
+            className="flex items-center gap-2"
           >
-            <FiCheckCircle className="w-5 h-5 text-green-600" />
-            <span className="font-medium text-green-600">COMPLETED ({completed.length})</span>
+            <FiCheckCircle className="w-4 h-4 text-green-600" />
+            <span>Completed ({completed.length})</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -260,19 +323,12 @@ export default function Schedule() {
         stageOne={stageOne}
         stageTwo={stageTwo}
         stageThree={stageThree}
-        completed={completed}
         movingItemId={movingItemId}
         handleStatusChange={handleStatusChange}
         formatTime={formatTime}
-        openDetailsDrawer={openDetailsDrawer}
         onRefresh={handleSuccess}
       />
-      <TransactionDetailsDrawer
-        isOpen={isDrawerOpen}
-        onOpenChange={setIsDrawerOpen}
-        transaction={selectedTransaction}
-        formatTime={formatTime}
-      />
+
       <CompletedTicketsDrawer
         isOpen={isCompletedDrawerOpen}
         onOpenChange={setIsCompletedDrawerOpen}
@@ -280,7 +336,6 @@ export default function Schedule() {
         movingItemId={movingItemId}
         handleStatusChange={handleStatusChange}
         formatTime={formatTime}
-        openDetailsDrawer={openDetailsDrawer}
       />
     </div>
   );

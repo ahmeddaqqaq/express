@@ -37,7 +37,6 @@ export interface AppointmentCardProps {
     to: AppointmentStatus
   ) => Promise<void>;
   formatTime: (dateString: string) => string;
-  openDetailsDrawer?: (data: TransactionResponse) => void;
   onRefresh?: () => void;
 }
 
@@ -79,19 +78,18 @@ export const statusConfigs: Record<AppointmentStatus, StatusConfig> = {
     hasNext: true,
   },
   stageThree: {
-    borderColor: "border-orange-500",
+    borderColor: "border-green-500",
     buttonColor: "bg-green-50 text-green-600 hover:bg-green-100",
-    icon: <FiSettings className="mr-1" />,
-    actionText: "Complete",
-    nextStatus: "completed",
+    icon: <FiCheckCircle className="mr-1" />,
+    actionText: "Finish",
     timePrefix: "Started at ",
-    hasNext: true,
+    hasNext: false,
   },
   completed: {
-    borderColor: "border-green-500",
-    buttonColor: "bg-gray-50 text-gray-600 hover:bg-gray-100",
+    borderColor: "border-emerald-600",
+    buttonColor: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
     icon: <FiCheckCircle className="mr-1" />,
-    actionText: "Details",
+    actionText: "Completed",
     timePrefix: "Completed at ",
     hasNext: false,
   },

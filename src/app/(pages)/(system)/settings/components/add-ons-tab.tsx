@@ -35,6 +35,7 @@ export default function AddOnsTab() {
   const [newAddOn, setNewAddOn] = useState({
     name: "",
     price: 0,
+    posServiceId: "",
   });
 
   useEffect(() => {
@@ -65,11 +66,16 @@ export default function AddOnsTab() {
     setNewAddOn({
       name: "",
       price: 0,
+      posServiceId: "",
     });
     setSelectedAddOn(null);
   };
 
   const handleSubmit = async () => {
+    if (!newAddOn.name.trim()) return;
+    if (!newAddOn.posServiceId.trim() || parseInt(newAddOn.posServiceId) <= 0) return;
+    if (newAddOn.price <= 0) return;
+
     setIsLoading(true);
     try {
       // Create new add-on
@@ -77,6 +83,7 @@ export default function AddOnsTab() {
         requestBody: {
           name: newAddOn.name,
           price: newAddOn.price,
+          posServiceId: parseInt(newAddOn.posServiceId),
         },
       });
 
@@ -167,6 +174,19 @@ export default function AddOnsTab() {
                   placeholder="Price"
                   min="0"
                   step="0.01"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="posServiceId">POS Service ID *</Label>
+                <Input
+                  id="posServiceId"
+                  name="posServiceId"
+                  type="number"
+                  value={newAddOn.posServiceId}
+                  onChange={handleInputChange}
+                  placeholder="POS Service ID"
+                  min="1"
                 />
               </div>
               <Button onClick={handleSubmit} disabled={isLoading}>

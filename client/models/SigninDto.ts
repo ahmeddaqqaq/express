@@ -4,11 +4,11 @@
 /* eslint-disable */
 export type SigninDto = {
     /**
-     * Mobile number used to sign in
+     * Jordanian mobile number used for authentication
      */
     mobileNumber: string;
     /**
-     * User password
+     * User password (minimum 6 characters)
      */
     password: string;
 };

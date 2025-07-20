@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FiPhoneCall, FiPlus, FiSearch } from "react-icons/fi";
+import { FiPhoneCall, FiPlus, FiSearch, FiEdit2 } from "react-icons/fi";
 import {
   BrandResponse,
   BrandService,
@@ -49,6 +49,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { SearchSelect } from "@/app/components/search-select";
+import { SearchSelectPaginated } from "@/app/components/search-select-paginated";
 
 const customerFormSchema = z.object({
   fName: z.string().min(2, "First name must be at least 2 characters"),
@@ -72,10 +73,23 @@ export default function Customers() {
   const [customers, setCustomers] = useState<CustomerResponse[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCarDialogOpen, setIsCarDialogOpen] = useState(false);
+  const [isEditCustomerDialogOpen, setIsEditCustomerDialogOpen] = useState(false);
+  const [isEditCarDialogOpen, setIsEditCarDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] =
     useState<CustomerResponse | null>(null);
+  const [selectedCar, setSelectedCar] = useState<any>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [brands, setBrands] = useState<BrandResponse[]>([]);
+  const [brandSearchQuery, setBrandSearchQuery] = useState("");
+  const [brandCurrentPage, setBrandCurrentPage] = useState(1);
+  const [brandTotalCount, setBrandTotalCount] = useState(0);
+  const brandItemsPerPage = 10;
+  const [modelSearchQuery, setModelSearchQuery] = useState("");
+  const [modelCurrentPage, setModelCurrentPage] = useState(1);
+  const [modelTotalCount, setModelTotalCount] = useState(0);
+  const modelItemsPerPage = 10;
+  const [models, setModels] = useState<any[]>([]);
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
@@ -92,6 +106,26 @@ export default function Customers() {
   });
 
   const carForm = useForm<z.infer<typeof carFormSchema>>({
+    resolver: zodResolver(carFormSchema),
+    defaultValues: {
+      brandId: "",
+      modelId: "",
+      plateNumber: "",
+      year: "",
+      color: "",
+    },
+  });
+
+  const editForm = useForm<z.infer<typeof customerFormSchema>>({
+    resolver: zodResolver(customerFormSchema),
+    defaultValues: {
+      fName: "",
+      lName: "",
+      mobileNumber: "",
+    },
+  });
+
+  const editCarForm = useForm<z.infer<typeof carFormSchema>>({
     resolver: zodResolver(carFormSchema),
     defaultValues: {
       brandId: "",
@@ -179,18 +213,58 @@ export default function Customers() {
     }
   }
 
-  useEffect(() => {
-    async function fetchBrands() {
-      try {
-        const response = await BrandService.brandControllerFindMany({});
-        setBrands(response.data);
-      } catch (error) {
-        console.error("Error fetching brands:", error);
-      }
+  const fetchBrands = async () => {
+    try {
+      const skip = (brandCurrentPage - 1) * brandItemsPerPage;
+      const response = await BrandService.brandControllerFindMany({
+        search: brandSearchQuery || "",
+        skip,
+        take: brandItemsPerPage,
+      });
+      setBrands(response.data);
+      setBrandTotalCount(response.rows || response.data.length);
+    } catch (error) {
+      console.error("Error fetching brands:", error);
+    }
+  };
+
+  const fetchModels = async (brandId: string) => {
+    if (!brandId) {
+      setModels([]);
+      setModelTotalCount(0);
+      return;
     }
 
+    // Use brand models with client-side search and pagination
+    const selectedBrand = brands.find(b => b.id === brandId);
+    if (selectedBrand?.models) {
+      // Filter models based on search query
+      const filteredModels = selectedBrand.models.filter(model => 
+        !modelSearchQuery || model.name.toLowerCase().includes(modelSearchQuery.toLowerCase())
+      );
+
+      // Apply pagination
+      const skip = (modelCurrentPage - 1) * modelItemsPerPage;
+      const paginatedModels = filteredModels.slice(skip, skip + modelItemsPerPage);
+      
+      setModels(paginatedModels);
+      setModelTotalCount(filteredModels.length);
+    } else {
+      setModels([]);
+      setModelTotalCount(0);
+    }
+  };
+
+  useEffect(() => {
     fetchBrands();
-  }, []);
+  }, [brandSearchQuery, brandCurrentPage]);
+
+  useEffect(() => {
+    const selectedBrandId = editCarForm.watch("brandId");
+    if (selectedBrandId) {
+      fetchModels(selectedBrandId);
+    }
+  }, [editCarForm.watch("brandId"), modelSearchQuery, modelCurrentPage, brands]);
 
   const totalPages = Math.ceil(totalCustomers / itemsPerPage);
 
@@ -211,6 +285,89 @@ export default function Customers() {
     setSelectedCustomer(customer);
     setIsDrawerOpen(true);
   }
+
+  const openEditCustomerDialog = (customer: CustomerResponse) => {
+    setSelectedCustomer(customer);
+    editForm.reset({
+      fName: customer.fName,
+      lName: customer.lName,
+      mobileNumber: customer.mobileNumber,
+    });
+    setIsEditCustomerDialogOpen(true);
+  };
+
+  const openEditCarDialog = (car: any) => {
+    setSelectedCar(car);
+    editCarForm.reset({
+      brandId: car.brand.id,
+      modelId: car.model.id,
+      plateNumber: car.plateNumber,
+      year: car.year,
+      color: car.color,
+    });
+    setIsEditCarDialogOpen(true);
+  };
+
+  const onEditSubmit = async (values: z.infer<typeof customerFormSchema>) => {
+    try {
+      await CustomerService.customerControllerUpdate({
+        requestBody: {
+          id: selectedCustomer!.id,
+          fName: values.fName,
+          lName: values.lName,
+          mobileNumber: values.mobileNumber,
+        },
+      });
+
+      setIsEditCustomerDialogOpen(false);
+      editForm.reset();
+      fetchCustomers();
+      // Update selected customer in drawer if open
+      if (isDrawerOpen) {
+        const updatedCustomers = await CustomerService.customerControllerFindMany({});
+        const updatedCustomer = updatedCustomers.data.find(
+          (c) => c.id === selectedCustomer!.id
+        );
+        if (updatedCustomer) {
+          setSelectedCustomer(updatedCustomer);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating customer:", error);
+    }
+  };
+
+  const onEditCarSubmit = async (values: z.infer<typeof carFormSchema>) => {
+    try {
+      await CarService.carControllerUpdate({
+        id: selectedCar!.id,
+        requestBody: {
+          brandId: values.brandId,
+          modelId: values.modelId,
+          plateNumber: values.plateNumber,
+          year: values.year || "",
+          color: values.color || "",
+          customerId: selectedCar!.customerId,
+        },
+      });
+
+      setIsEditCarDialogOpen(false);
+      editCarForm.reset();
+      fetchCustomers();
+      // Update selected customer in drawer if open
+      if (isDrawerOpen) {
+        const updatedCustomers = await CustomerService.customerControllerFindMany({});
+        const updatedCustomer = updatedCustomers.data.find(
+          (c) => c.id === selectedCustomer!.id
+        );
+        if (updatedCustomer) {
+          setSelectedCustomer(updatedCustomer);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating car:", error);
+    }
+  };
 
   return (
     <div className="p-2">
@@ -347,9 +504,21 @@ export default function Customers() {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon">
-                    <FaTrash className="text-red-500" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditCustomerDialog(customer);
+                      }}
+                    >
+                      <FiEdit2 className="text-blue-500" />
+                    </Button>
+                    <Button variant="ghost" size="icon">
+                      <FaTrash className="text-red-500" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
@@ -481,7 +650,20 @@ export default function Customers() {
                                   </span>
                                   <span>Plate: {car.plateNumber}</span>
                                 </div>
+                                {car.color && (
+                                  <div className="text-sm text-gray-500 mt-1">
+                                    Color: {car.color}
+                                  </div>
+                                )}
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditCarDialog(car)}
+                                className="h-8 w-8"
+                              >
+                                <FiEdit2 className="text-blue-500 h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
                         ))}
@@ -626,6 +808,207 @@ export default function Customers() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Edit Customer Dialog */}
+      <Dialog open={isEditCustomerDialogOpen} onOpenChange={setIsEditCustomerDialogOpen}>
+        <DialogContent className="min-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+            <DialogDescription>
+              Update customer information
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form
+              onSubmit={editForm.handleSubmit(onEditSubmit)}
+              className="space-y-4"
+            >
+              <FormField
+                control={editForm.control}
+                name="fName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <Input {...field} placeholder="First Name" />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="lName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <Input {...field} placeholder="Last Name" />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="mobileNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mobile Number</FormLabel>
+                    <Input {...field} placeholder="07XXXXXXXX" />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditCustomerDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Update Customer</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Car Dialog */}
+      <Dialog open={isEditCarDialogOpen} onOpenChange={setIsEditCarDialogOpen}>
+        <DialogContent className="min-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Vehicle</DialogTitle>
+            <DialogDescription>
+              Update vehicle information
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editCarForm}>
+            <form
+              onSubmit={editCarForm.handleSubmit(onEditCarSubmit)}
+              className="space-y-4"
+            >
+              {/* Brand Selection */}
+              <FormField
+                control={editCarForm.control}
+                name="brandId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brand</FormLabel>
+                    <SearchSelectPaginated
+                      options={brands.map((brand) => ({
+                        value: brand.id,
+                        label: brand.name,
+                      }))}
+                      value={field.value}
+                      onChange={(value) => {
+                        field.onChange(value);
+                        editCarForm.setValue("modelId", "");
+                        setBrandCurrentPage(1);
+                        setModelSearchQuery("");
+                        setModelCurrentPage(1);
+                      }}
+                      placeholder="Select brand..."
+                      searchPlaceholder="Search brands..."
+                      searchQuery={brandSearchQuery}
+                      onSearchChange={setBrandSearchQuery}
+                      currentPage={brandCurrentPage}
+                      totalCount={brandTotalCount}
+                      itemsPerPage={brandItemsPerPage}
+                      onPageChange={setBrandCurrentPage}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Model Selection */}
+              <FormField
+                control={editCarForm.control}
+                name="modelId"
+                render={({ field }) => {
+                  const selectedBrandId = editCarForm.watch("brandId");
+
+                  return (
+                    <FormItem>
+                      <FormLabel>Model</FormLabel>
+                      <SearchSelectPaginated
+                        options={models.map((m) => ({
+                          value: m.id,
+                          label: m.name,
+                        }))}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder={
+                          selectedBrandId
+                            ? "Select model..."
+                            : "Select a brand first"
+                        }
+                        searchPlaceholder="Search models..."
+                        searchQuery={modelSearchQuery}
+                        onSearchChange={setModelSearchQuery}
+                        currentPage={modelCurrentPage}
+                        totalCount={modelTotalCount}
+                        itemsPerPage={modelItemsPerPage}
+                        onPageChange={setModelCurrentPage}
+                        disabled={!selectedBrandId}
+                        emptyMessage={!selectedBrandId ? "Select a brand first" : "No models found."}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              <div className="flex justify-between gap-4">
+                <FormField
+                  control={editCarForm.control}
+                  name="plateNumber"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Plate Number</FormLabel>
+                      <Input {...field} placeholder="Plate Number" />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editCarForm.control}
+                  name="year"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormLabel>Year (Optional)</FormLabel>
+                      <Input {...field} placeholder="Year" />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Color Field */}
+              <FormField
+                control={editCarForm.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Color (Optional)</FormLabel>
+                    <Input {...field} placeholder="Color" />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditCarDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Update Vehicle</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

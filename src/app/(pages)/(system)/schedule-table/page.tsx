@@ -31,10 +31,9 @@ import {
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FiSearch } from "react-icons/fi";
+import { FiSearch, FiUserCheck, FiImage } from "react-icons/fi";
 import { Input } from "@/components/ui/input";
-import { ImageDialog } from "../schedule/components/appointments/image-dialog";
-import { UploadedFile } from "../schedule/components/appointments/types";
+import { PhaseImagesDisplay } from "../schedule/components/appointments/phase-images-display";
 
 export default function TransactionTable() {
   const [transactions, setTransactions] = useState<TransactionResponse[]>([]);
@@ -47,10 +46,7 @@ export default function TransactionTable() {
   const [isLoading, setIsLoading] = useState(false);
   const [totalTransaction, setTotalTransaction] = useState(0);
 
-  // Image dialog state
-  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [dialogImages, setDialogImages] = useState<UploadedFile[]>([]);
+  const [selectedTransactionAssignments, setSelectedTransactionAssignments] = useState<any[]>([]);
 
   useEffect(() => {
     fetchTransactions();
@@ -78,34 +74,30 @@ export default function TransactionTable() {
   }
 
   function getStatusBadge(status: TransactionResponse.status) {
-    const statusMap = {
+    const statusMap: Record<string, { color: string; text: string }> = {
       scheduled: {
         color: "bg-blue-100 text-blue-800",
         text: "Scheduled",
       },
       stageOne: {
-        color: "bg-yellow-100 text-yellow-800",
-        text: "Stage 1",
+        color: "bg-purple-100 text-purple-800",
+        text: "Phase 1",
       },
       stageTwo: {
         color: "bg-orange-100 text-orange-800",
-        text: "Stage 2",
+        text: "Phase 2",
       },
       stageThree: {
-        color: "bg-purple-100 text-purple-800", // Added purple color for Stage 3
-        text: "Stage 3",
+        color: "bg-green-100 text-green-800",
+        text: "Phase 3",
       },
       completed: {
-        color: "bg-green-100 text-green-800",
+        color: "bg-emerald-100 text-emerald-800",
         text: "Completed",
-      },
-      cancelled: {
-        color: "bg-red-100 text-red-800",
-        text: "Cancelled",
       },
     };
 
-    const currentStatus = statusMap[status];
+    const currentStatus = statusMap[status as string] || { color: "bg-gray-100 text-gray-800", text: "Unknown" };
     return (
       <span
         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${currentStatus.color}`}
@@ -125,32 +117,23 @@ export default function TransactionTable() {
     });
   }
 
-  function openTransactionDrawer(transaction: TransactionResponse) {
+  async function openTransactionDrawer(transaction: TransactionResponse) {
     setSelectedTransaction(transaction);
     setIsDrawerOpen(true);
+    
+    // Fetch technician assignments for this transaction
+    try {
+      const assignments = await TransactionService.transactionControllerGetTransactionAssignments({
+        id: transaction.id
+      });
+      setSelectedTransactionAssignments(assignments);
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+      setSelectedTransactionAssignments([]);
+    }
   }
 
-  // Convert ImageResponse to UploadedFile format for dialog
-  const convertImagesToUploadedFiles = (images: any[]): UploadedFile[] => {
-    return images.map((image) => ({
-      id: image.id,
-      file: new File([], image.key || "image", { type: "image/jpeg" }),
-      preview: image.url,
-      progress: 100,
-      status: "success" as const,
-    }));
-  };
 
-  const handleImageClick = (imageIndex: number) => {
-    if (selectedTransaction?.images && selectedTransaction.images.length > 0) {
-      const uploadedFiles = convertImagesToUploadedFiles(
-        selectedTransaction.images
-      );
-      setDialogImages(uploadedFiles);
-      setCurrentImageIndex(imageIndex);
-      setIsImageDialogOpen(true);
-    }
-  };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -269,27 +252,66 @@ export default function TransactionTable() {
                   </div>
                 </div>
 
-                {/* Images Section */}
-                {selectedTransaction.images?.length > 0 && (
-                  <div>
-                    <h3 className="font-medium mb-2">Images</h3>
-                    <div className="flex flex-col gap-4">
-                      {selectedTransaction.images.map((image, index) => (
-                        <div
-                          key={image.id}
-                          className="relative cursor-pointer group"
-                          onClick={() => handleImageClick(index)}
-                        >
-                          <img
-                            src={image.url}
-                            alt={`Transaction image ${image.id}`}
-                            className="w-full rounded-lg object-cover transition-opacity group-hover:opacity-90"
-                          />
-                        </div>
-                      ))}
-                    </div>
+                {/* Phase Technician Assignments */}
+                <div>
+                  <h3 className="font-medium mb-2 flex items-center">
+                    <FiUserCheck className="mr-2 text-blue-500" />
+                    Phase Technician Assignments
+                  </h3>
+
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
+                    {selectedTransactionAssignments && selectedTransactionAssignments.length > 0 ? (
+                      selectedTransactionAssignments
+                        .filter(assignment => assignment.isActive)
+                        .map((assignment) => {
+                          const phaseLabels = {
+                            scheduled: 'Scheduled',
+                            stageOne: 'Phase 1',
+                            stageTwo: 'Phase 2',
+                            stageThree: 'Phase 3',
+                            completed: 'Completed',
+                          };
+                          
+                          return (
+                            <div key={assignment.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                              <div className="flex items-center space-x-3">
+                                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                  <span className="text-blue-600 text-sm font-medium">
+                                    {assignment.technician?.fName?.charAt(0)}
+                                    {assignment.technician?.lName?.charAt(0)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm">
+                                    {assignment.technician?.fName} {assignment.technician?.lName}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {phaseLabels[assignment.phase as keyof typeof phaseLabels] || assignment.phase}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {assignment.assignedAt && new Date(assignment.assignedAt).toLocaleDateString()}
+                              </div>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <p className="text-gray-500 text-sm">No technicians assigned</p>
+                    )}
                   </div>
-                )}
+                </div>
+
+                {/* Phase Images */}
+                <div>
+                  <h3 className="font-medium mb-2 flex items-center">
+                    <FiImage className="mr-2 text-green-500" />
+                    Phase Images
+                  </h3>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <PhaseImagesDisplay appointment={selectedTransaction} />
+                  </div>
+                </div>
               </div>
             </ScrollArea>
           )}
@@ -418,14 +440,6 @@ export default function TransactionTable() {
         </div>
       </div>
 
-      {/* Image Dialog */}
-      <ImageDialog
-        isOpen={isImageDialogOpen}
-        onOpenChange={setIsImageDialogOpen}
-        images={dialogImages}
-        currentIndex={currentImageIndex}
-        onIndexChange={setCurrentImageIndex}
-      />
     </div>
   );
 }

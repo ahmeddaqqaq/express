@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { AppointmentStatus, UploadedFile } from "./types";
 import { useState } from "react";
-import { FiPackage, FiTool, FiUsers } from "react-icons/fi";
+import { FiPackage, FiTool, FiUsers, FiUser } from "react-icons/fi";
 import { TransactionResponse } from "../../../../../../../client";
 import { ImageUpload } from "./image-upload";
 
@@ -98,26 +98,55 @@ export function AppointmentDialog({
               <div className="space-y-5">
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <FiUsers className="text-gray-500" />
-                    Technicians
+                    <FiUser className="text-gray-500" />
+                    Supervisor
                   </h4>
-                  {appointment.technicians?.length > 0 ? (
-                    <ul className="space-y-2 pl-1">
-                      {appointment.technicians.map((e) => (
-                        <li
-                          key={e.id}
+                  {appointment.createdBy ? (
+                    <div className="flex items-center gap-3 p-2 bg-white rounded-lg">
+                      <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                        {appointment.createdBy.firstName?.charAt(0)}
+                        {appointment.createdBy.lastName?.charAt(0)}
+                      </div>
+                      <span className="font-medium">
+                        {appointment.createdBy.firstName} {appointment.createdBy.lastName}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="text-gray-400 italic p-2 bg-white rounded-lg">
+                      No supervisor assigned
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <FiUsers className="text-gray-500" />
+                    Phase Assignments
+                  </h4>
+                  {appointment.assignments && appointment.assignments.length > 0 ? (
+                    <div className="space-y-2">
+                      {appointment.assignments
+                        .filter(assignment => assignment.isActive)
+                        .map((assignment) => (
+                        <div
+                          key={assignment.id}
                           className="flex items-center gap-3 p-2 bg-white rounded-lg"
                         >
                           <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                            {e.fName.charAt(0)}
-                            {e.lName.charAt(0)}
+                            {assignment.technician?.fName?.charAt(0)}
+                            {assignment.technician?.lName?.charAt(0)}
                           </div>
-                          <span className="font-medium">
-                            {e.fName} {e.lName}
-                          </span>
-                        </li>
+                          <div className="flex-1">
+                            <span className="font-medium">
+                              {assignment.technician?.fName} {assignment.technician?.lName}
+                            </span>
+                            <div className="text-xs text-gray-500">
+                              {assignment.phase ? assignment.phase.charAt(0).toUpperCase() + assignment.phase.slice(1) : 'Unknown Phase'}
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   ) : (
                     <div className="text-gray-400 italic p-2 bg-white rounded-lg">
                       No technicians assigned
