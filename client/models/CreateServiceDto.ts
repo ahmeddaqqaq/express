@@ -5,7 +5,6 @@
 import type { ServicePriceDto } from './ServicePriceDto';
 export type CreateServiceDto = {
     name: string;
-    posServiceId: number;
     prices: Array<ServicePriceDto>;
 };
 

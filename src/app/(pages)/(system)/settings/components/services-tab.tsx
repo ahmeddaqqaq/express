@@ -47,6 +47,7 @@ interface Service {
   prices: {
     carType: string;
     price: number;
+    posServiceId: number;
   }[];
 }
 
@@ -61,8 +62,7 @@ export default function ServicesTab() {
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const [newService, setNewService] = useState({
     name: "",
-    posServiceId: "",
-    prices: carTypes.map((type) => ({ carType: type, price: 0 })),
+    prices: carTypes.map((type) => ({ carType: type, price: 0, posServiceId: 0 })),
   });
 
   useEffect(() => {
@@ -93,8 +93,10 @@ export default function ServicesTab() {
     setNewService((prev) => ({ ...prev, name: e.target.value }));
   };
 
-  const handlePosServiceIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewService((prev) => ({ ...prev, posServiceId: e.target.value }));
+  const handlePosServiceIdChange = (index: number, value: number) => {
+    const updatedPrices = [...newService.prices];
+    updatedPrices[index].posServiceId = value;
+    setNewService((prev) => ({ ...prev, prices: updatedPrices }));
   };
 
   const handlePriceChange = (index: number, value: number) => {
@@ -105,13 +107,8 @@ export default function ServicesTab() {
 
   const createService = async () => {
     if (!newService.name.trim()) return;
-    if (
-      !newService.posServiceId.trim() ||
-      parseInt(newService.posServiceId) <= 0
-    )
-      return;
-
-    const validPrices = newService.prices.filter((p) => p.price > 0);
+    
+    const validPrices = newService.prices.filter((p) => p.price > 0 && p.posServiceId > 0);
     if (validPrices.length === 0) return;
 
     setIsLoading(true);
@@ -119,16 +116,14 @@ export default function ServicesTab() {
       await ServiceService.serviceControllerCreate({
         requestBody: {
           name: newService.name,
-          posServiceId: parseInt(newService.posServiceId),
-          prices: newService.prices as unknown as ServicePriceDto[],
+          prices: validPrices as unknown as ServicePriceDto[],
         },
       });
 
       await fetchServices();
       setNewService({
         name: "",
-        posServiceId: "",
-        prices: carTypes.map((type) => ({ carType: type, price: 0 })),
+        prices: carTypes.map((type) => ({ carType: type, price: 0, posServiceId: 0 })),
       });
       setIsDialogOpen(false);
     } catch (error) {
@@ -188,35 +183,40 @@ export default function ServicesTab() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="posServiceId">POS Service ID *</Label>
-                <Input
-                  id="posServiceId"
-                  name="posServiceId"
-                  type="number"
-                  value={newService.posServiceId}
-                  onChange={handlePosServiceIdChange}
-                  placeholder="POS Service ID"
-                  min="1"
-                />
-              </div>
 
               {newService.prices.map((item, index) => (
-                <div className="space-y-2" key={item.carType}>
-                  <Label htmlFor={`price-${item.carType}`}>
-                    {item.carType} Price *
-                  </Label>
-                  <Input
-                    id={`price-${item.carType}`}
-                    type="number"
-                    value={item.price}
-                    onChange={(e) =>
-                      handlePriceChange(index, Number(e.target.value))
-                    }
-                    min="0"
-                    step="0.01"
-                    placeholder={`Price for ${item.carType}`}
-                  />
+                <div className="grid grid-cols-2 gap-4" key={item.carType}>
+                  <div className="space-y-2">
+                    <Label htmlFor={`price-${item.carType}`}>
+                      {item.carType} Price *
+                    </Label>
+                    <Input
+                      id={`price-${item.carType}`}
+                      type="number"
+                      value={item.price}
+                      onChange={(e) =>
+                        handlePriceChange(index, Number(e.target.value))
+                      }
+                      min="0"
+                      step="0.01"
+                      placeholder={`Price for ${item.carType}`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`posServiceId-${item.carType}`}>
+                      {item.carType} POS Service ID *
+                    </Label>
+                    <Input
+                      id={`posServiceId-${item.carType}`}
+                      type="number"
+                      value={item.posServiceId || ''}
+                      onChange={(e) =>
+                        handlePosServiceIdChange(index, Number(e.target.value))
+                      }
+                      min="1"
+                      placeholder={`POS ID for ${item.carType}`}
+                    />
+                  </div>
                 </div>
               ))}
 
@@ -241,7 +241,10 @@ export default function ServicesTab() {
               <TableRow>
                 <TableHead>Service Name</TableHead>
                 {carTypes.map((type) => (
-                  <TableHead key={type}>{type} Price</TableHead>
+                  <TableHead key={type} className="text-center">
+                    <div>{type}</div>
+                    <div className="text-xs text-gray-500">Price / POS ID</div>
+                  </TableHead>
                 ))}
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -255,8 +258,17 @@ export default function ServicesTab() {
                       (p) => p.carType === type
                     );
                     return (
-                      <TableCell key={type}>
-                        {found ? `$${found.price.toFixed(2)}` : "-"}
+                      <TableCell key={type} className="text-center">
+                        {found ? (
+                          <div>
+                            <div>${found.price.toFixed(2)}</div>
+                            <div className="text-xs text-gray-500">
+                              ID: {found.posServiceId}
+                            </div>
+                          </div>
+                        ) : (
+                          "-"
+                        )}
                       </TableCell>
                     );
                   })}

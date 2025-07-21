@@ -5,6 +5,7 @@
 export type ServicePriceDto = {
     carType: ServicePriceDto.carType;
     price: number;
+    posServiceId: number;
 };
 export namespace ServicePriceDto {
     export enum carType {
