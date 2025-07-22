@@ -11,11 +11,24 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { FiUser, FiPhoneCall, FiPackage, FiTool, FiClock, FiDollarSign, FiFileText, FiImage, FiEye } from "react-icons/fi";
+import {
+  FiUser,
+  FiPhoneCall,
+  FiPackage,
+  FiTool,
+  FiClock,
+  FiDollarSign,
+  FiFileText,
+  FiImage,
+  FiEye,
+} from "react-icons/fi";
 import { FaCar, FaIdCard } from "react-icons/fa";
 import { GiCarDoor } from "react-icons/gi";
 import { IoMdColorPalette } from "react-icons/io";
-import { TransactionResponse, TransactionService } from "../../../../../../../client";
+import {
+  TransactionResponse,
+  TransactionService,
+} from "../../../../../../../client";
 import { ImageDialog } from "./image-dialog";
 import { UploadedFile } from "./types";
 
@@ -30,7 +43,13 @@ interface PhaseImage {
   key: string;
   url: string;
   isActive: boolean;
-  uploadedAtStage: 'scheduled' | 'stageOne' | 'stageTwo' | 'stageThree' | 'completed' | 'cancelled';
+  uploadedAtStage:
+    | "scheduled"
+    | "stageOne"
+    | "stageTwo"
+    | "stageThree"
+    | "completed"
+    | "cancelled";
   createdAt: string;
   updatedAt: string;
 }
@@ -49,12 +68,12 @@ export function TransactionDetailDrawer({
   const [isLoadingImages, setIsLoadingImages] = useState(false);
 
   const phaseLabels = {
-    scheduled: 'Scheduled',
-    stageOne: 'Phase 1',
-    stageTwo: 'Phase 2', 
-    stageThree: 'Phase 3',
-    completed: 'Completed',
-    cancelled: 'Cancelled'
+    scheduled: "Scheduled",
+    stageOne: "Phase 1",
+    stageTwo: "Phase 2",
+    stageThree: "Phase 3",
+    completed: "Completed",
+    cancelled: "Cancelled",
   };
 
   useEffect(() => {
@@ -66,9 +85,12 @@ export function TransactionDetailDrawer({
   const fetchGroupedImages = async () => {
     try {
       setIsLoadingImages(true);
-      const response = await TransactionService.transactionControllerGetTransactionImagesGrouped({
-        id: appointment.id
-      });
+      const response =
+        await TransactionService.transactionControllerGetTransactionImagesGrouped(
+          {
+            id: appointment.id,
+          }
+        );
       setGroupedImages(response as GroupedImages);
     } catch (error) {
       console.error("Error fetching grouped images:", error);
@@ -81,19 +103,22 @@ export function TransactionDetailDrawer({
   const openImageDialog = (images: PhaseImage[], startIndex: number) => {
     const uploadedFiles: UploadedFile[] = images.map((image, index) => ({
       id: `${image.id}-${index}`,
-      file: new File([], 'image.jpg'), // Placeholder file
+      file: new File([], "image.jpg"), // Placeholder file
       preview: image.url,
       progress: 100,
-      status: 'success' as const
+      status: "success" as const,
     }));
-    
+
     setSelectedImages(uploadedFiles);
     setCurrentImageIndex(startIndex);
     setIsImageDialogOpen(true);
   };
 
   const getTotalImageCount = () => {
-    return Object.values(groupedImages).reduce((total, images) => total + images.length, 0);
+    return Object.values(groupedImages).reduce(
+      (total, images) => total + images.length,
+      0
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -120,7 +145,8 @@ export function TransactionDetailDrawer({
     return (
       <span
         className={`px-2 py-1 text-xs font-semibold rounded-full ${
-          statusColors[status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+          statusColors[status as keyof typeof statusColors] ||
+          "bg-gray-100 text-gray-800"
         }`}
       >
         {statusLabels[status as keyof typeof statusLabels] || status}
@@ -144,7 +170,9 @@ export function TransactionDetailDrawer({
             {/* Transaction Header */}
             <div className="flex items-center justify-between mb-6 p-4 bg-gray-50 rounded-lg">
               <div>
-                <h2 className="text-lg font-bold">Transaction #{appointment.id}</h2>
+                <h2 className="text-lg font-bold">
+                  Transaction #{appointment.id}
+                </h2>
                 <div className="flex items-center space-x-2 mt-1">
                   {getStatusBadge(appointment.status)}
                   {appointment.isPaid && (
@@ -227,7 +255,9 @@ export function TransactionDetailDrawer({
               <div className="space-y-2">
                 <div className="flex items-center">
                   <FiTool className="mr-2 h-4 w-4 text-gray-400" />
-                  <span className="font-medium">{appointment.service.name}</span>
+                  <span className="font-medium">
+                    {appointment.service.name}
+                  </span>
                 </div>
                 {appointment.notes && (
                   <div>
@@ -235,7 +265,9 @@ export function TransactionDetailDrawer({
                       <FiFileText className="mr-2 h-4 w-4 text-gray-400" />
                       <span className="text-sm font-medium">Notes:</span>
                     </div>
-                    <p className="text-sm text-gray-600 ml-6">{appointment.notes}</p>
+                    <p className="text-sm text-gray-600 ml-6">
+                      {appointment.notes}
+                    </p>
                   </div>
                 )}
               </div>
@@ -270,26 +302,30 @@ export function TransactionDetailDrawer({
                 </h3>
                 <div className="space-y-2">
                   {appointment.assignments
-                    .filter(assignment => assignment.isActive)
+                    .filter((assignment) => assignment.isActive)
                     .map((assignment) => (
-                    <div
-                      key={assignment.id}
-                      className="flex items-center gap-3 p-2 bg-white rounded-lg"
-                    >
-                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                        {assignment.technician?.fName?.charAt(0)}
-                        {assignment.technician?.lName?.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <span className="font-medium">
-                          {assignment.technician?.fName} {assignment.technician?.lName}
-                        </span>
-                        <div className="text-xs text-gray-500">
-                          {assignment.phase ? assignment.phase.charAt(0).toUpperCase() + assignment.phase.slice(1) : 'Unknown Phase'}
+                      <div
+                        key={assignment.id}
+                        className="flex items-center gap-3 p-2 bg-white rounded-lg"
+                      >
+                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                          {assignment.technician?.fName?.charAt(0)}
+                          {assignment.technician?.lName?.charAt(0)}
+                        </div>
+                        <div className="flex-1">
+                          <span className="font-medium">
+                            {assignment.technician?.fName}{" "}
+                            {assignment.technician?.lName}
+                          </span>
+                          <div className="text-xs text-gray-500">
+                            {assignment.phase
+                              ? assignment.phase.charAt(0).toUpperCase() +
+                                assignment.phase.slice(1)
+                              : "Unknown Phase"}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             )}
@@ -307,7 +343,8 @@ export function TransactionDetailDrawer({
                     {appointment.createdBy.lastName?.charAt(0)}
                   </div>
                   <span className="font-medium">
-                    {appointment.createdBy.firstName} {appointment.createdBy.lastName}
+                    {appointment.createdBy.firstName}{" "}
+                    {appointment.createdBy.lastName}
                   </span>
                 </div>
               </div>
@@ -343,7 +380,7 @@ export function TransactionDetailDrawer({
                 <FiImage className="mr-2" />
                 Phase Images ({getTotalImageCount()} total)
               </h3>
-              
+
               {isLoadingImages ? (
                 <div className="flex justify-center items-center h-24">
                   <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
@@ -352,25 +389,32 @@ export function TransactionDetailDrawer({
                 <div className="space-y-3">
                   {Object.keys(phaseLabels).map((phase) => {
                     const images = groupedImages[phase] || [];
-                    const phaseLabel = phaseLabels[phase as keyof typeof phaseLabels];
-                    
+                    const phaseLabel =
+                      phaseLabels[phase as keyof typeof phaseLabels];
+
                     return (
-                      <div key={phase} className="bg-white rounded-lg p-3 border">
+                      <div
+                        key={phase}
+                        className="bg-white rounded-lg p-3 border"
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="text-sm font-medium text-gray-700">
                             {phaseLabel} ({images.length} images)
                           </h4>
                         </div>
-                        
+
                         {images.length > 0 ? (
                           <div className="grid grid-cols-3 gap-2">
                             {images.slice(0, 6).map((image, index) => (
-                              <div key={image.id} className="relative group">
+                              <div
+                                key={image.id}
+                                className="relative group"
+                                onClick={() => openImageDialog(images, index)}
+                              >
                                 <img
                                   src={image.url}
                                   alt={`${phaseLabel} image ${index + 1}`}
                                   className="w-full h-16 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
-                                  onClick={() => openImageDialog(images, index)}
                                 />
                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all">
                                   <FiEye className="text-white opacity-0 group-hover:opacity-100 h-4 w-4" />
@@ -378,7 +422,7 @@ export function TransactionDetailDrawer({
                               </div>
                             ))}
                             {images.length > 6 && (
-                              <div 
+                              <div
                                 className="w-full h-16 bg-gray-200 rounded flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors"
                                 onClick={() => openImageDialog(images, 6)}
                               >
