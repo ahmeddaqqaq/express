@@ -8,17 +8,17 @@ export type AssignTechnicianToPhaseDto = {
      */
     transactionId: string;
     /**
-     * Technician ID to assign
+     * Array of technician IDs to assign
      */
-    technicianId: string;
+    technicianIds: Array<string>;
     /**
-     * Phase to assign technician to
+     * Phase to assign technicians to
      */
     phase: AssignTechnicianToPhaseDto.phase;
 };
 export namespace AssignTechnicianToPhaseDto {
     /**
-     * Phase to assign technician to
+     * Phase to assign technicians to
      */
     export enum phase {
         STAGE_ONE = 'stageOne',

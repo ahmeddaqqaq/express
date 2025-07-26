@@ -318,9 +318,12 @@ export function TransactionDetailDrawer({
                             {assignment.technician?.lName}
                           </span>
                           <div className="text-xs text-gray-500">
-                            {assignment.phase
-                              ? assignment.phase.charAt(0).toUpperCase() +
-                                assignment.phase.slice(1)
+                            {assignment.phase === "stageOne"
+                              ? "Phase One"
+                              : assignment.phase === "stageTwo"
+                              ? "Phase Two"
+                              : assignment.phase === "stageThree"
+                              ? "Phase Three"
                               : "Unknown Phase"}
                           </div>
                         </div>

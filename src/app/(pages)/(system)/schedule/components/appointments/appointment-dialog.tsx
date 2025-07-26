@@ -108,7 +108,8 @@ export function AppointmentDialog({
                         {appointment.createdBy.lastName?.charAt(0)}
                       </div>
                       <span className="font-medium">
-                        {appointment.createdBy.firstName} {appointment.createdBy.lastName}
+                        {appointment.createdBy.firstName}{" "}
+                        {appointment.createdBy.lastName}
                       </span>
                     </div>
                   ) : (
@@ -123,29 +124,37 @@ export function AppointmentDialog({
                     <FiUsers className="text-gray-500" />
                     Phase Assignments
                   </h4>
-                  {appointment.assignments && appointment.assignments.length > 0 ? (
+                  {appointment.assignments &&
+                  appointment.assignments.length > 0 ? (
                     <div className="space-y-2">
                       {appointment.assignments
-                        .filter(assignment => assignment.isActive)
+                        .filter((assignment) => assignment.isActive)
                         .map((assignment) => (
-                        <div
-                          key={assignment.id}
-                          className="flex items-center gap-3 p-2 bg-white rounded-lg"
-                        >
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                            {assignment.technician?.fName?.charAt(0)}
-                            {assignment.technician?.lName?.charAt(0)}
-                          </div>
-                          <div className="flex-1">
-                            <span className="font-medium">
-                              {assignment.technician?.fName} {assignment.technician?.lName}
-                            </span>
-                            <div className="text-xs text-gray-500">
-                              {assignment.phase ? assignment.phase.charAt(0).toUpperCase() + assignment.phase.slice(1) : 'Unknown Phase'}
+                          <div
+                            key={assignment.id}
+                            className="flex items-center gap-3 p-2 bg-white rounded-lg"
+                          >
+                            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                              {assignment.technician?.fName?.charAt(0)}
+                              {assignment.technician?.lName?.charAt(0)}
+                            </div>
+                            <div className="flex-1">
+                              <span className="font-medium">
+                                {assignment.technician?.fName}{" "}
+                                {assignment.technician?.lName}
+                              </span>
+                              <div className="text-xs text-gray-500">
+                                {assignment.phase === "stageOne"
+                                  ? "Phase One"
+                                  : assignment.phase === "stageTwo"
+                                  ? "Phase Two"
+                                  : assignment.phase === "stageThree"
+                                  ? "Phase Three"
+                                  : "Unknown Phase"}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   ) : (
                     <div className="text-gray-400 italic p-2 bg-white rounded-lg">

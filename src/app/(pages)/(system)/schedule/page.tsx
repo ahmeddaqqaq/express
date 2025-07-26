@@ -5,7 +5,11 @@ import { FiPlus, FiCalendar, FiCheckCircle } from "react-icons/fi";
 import { TransactionResponse, TransactionService } from "../../../../../client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -14,7 +18,9 @@ import { ScheduleColumns } from "./components/schedule/schedule-columns";
 import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-drawer";
 
 export default function Schedule() {
-  const [currentDate, setCurrentDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+  const [currentDate, setCurrentDate] = useState<string>(
+    format(new Date(), "yyyy-MM-dd")
+  );
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [scheduled, setScheduled] = useState<TransactionResponse[]>([]);
@@ -31,7 +37,6 @@ export default function Schedule() {
   const handleSuccess = () => {
     setRefreshKey((prev) => prev + 1);
   };
-
 
   useEffect(() => {
     async function fetchAllData() {
@@ -231,7 +236,6 @@ export default function Schedule() {
     );
   }
 
-
   return (
     <div className="p-2">
       <div className="flex justify-between items-center mb-6">
@@ -251,11 +255,9 @@ export default function Schedule() {
                   )}
                 >
                   <FiCalendar className="mr-2 h-4 w-4" />
-                  {selectedDate ? (
-                    format(selectedDate, "EEEE, MMMM d, yyyy")
-                  ) : (
-                    "Pick a date"
-                  )}
+                  {selectedDate
+                    ? format(selectedDate, "EEEE, MMMM d, yyyy")
+                    : "Pick a date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">

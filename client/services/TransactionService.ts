@@ -379,15 +379,15 @@ export class TransactionService {
         });
     }
     /**
-     * Assign technician to a specific phase of a transaction
-     * @returns any Technician assigned successfully
+     * Assign multiple technicians to a specific phase of a transaction
+     * @returns any Technicians assigned successfully
      * @throws ApiError
      */
     public static transactionControllerAssignTechnicianToPhase({
         requestBody,
     }: {
         requestBody: AssignTechnicianToPhaseDto,
-    }): CancelablePromise<{
+    }): CancelablePromise<Array<{
         id?: string;
         technicianId?: string;
         transactionId?: string;
@@ -398,14 +398,14 @@ export class TransactionService {
             fName?: string;
             lName?: string;
         };
-    }> {
+    }>> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/express/transaction/assign-technician',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                400: `Invalid phase or technician already assigned`,
+                400: `Invalid phase, technicians already assigned, or no technician IDs provided`,
             },
         });
     }

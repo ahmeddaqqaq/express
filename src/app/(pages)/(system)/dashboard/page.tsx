@@ -115,6 +115,7 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchAllData() {
       try {
+
         const [
           cardStats,
           completionRatio,
