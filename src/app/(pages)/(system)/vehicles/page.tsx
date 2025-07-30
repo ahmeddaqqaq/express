@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FiPlus, FiSearch, FiEdit, FiTrash2, FiMoreVertical } from "react-icons/fi";
+import { FiPlus, FiSearch, FiEdit, FiTrash2 } from "react-icons/fi";
 import {
   BrandResponse,
   BrandService,
@@ -79,7 +79,7 @@ export default function VehiclesPage() {
     name: "",
     type: "Sedan" as CarType,
   });
-  
+
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     model: ModelResponse | null;
@@ -421,9 +421,7 @@ export default function VehiclesPage() {
       {/* Edit Model Dialog */}
       <Dialog
         open={editModel.open}
-        onOpenChange={(open) =>
-          setEditModel({ ...editModel, open })
-        }
+        onOpenChange={(open) => setEditModel({ ...editModel, open })}
       >
         <DialogContent>
           <DialogHeader>
@@ -469,16 +467,15 @@ export default function VehiclesPage() {
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={deleteConfirm.open}
-        onOpenChange={(open) =>
-          setDeleteConfirm({ ...deleteConfirm, open })
-        }
+        onOpenChange={(open) => setDeleteConfirm({ ...deleteConfirm, open })}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Model</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the model "{deleteConfirm.model?.name}"? 
-              This action cannot be undone. The model can only be deleted if it's not being used by any cars.
+              Are you sure you want to delete the model "
+              {deleteConfirm.model?.name}"? This action cannot be undone. The
+              model can only be deleted if it's not being used by any cars.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
