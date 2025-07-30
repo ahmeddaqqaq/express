@@ -100,9 +100,15 @@ export function CompletedTicketsDrawer({
                         <div className="text-sm text-gray-600 mb-1">
                           {appointment.car.brand.name} {appointment.car.model.name}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 mb-2">
                           {appointment.service.name}
                         </div>
+                        {appointment.notes && (
+                          <div className="text-xs text-red-700 bg-red-100 p-2 rounded border-l-2 border-red-300">
+                            <span className="font-medium">Reason: </span>
+                            {appointment.notes}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

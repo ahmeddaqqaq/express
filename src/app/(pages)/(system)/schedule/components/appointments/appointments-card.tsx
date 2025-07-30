@@ -2,7 +2,15 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { FiSettings, FiUser, FiUserPlus, FiDollarSign, FiEdit, FiInfo, FiX } from "react-icons/fi";
+import {
+  FiSettings,
+  FiUser,
+  FiUserPlus,
+  FiDollarSign,
+  FiEdit,
+  FiInfo,
+  FiX,
+} from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -14,6 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { TransactionService } from "../../../../../../../client";
 import {
   AppointmentCardProps,
@@ -44,6 +54,7 @@ export function AppointmentsCard({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
+  const [cancelNotes, setCancelNotes] = useState("");
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     from: AppointmentStatus;
     to: AppointmentStatus;
@@ -60,15 +71,15 @@ export function AppointmentsCard({
     // Get the current phase's technician assignment
     const getCurrentPhaseAssignment = () => {
       const phaseMap = {
-        scheduled: 'scheduled',
-        stageOne: 'stageOne',
-        stageTwo: 'stageTwo',
-        stageThree: 'stageThree'
+        scheduled: "scheduled",
+        stageOne: "stageOne",
+        stageTwo: "stageTwo",
+        stageThree: "stageThree",
       };
-      
+
       const currentPhase = phaseMap[status as keyof typeof phaseMap];
       if (!currentPhase) return null;
-      
+
       return appointment.assignments?.find(
         (assignment) => assignment.phase === currentPhase && assignment.isActive
       );
@@ -76,7 +87,7 @@ export function AppointmentsCard({
 
     const assignment = getCurrentPhaseAssignment();
     setAssignedTechnician(assignment?.technician || null);
-    
+
     // Only start timer if technician is assigned to current phase
     if (assignment && assignment.assignedAt) {
       setTimerActive(true);
@@ -113,16 +124,17 @@ export function AppointmentsCard({
     } else if (from === "scheduled" && to === "stageOne") {
       // Check if transaction has images before moving to stage 1 using API
       try {
-        const images = await TransactionService.transactionControllerGetTransactionImages({
-          id: appointment.id,
-          stage: "scheduled"
-        });
-        
+        const images =
+          await TransactionService.transactionControllerGetTransactionImages({
+            id: appointment.id,
+            stage: "scheduled",
+          });
+
         if (!images || images.length === 0) {
           alert("Please upload at least one image before moving to Phase 1");
           return;
         }
-        
+
         await handleStatusChange(appointment.id, from, to);
       } catch (error) {
         console.error("Error checking images:", error);
@@ -167,18 +179,31 @@ export function AppointmentsCard({
   };
 
   const handleCancelClick = () => {
+    setCancelNotes("");
     setIsCancelConfirmOpen(true);
   };
 
   const handleCancelConfirm = async () => {
+    // Validate that notes are provided
+    if (!cancelNotes.trim()) {
+      alert("Please provide a reason for cancellation.");
+      return;
+    }
+
     setIsCancelling(true);
     setIsCancelConfirmOpen(false);
-    
+
     try {
       await TransactionService.transactionControllerCancelTransaction({
         id: appointment.id,
+        requestBody: {
+          notes: cancelNotes.trim(),
+        },
       });
-      
+
+      // Reset the notes
+      setCancelNotes("");
+
       // Refresh the page data
       onRefresh?.();
     } catch (error: any) {
@@ -240,7 +265,9 @@ export function AppointmentsCard({
             <Button
               variant="ghost"
               size="icon"
-              className={`h-6 w-6 ${status === "completed" ? "bg-blue-50 hover:bg-blue-100" : ""}`}
+              className={`h-6 w-6 ${
+                status === "completed" ? "bg-blue-50 hover:bg-blue-100" : ""
+              }`}
               onClick={() => {
                 if (status === "completed") {
                   setIsTransactionDrawerOpen(true);
@@ -324,7 +351,10 @@ export function AppointmentsCard({
               <button
                 className={`py-0.5 ${currentStatus.buttonColor} text-xs rounded transition-colors flex items-center justify-center`}
                 onClick={() =>
-                  handleStatusChangeClick(status, currentStatus.hasNext ? currentStatus.nextStatus : status)
+                  handleStatusChangeClick(
+                    status,
+                    currentStatus.hasNext ? currentStatus.nextStatus : status
+                  )
                 }
                 disabled={!!movingItemId}
               >
@@ -342,6 +372,20 @@ export function AppointmentsCard({
               </button>
               <div className="flex space-x-1">
                 <button
+                  className="py-0.5 px-2 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+                  onClick={handleCancelClick}
+                  disabled={!!movingItemId || isCancelling}
+                  title="Cancel Order"
+                >
+                  {isCancelling ? (
+                    <span className="inline-flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-2.5 w-2.5 border-t border-white"></div>
+                    </span>
+                  ) : (
+                    <FiX className="h-2.5 w-2.5" />
+                  )}
+                </button>
+                <button
                   className="flex-1 py-0.5 px-2 bg-green-500 hover:bg-green-600 text-white text-xs rounded transition-colors flex items-center justify-center"
                   onClick={() => setIsImageDialogOpen(true)}
                   disabled={!!movingItemId}
@@ -357,23 +401,11 @@ export function AppointmentsCard({
                 >
                   <FiEdit className="h-2.5 w-2.5" />
                 </button>
-                <button
-                  className="py-0.5 px-2 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition-colors flex items-center justify-center"
-                  onClick={handleCancelClick}
-                  disabled={!!movingItemId || isCancelling}
-                  title="Cancel Order"
-                >
-                  {isCancelling ? (
-                    <span className="inline-flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-2.5 w-2.5 border-t border-white"></div>
-                    </span>
-                  ) : (
-                    <FiX className="h-2.5 w-2.5" />
-                  )}
-                </button>
               </div>
             </>
-          ) : status === "stageOne" || status === "stageTwo" || status === "stageThree" ? (
+          ) : status === "stageOne" ||
+            status === "stageTwo" ||
+            status === "stageThree" ? (
             /* Phase columns - Assign Technician and Move to Next Phase */
             <>
               <button
@@ -386,9 +418,14 @@ export function AppointmentsCard({
               </button>
               <button
                 className={`flex-1 py-0.5 ${currentStatus.buttonColor} text-xs rounded transition-colors flex items-center justify-center`}
-                onClick={() =>
-                  currentStatus.hasNext ? handleStatusChangeClick(status, currentStatus.nextStatus) : 
-                  handleStatusChangeClick(status, "completed") // For stageThree, move to completed
+                onClick={
+                  () =>
+                    currentStatus.hasNext
+                      ? handleStatusChangeClick(
+                          status,
+                          currentStatus.nextStatus
+                        )
+                      : handleStatusChangeClick(status, "completed") // For stageThree, move to completed
                 }
                 disabled={!!movingItemId}
               >
@@ -400,7 +437,11 @@ export function AppointmentsCard({
                 ) : (
                   <>
                     {currentStatus.icon}
-                    {status === "stageOne" ? "To Phase 2" : status === "stageTwo" ? "To Phase 3" : "Finish"}
+                    {status === "stageOne"
+                      ? "To Phase 2"
+                      : status === "stageTwo"
+                      ? "To Phase 3"
+                      : "Finish"}
                   </>
                 )}
               </button>
@@ -463,7 +504,10 @@ export function AppointmentsCard({
       />
 
       {/* Cancel Confirmation Dialog */}
-      <AlertDialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
+      <AlertDialog
+        open={isCancelConfirmOpen}
+        onOpenChange={setIsCancelConfirmOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center text-red-600">
@@ -472,10 +516,14 @@ export function AppointmentsCard({
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600">
               Are you sure you want to cancel this order for{" "}
-              <strong>{appointment.customer.fName} {appointment.customer.lName}</strong>?
+              <strong>
+                {appointment.customer.fName} {appointment.customer.lName}
+              </strong>
+              ?
               <br />
               <span className="text-sm text-gray-500 mt-2 block">
-                Vehicle: {appointment.car.brand.name} {appointment.car.model.name}
+                Vehicle: {appointment.car.brand.name}{" "}
+                {appointment.car.model.name}
                 <br />
                 Service: {appointment.service.name}
               </span>
@@ -484,6 +532,25 @@ export function AppointmentsCard({
                 This action cannot be undone.
               </span>
             </AlertDialogDescription>
+            <div className="mt-4 space-y-2">
+              <Label
+                htmlFor="cancel-notes"
+                className="text-sm font-medium text-gray-700"
+              >
+                Reason for cancellation *
+              </Label>
+              <Textarea
+                id="cancel-notes"
+                placeholder="Please provide a reason for cancelling this order..."
+                value={cancelNotes}
+                onChange={(e) => setCancelNotes(e.target.value)}
+                className="min-h-[80px] resize-none"
+                disabled={isCancelling}
+              />
+              {!cancelNotes.trim() && (
+                <p className="text-xs text-red-600">This field is required</p>
+              )}
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isCancelling}>
@@ -491,8 +558,8 @@ export function AppointmentsCard({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancelConfirm}
-              disabled={isCancelling}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={isCancelling || !cancelNotes.trim()}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isCancelling ? (
                 <>

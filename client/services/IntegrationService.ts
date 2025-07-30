@@ -7,7 +7,7 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class IntegrationService {
     /**
-     * Get all services and add-ons for POS integration
+     * Get all pos tickets
      * @returns any Returns services and add-ons mapped to POS format
      * @throws ApiError
      */
@@ -18,40 +18,8 @@ export class IntegrationService {
         });
     }
     /**
-     * Get all POS orders
-     * @returns any Returns all POS orders with transaction details
-     * @throws ApiError
-     */
-    public static integrationControllerGetAllPosOrders(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/express/Integration/pos-orders',
-        });
-    }
-    /**
-     * Get POS order by transaction ID
-     * @returns any Returns POS order for specific transaction
-     * @throws ApiError
-     */
-    public static integrationControllerGetPosOrderByTransaction({
-        transactionId,
-    }: {
-        transactionId: string,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/express/Integration/pos-orders/transaction/{transactionId}',
-            path: {
-                'transactionId': transactionId,
-            },
-            errors: {
-                404: `POS order not found`,
-            },
-        });
-    }
-    /**
-     * Mark transaction as paid by order number
-     * @returns any Transaction marked as paid successfully
+     * Mark transaction as pulled by order number
+     * @returns any Transaction marked as pulled successfully
      * @throws ApiError
      */
     public static integrationControllerMarkTransactionAsPaid({
@@ -66,7 +34,7 @@ export class IntegrationService {
                 'orderId': orderId,
             },
             errors: {
-                400: `Transaction is already marked as paid`,
+                400: `Transaction is already marked as pulled`,
                 404: `Order not found`,
             },
         });
