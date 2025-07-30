@@ -28,6 +28,7 @@ export default function Schedule() {
   const [stageTwo, setStageTwo] = useState<TransactionResponse[]>([]);
   const [stageThree, setStageThree] = useState<TransactionResponse[]>([]);
   const [completed, setCompleted] = useState<TransactionResponse[]>([]);
+  const [cancelled, setCancelled] = useState<TransactionResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [movingItemId, setMovingItemId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -49,6 +50,7 @@ export default function Schedule() {
           stageTwoRes,
           stageThreeRes,
           completedRes,
+          cancelledRes,
         ] = await Promise.all([
           TransactionService.transactionControllerFindScheduled({
             date: currentDate,
@@ -65,6 +67,9 @@ export default function Schedule() {
           TransactionService.transactionControllerFindCompleted({
             date: currentDate,
           }) as unknown as TransactionResponse[],
+          TransactionService.transactionControllerFindCancelled({
+            date: currentDate,
+          }) as unknown as TransactionResponse[],
         ]);
 
         setScheduled(scheduledRes);
@@ -72,12 +77,14 @@ export default function Schedule() {
         setStageTwo(stageTwoRes);
         setStageThree(stageThreeRes);
         setCompleted(completedRes);
+        setCancelled(cancelledRes);
       } catch (error) {
         console.error("Error fetching appointments:", error);
         setScheduled([]);
         setStageOne([]);
         setStageTwo([]);
         setStageThree([]);
+        setCancelled([]);
       } finally {
         setIsLoading(false);
       }
@@ -302,7 +309,7 @@ export default function Schedule() {
             className="flex items-center gap-2"
           >
             <FiCheckCircle className="w-4 h-4 text-green-600" />
-            <span>Completed ({completed.length})</span>
+            <span>Completed ({completed.length + cancelled.length})</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -335,6 +342,7 @@ export default function Schedule() {
         isOpen={isCompletedDrawerOpen}
         onOpenChange={setIsCompletedDrawerOpen}
         completed={completed}
+        cancelled={cancelled}
         movingItemId={movingItemId}
         handleStatusChange={handleStatusChange}
         formatTime={formatTime}

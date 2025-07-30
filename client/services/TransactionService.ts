@@ -194,14 +194,50 @@ export class TransactionService {
     }
     /**
      * Find cancelled transactions
-     * Get all transactions with cancelled status
+     * Get all cancelled transactions, optionally filtered by cancellation date
      * @returns TransactionResponse Cancelled transactions retrieved successfully
      * @throws ApiError
      */
-    public static transactionControllerFindCancelled(): CancelablePromise<Array<TransactionResponse>> {
+    public static transactionControllerFindCancelled({
+        date,
+    }: {
+        /**
+         * Date filter (YYYY-MM-DD format) to filter by cancellation date
+         */
+        date?: string,
+    }): CancelablePromise<Array<TransactionResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/transaction/findCancelled',
+            query: {
+                'date': date,
+            },
+            errors: {
+                400: `Bad request - invalid date format`,
+            },
+        });
+    }
+    /**
+     * Cancel a scheduled transaction
+     * Cancel a transaction that is currently in scheduled status
+     * @returns TransactionResponse Transaction cancelled successfully
+     * @throws ApiError
+     */
+    public static transactionControllerCancelTransaction({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<TransactionResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/express/transaction/cancel/{id}',
+            path: {
+                'id': id,
+            },
+            errors: {
+                400: `Bad request - transaction is not in scheduled status`,
+                404: `Transaction not found`,
+            },
         });
     }
     /**

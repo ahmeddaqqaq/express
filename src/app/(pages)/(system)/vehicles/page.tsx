@@ -17,9 +17,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FiPlus, FiSearch } from "react-icons/fi";
+import { FiPlus, FiSearch, FiEdit, FiTrash2, FiMoreVertical } from "react-icons/fi";
 import {
   BrandResponse,
   BrandService,
@@ -49,6 +65,27 @@ export default function VehiclesPage() {
     name: "",
     brandId: "",
     type: "Sedan" as CarType,
+  });
+
+  // Edit and delete states
+  const [editModel, setEditModel] = useState<{
+    open: boolean;
+    model: ModelResponse | null;
+    name: string;
+    type: CarType;
+  }>({
+    open: false,
+    model: null,
+    name: "",
+    type: "Sedan" as CarType,
+  });
+  
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    open: boolean;
+    model: ModelResponse | null;
+  }>({
+    open: false,
+    model: null,
   });
 
   useEffect(() => {
@@ -123,6 +160,76 @@ export default function VehiclesPage() {
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
+  };
+
+  // Edit model functionality
+  const handleEditModel = (model: ModelResponse) => {
+    setEditModel({
+      open: true,
+      model: model,
+      name: model.name,
+      type: (model as any).type || "Sedan",
+    });
+  };
+
+  const handleUpdateModel = async () => {
+    if (!editModel.model || !editModel.name.trim()) return;
+
+    setIsLoading(true);
+    try {
+      await ModelService.modelControllerUpdate({
+        id: editModel.model.id,
+        requestBody: {
+          name: editModel.name,
+          brandId: editModel.model.brandId,
+          type: editModel.type,
+        },
+      });
+      await fetchData();
+      setEditModel({
+        open: false,
+        model: null,
+        name: "",
+        type: "Sedan" as CarType,
+      });
+    } catch (error) {
+      console.error("Error updating model:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Delete model functionality
+  const handleDeleteModel = (model: ModelResponse) => {
+    setDeleteConfirm({
+      open: true,
+      model: model,
+    });
+  };
+
+  const confirmDeleteModel = async () => {
+    if (!deleteConfirm.model) return;
+
+    setIsLoading(true);
+    try {
+      await ModelService.modelControllerDelete({
+        id: deleteConfirm.model.id,
+      });
+      await fetchData();
+      setDeleteConfirm({
+        open: false,
+        model: null,
+      });
+    } catch (error: any) {
+      console.error("Error deleting model:", error);
+      if (error.body?.error) {
+        alert(error.body.error);
+      } else {
+        alert("Failed to delete model. It might be in use by existing cars.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -261,13 +368,32 @@ export default function VehiclesPage() {
                   {models
                     .filter((model) => model.brandId === brand.id)
                     .map((model) => (
-                      <Badge
-                        key={model.id}
-                        variant="outline"
-                        className="px-3 py-1"
-                      >
-                        {model.name} ({(model as any).type || "N/A"})
-                      </Badge>
+                      <DropdownMenu key={model.id}>
+                        <DropdownMenuTrigger asChild>
+                          <Badge
+                            variant="outline"
+                            className="px-3 py-1 cursor-pointer hover:bg-gray-50 transition-colors"
+                          >
+                            {model.name} ({(model as any).type || "N/A"})
+                          </Badge>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          <DropdownMenuItem
+                            onClick={() => handleEditModel(model)}
+                            className="cursor-pointer"
+                          >
+                            <FiEdit className="mr-2 h-4 w-4" />
+                            Edit Model
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteModel(model)}
+                            className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <FiTrash2 className="mr-2 h-4 w-4" />
+                            Delete Model
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     ))}
                 </div>
               </CardContent>
@@ -291,6 +417,82 @@ export default function VehiclesPage() {
           ))}
         </div>
       )}
+
+      {/* Edit Model Dialog */}
+      <Dialog
+        open={editModel.open}
+        onOpenChange={(open) =>
+          setEditModel({ ...editModel, open })
+        }
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Model</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label>Model Name</Label>
+              <Input
+                value={editModel.name}
+                onChange={(e) =>
+                  setEditModel({ ...editModel, name: e.target.value })
+                }
+                placeholder="Model name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Car Type</Label>
+              <select
+                className="w-full p-2 border rounded"
+                value={editModel.type}
+                onChange={(e) =>
+                  setEditModel({
+                    ...editModel,
+                    type: e.target.value as CarType,
+                  })
+                }
+              >
+                <option value="Bike">Bike</option>
+                <option value="Sedan">Sedan</option>
+                <option value="Crossover">Crossover</option>
+                <option value="SUV">SUV</option>
+                <option value="VAN">VAN</option>
+              </select>
+            </div>
+            <Button onClick={handleUpdateModel} disabled={isLoading}>
+              {isLoading ? "Updating..." : "Update Model"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={deleteConfirm.open}
+        onOpenChange={(open) =>
+          setDeleteConfirm({ ...deleteConfirm, open })
+        }
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Model</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the model "{deleteConfirm.model?.name}"? 
+              This action cannot be undone. The model can only be deleted if it's not being used by any cars.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteModel}
+              disabled={isLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isLoading ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

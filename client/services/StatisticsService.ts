@@ -173,4 +173,32 @@ export class StatisticsService {
             },
         });
     }
+    /**
+     * @returns any Returns supervisor add-on sales statistics
+     * @throws ApiError
+     */
+    public static statisticsControllerGetSupervisorAddsOnSell({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<Array<{
+        supervisorId?: string;
+        supervisorName?: string;
+        totalAddOnRevenue?: number;
+        addOnCount?: number;
+    }>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/supervisorAddOnSales',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
+            },
+        });
+    }
 }

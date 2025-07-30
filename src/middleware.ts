@@ -2,11 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 function decodeJwt(token: string) {
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
     return JSON.parse(jsonPayload);
   } catch (error) {
     return null;
@@ -22,14 +27,17 @@ function isTokenExpired(token: string): boolean {
   return decoded.exp < currentTime;
 }
 
-async function refreshAccessToken(refreshToken: string, baseUrl: string): Promise<{ access_token: string; refresh_token: string } | null> {
+async function refreshAccessToken(
+  refreshToken: string,
+  baseUrl: string
+): Promise<{ access_token: string; refresh_token: string } | null> {
   try {
     const response = await fetch(`${baseUrl}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
+      method: "POST",
+      credentials: "include",
       headers: {
-        'Content-Type': 'application/json',
-        'Cookie': `refresh_token=${refreshToken}`
+        "Content-Type": "application/json",
+        Cookie: `refresh_token=${refreshToken}`,
       },
     });
 
@@ -37,7 +45,10 @@ async function refreshAccessToken(refreshToken: string, baseUrl: string): Promis
       const data = await response.json();
       return {
         access_token: data.access_token,
-        refresh_token: response.headers.get('set-cookie')?.match(/refresh_token=([^;]+)/)?.[1] || refreshToken
+        refresh_token:
+          response.headers
+            .get("set-cookie")
+            ?.match(/refresh_token=([^;]+)/)?.[1] || refreshToken,
       };
     }
     return null;
@@ -46,14 +57,22 @@ async function refreshAccessToken(refreshToken: string, baseUrl: string): Promis
   }
 }
 
-async function getUserRole(req: NextRequest): Promise<'ADMIN' | 'SUPERVISOR' | null> {
+async function getUserRole(
+  req: NextRequest
+): Promise<"ADMIN" | "SUPERVISOR" | null> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://lionsinternationalco.com'}/express/auth/me`, {
-      method: 'GET',
-      headers: {
-        'Cookie': req.headers.get('cookie') || '',
-      },
-    });
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        "https://lionsinternationalco.com"
+      }/express/auth/me`,
+      {
+        method: "GET",
+        headers: {
+          Cookie: req.headers.get("cookie") || "",
+        },
+      }
+    );
 
     if (response.ok) {
       const userData = await response.json();
@@ -61,7 +80,7 @@ async function getUserRole(req: NextRequest): Promise<'ADMIN' | 'SUPERVISOR' | n
     }
     return null;
   } catch (error) {
-    console.error('Failed to fetch user role in middleware:', error);
+    console.error("Failed to fetch user role in middleware:", error);
     return null;
   }
 }
@@ -87,8 +106,8 @@ export default async function middleware(req: NextRequest) {
   // Handle root path redirect based on user role
   if (pathname === "" || pathname === "/") {
     const userRole = await getUserRole(req);
-    
-    if (userRole === 'ADMIN') {
+
+    if (userRole === "ADMIN") {
       const dashboardUrl = new URL("/dashboard", req.url);
       return NextResponse.redirect(dashboardUrl);
     } else {
@@ -101,8 +120,8 @@ export default async function middleware(req: NextRequest) {
   // Block supervisors from accessing dashboard
   if (pathname === "/dashboard") {
     const userRole = await getUserRole(req);
-    
-    if (userRole === 'SUPERVISOR') {
+
+    if (userRole === "SUPERVISOR") {
       const scheduleUrl = new URL("/schedule", req.url);
       return NextResponse.redirect(scheduleUrl);
     }
@@ -110,24 +129,26 @@ export default async function middleware(req: NextRequest) {
 
   // If only refresh token exists, try to get new access token
   if (!accessToken && refreshToken) {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      "https://lionsinternationalco.com";
     const newTokens = await refreshAccessToken(refreshToken, baseUrl);
-    
+
     if (newTokens) {
       const response = NextResponse.next();
       response.cookies.set("access_token", newTokens.access_token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 15 * 60, // 15 minutes
-        path: '/',
+        path: "/",
       });
       response.cookies.set("refresh_token", newTokens.refresh_token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60, // 7 days
-        path: '/',
+        path: "/",
       });
       return response;
     } else {
@@ -144,24 +165,26 @@ export default async function middleware(req: NextRequest) {
   if (accessToken) {
     if (isTokenExpired(accessToken)) {
       if (refreshToken) {
-        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+        const baseUrl =
+          process.env.NEXT_PUBLIC_API_BASE_URL ||
+          "https://lionsinternationalco.com";
         const newTokens = await refreshAccessToken(refreshToken, baseUrl);
-        
+
         if (newTokens) {
           const response = NextResponse.next();
           response.cookies.set("access_token", newTokens.access_token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
             maxAge: 15 * 60, // 15 minutes
-            path: '/',
+            path: "/",
           });
           response.cookies.set("refresh_token", newTokens.refresh_token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60, // 7 days
-            path: '/',
+            path: "/",
           });
           return response;
         } else {

@@ -2,8 +2,18 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { FiSettings, FiUser, FiUserPlus, FiDollarSign, FiEdit, FiInfo } from "react-icons/fi";
+import { FiSettings, FiUser, FiUserPlus, FiDollarSign, FiEdit, FiInfo, FiX } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TransactionService } from "../../../../../../../client";
 import {
   AppointmentCardProps,
@@ -32,6 +42,8 @@ export function AppointmentsCard({
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [isTechnicianDialogOpen, setIsTechnicianDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     from: AppointmentStatus;
     to: AppointmentStatus;
@@ -152,6 +164,33 @@ export function AppointmentsCard({
     return `${mins.toString().padStart(2, "0")}:${secs
       .toString()
       .padStart(2, "0")}`;
+  };
+
+  const handleCancelClick = () => {
+    setIsCancelConfirmOpen(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    setIsCancelling(true);
+    setIsCancelConfirmOpen(false);
+    
+    try {
+      await TransactionService.transactionControllerCancelTransaction({
+        id: appointment.id,
+      });
+      
+      // Refresh the page data
+      onRefresh?.();
+    } catch (error: any) {
+      console.error("Error cancelling transaction:", error);
+      if (error.body?.message) {
+        alert(`Error: ${error.body.message}`);
+      } else {
+        alert("Failed to cancel the transaction. Please try again.");
+      }
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   const timeDisplay = getTimeDisplay();
@@ -318,6 +357,20 @@ export function AppointmentsCard({
                 >
                   <FiEdit className="h-2.5 w-2.5" />
                 </button>
+                <button
+                  className="py-0.5 px-2 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+                  onClick={handleCancelClick}
+                  disabled={!!movingItemId || isCancelling}
+                  title="Cancel Order"
+                >
+                  {isCancelling ? (
+                    <span className="inline-flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-2.5 w-2.5 border-t border-white"></div>
+                    </span>
+                  ) : (
+                    <FiX className="h-2.5 w-2.5" />
+                  )}
+                </button>
               </div>
             </>
           ) : status === "stageOne" || status === "stageTwo" || status === "stageThree" ? (
@@ -408,6 +461,54 @@ export function AppointmentsCard({
         appointment={appointment}
         onSuccess={onRefresh}
       />
+
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={isCancelConfirmOpen} onOpenChange={setIsCancelConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-red-600">
+              <FiX className="mr-2 h-5 w-5" />
+              Cancel Order
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Are you sure you want to cancel this order for{" "}
+              <strong>{appointment.customer.fName} {appointment.customer.lName}</strong>?
+              <br />
+              <span className="text-sm text-gray-500 mt-2 block">
+                Vehicle: {appointment.car.brand.name} {appointment.car.model.name}
+                <br />
+                Service: {appointment.service.name}
+              </span>
+              <br />
+              <span className="text-red-600 font-medium">
+                This action cannot be undone.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>
+              Keep Order
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelConfirm}
+              disabled={isCancelling}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {isCancelling ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white mr-2"></div>
+                  Cancelling...
+                </>
+              ) : (
+                <>
+                  <FiX className="mr-2 h-4 w-4" />
+                  Cancel Order
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
