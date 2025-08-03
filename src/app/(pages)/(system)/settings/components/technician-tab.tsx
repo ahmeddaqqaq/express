@@ -148,6 +148,18 @@ export default function TechniciansTab() {
     }
   }, [showAuditLogs, auditLogPage]);
 
+  // Auto-refresh technician data every 30 seconds for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchTechnicians();
+      if (selectedTechnician?.id) {
+        refreshTimeTracking(selectedTechnician.id);
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [selectedTechnician?.id]);
+
   const fetchTechnicians = async () => {
     setIsFetching(true);
     try {
