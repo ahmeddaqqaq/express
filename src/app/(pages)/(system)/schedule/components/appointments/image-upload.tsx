@@ -104,14 +104,19 @@ export function ImageUpload({
   const handleFiles = async (files: FileList) => {
     const newFiles: UploadedFile[] = [];
 
-    for (const file of Array.from(files)) {
-      const processed = await processFile(file);
+    // Process all files in parallel
+    const processPromises = Array.from(files).map(processFile);
+    const processedFiles = await Promise.all(processPromises);
+    
+    processedFiles.forEach(processed => {
       if (processed) newFiles.push(processed);
-    }
+    });
 
     if (newFiles.length > 0) {
       setUploadedFiles([...uploadedFiles, ...newFiles]);
-      newFiles.forEach(uploadFile);
+      // Upload all files in parallel
+      const uploadPromises = newFiles.map(uploadFile);
+      Promise.all(uploadPromises);
     }
   };
 
@@ -120,23 +125,37 @@ export function ImageUpload({
     formData.append("file", uploadedFile.file);
 
     try {
-      const progressInterval = setInterval(() => {
-        setUploadedFiles((prev: UploadedFile[]) =>
-          prev.map((f) =>
-            f.id === uploadedFile.id && f.progress < 90
-              ? { ...f, progress: f.progress + 10 }
-              : f
-          )
-        );
-      }, 200);
-
-      const res = await fetch(`${API_BASE}/${appointment.id}/upload`, {
-        method: "PATCH",
-        body: formData,
-        credentials: "include",
+      const xhr = new XMLHttpRequest();
+      
+      // Track real upload progress
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const progress = Math.round((e.loaded / e.total) * 100);
+          setUploadedFiles((prev: UploadedFile[]) =>
+            prev.map((f) =>
+              f.id === uploadedFile.id ? { ...f, progress } : f
+            )
+          );
+        }
       });
 
-      clearInterval(progressInterval);
+      const uploadPromise = new Promise<Response>((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(new Response(xhr.responseText, { status: xhr.status }));
+          } else {
+            reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('Network error'));
+        
+        xhr.open('PATCH', `${API_BASE}/${appointment.id}/upload`);
+        xhr.withCredentials = true;
+        xhr.send(formData);
+      });
+
+      const res = await uploadPromise;
 
       if (!res.ok) {
         let errorDetails = `${res.status} ${res.statusText}`;
