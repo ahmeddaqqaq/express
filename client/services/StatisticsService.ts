@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { DailyReportResponseDto } from '../models/DailyReportResponseDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -198,6 +199,26 @@ export class StatisticsService {
                 'range': range,
                 'customStart': customStart,
                 'customEnd': customEnd,
+            },
+        });
+    }
+    /**
+     * @returns DailyReportResponseDto Returns comprehensive daily report with technician shifts, cash summary, and supervisor sales
+     * @throws ApiError
+     */
+    public static statisticsControllerGetDailyReport({
+        date,
+    }: {
+        /**
+         * Date for the daily report in YYYY-MM-DD format
+         */
+        date: string,
+    }): CancelablePromise<DailyReportResponseDto> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/dailyReport',
+            query: {
+                'date': date,
             },
         });
     }

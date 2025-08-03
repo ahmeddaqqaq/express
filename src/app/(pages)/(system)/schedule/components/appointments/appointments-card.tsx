@@ -200,6 +200,9 @@ export function AppointmentsCard({
     try {
       await TransactionService.transactionControllerCancelTransaction({
         id: appointment.id,
+        requestBody: {
+          notes: cancelNotes.trim(),
+        },
       });
 
       // Reset the notes

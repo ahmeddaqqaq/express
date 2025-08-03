@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { AssignTechnicianToPhaseDto } from '../models/AssignTechnicianToPhaseDto';
 import type { CalculateTotalDto } from '../models/CalculateTotalDto';
+import type { CancelTransactionDto } from '../models/CancelTransactionDto';
 import type { CreateTransactionDto } from '../models/CreateTransactionDto';
 import type { EditScheduledTransactionDto } from '../models/EditScheduledTransactionDto';
 import type { TransactionManyResponse } from '../models/TransactionManyResponse';
@@ -219,14 +220,16 @@ export class TransactionService {
     }
     /**
      * Cancel a scheduled transaction
-     * Cancel a transaction that is currently in scheduled status
+     * Cancel a transaction that is currently in scheduled status with optional notes
      * @returns TransactionResponse Transaction cancelled successfully
      * @throws ApiError
      */
     public static transactionControllerCancelTransaction({
         id,
+        requestBody,
     }: {
         id: string,
+        requestBody: CancelTransactionDto,
     }): CancelablePromise<TransactionResponse> {
         return __request(OpenAPI, {
             method: 'PATCH',
@@ -234,6 +237,8 @@ export class TransactionService {
             path: {
                 'id': id,
             },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 400: `Bad request - transaction is not in scheduled status`,
                 404: `Transaction not found`,

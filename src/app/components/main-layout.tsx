@@ -12,6 +12,7 @@ import {
   FiChevronDown,
   FiChevronRight,
   FiLogOut,
+  FiFileText,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,6 +79,12 @@ export default function MainLayout({
       name: "Settings",
       path: "/settings",
       icon: <FiSettings className="h-5 w-5" />,
+    },
+    {
+      name: "Daily Reports",
+      path: "/daily-reports",
+      icon: <FiFileText className="h-5 w-5" />,
+      adminOnly: true,
     },
     {
       name: "Vehicles",
