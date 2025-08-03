@@ -11,6 +11,7 @@ export type CustomerResponse = {
     count: number;
     cars: Array<CarResponse>;
     isActive: boolean;
+    isBlacklisted: boolean;
     createdAt: string;
     updatedAt: string;
 };

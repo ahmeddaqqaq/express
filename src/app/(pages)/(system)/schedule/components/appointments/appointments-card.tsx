@@ -24,7 +24,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { TransactionService } from "../../../../../../../client";
+import {
+  TransactionService,
+  CustomerService,
+} from "../../../../../../../client";
 import {
   AppointmentCardProps,
   AppointmentStatus,
@@ -63,6 +66,7 @@ export function AppointmentsCard({
   const [timerActive, setTimerActive] = useState(false);
   const [assignedTechnician, setAssignedTechnician] = useState<any>(null);
   const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
+  const [isTogglingBlacklist, setIsTogglingBlacklist] = useState(false);
 
   const currentStatus = statusConfigs[status];
   const showInfoButton = true; // Show on all statuses
@@ -196,9 +200,6 @@ export function AppointmentsCard({
     try {
       await TransactionService.transactionControllerCancelTransaction({
         id: appointment.id,
-        requestBody: {
-          notes: cancelNotes.trim(),
-        },
       });
 
       // Reset the notes
@@ -215,6 +216,23 @@ export function AppointmentsCard({
       }
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handleBlacklistToggle = async () => {
+    setIsTogglingBlacklist(true);
+    try {
+      await CustomerService.customerControllerToggleBlacklist({
+        requestBody: {
+          id: appointment.customer.id,
+        },
+      });
+      onRefresh?.();
+    } catch (error) {
+      console.error("Error toggling blacklist:", error);
+      alert("Failed to toggle blacklist status. Please try again.");
+    } finally {
+      setIsTogglingBlacklist(false);
     }
   };
 
@@ -258,8 +276,41 @@ export function AppointmentsCard({
           <div>
             <div className="flex items-center text-xs text-gray-600 mb-1">
               <FiUser className="mr-1 h-3 w-3" />
-              {appointment.customer.fName} {appointment.customer.lName}
+              <span>
+                {appointment.customer.fName} {appointment.customer.lName}
+              </span>
+              {appointment.customer.isBlacklisted && (
+                <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-[0.6rem] font-bold rounded-full">
+                  BLACKLISTED
+                </span>
+              )}
             </div>
+            {appointment.customer.isBlacklisted && (
+              <div className="flex items-center gap-1 mt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-5 px-2 text-[0.6rem] bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                  onClick={handleBlacklistToggle}
+                  disabled={isTogglingBlacklist}
+                >
+                  {isTogglingBlacklist ? "..." : "Remove from Blacklist"}
+                </Button>
+              </div>
+            )}
+            {!appointment.customer.isBlacklisted && (
+              <div className="flex items-center gap-1 mt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-5 px-2 text-[0.6rem] bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                  onClick={handleBlacklistToggle}
+                  disabled={isTogglingBlacklist}
+                >
+                  {isTogglingBlacklist ? "..." : "Add to Blacklist"}
+                </Button>
+              </div>
+            )}
           </div>
           {showInfoButton && (
             <Button
@@ -341,6 +392,25 @@ export function AppointmentsCard({
         {appointment.deliverTime && (
           <div className="mt-1 text-[0.65rem] bg-green-50 text-green-700 px-1.5 py-0.5 rounded">
             Delivered at: {appointment.deliverTime}
+          </div>
+        )}
+
+        {/* Add-ons list */}
+        {appointment.addOns && appointment.addOns.length > 0 && (
+          <div className="mt-2 mb-1">
+            <div className="text-[0.65rem] text-gray-600 mb-1 font-medium">
+              Add-ons:
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {appointment.addOns.map((addOn) => (
+                <span
+                  key={addOn.id}
+                  className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium"
+                >
+                  {addOn.name}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 

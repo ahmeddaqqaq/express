@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { CreateCustomerDto } from '../models/CreateCustomerDto';
 import type { CustomersManyResponse } from '../models/CustomersManyResponse';
+import type { ToggleBlacklistDto } from '../models/ToggleBlacklistDto';
 import type { UpdateCustomerDto } from '../models/UpdateCustomerDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -77,6 +78,22 @@ export class CustomerService {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/express/customer/update',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @returns void
+     * @throws ApiError
+     */
+    public static customerControllerToggleBlacklist({
+        requestBody,
+    }: {
+        requestBody: ToggleBlacklistDto,
+    }): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/express/customer/toggle-blacklist',
             body: requestBody,
             mediaType: 'application/json',
         });

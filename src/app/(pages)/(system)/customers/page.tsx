@@ -461,6 +461,7 @@ export default function Customers() {
             <TableHead>Mobile</TableHead>
             <TableHead>Visits</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Blacklist</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -505,6 +506,42 @@ export default function Customers() {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        customer.isBlacklisted
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {customer.isBlacklisted ? "BLACKLISTED" : "Normal"}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await CustomerService.customerControllerToggleBlacklist({
+                            requestBody: { id: customer.id }
+                          });
+                          await fetchCustomers();
+                        } catch (error) {
+                          console.error("Error toggling blacklist:", error);
+                          alert("Failed to toggle blacklist status");
+                        }
+                      }}
+                      className={`text-xs ${
+                        customer.isBlacklisted
+                          ? "text-green-600 hover:text-green-700"
+                          : "text-red-600 hover:text-red-700"
+                      }`}
+                    >
+                      {customer.isBlacklisted ? "Remove from Blacklist" : "Add to Blacklist"}
+                    </Button>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
                     <Button 
                       variant="ghost" 
                       size="icon"
@@ -524,7 +561,7 @@ export default function Customers() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={5} className="text-center">
+              <TableCell colSpan={6} className="text-center">
                 No Customers Found
               </TableCell>
             </TableRow>
@@ -594,6 +631,51 @@ export default function Customers() {
                           ID: {selectedCustomer.id}
                         </span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Blacklist Status */}
+                  <div className={`mb-6 p-4 rounded-lg border-2 ${
+                    selectedCustomer.isBlacklisted 
+                      ? "bg-red-50 border-red-200" 
+                      : "bg-green-50 border-green-200"
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {selectedCustomer.isBlacklisted ? (
+                          <span className="text-red-600 font-bold text-lg">⚠️ BLACKLISTED</span>
+                        ) : (
+                          <span className="text-green-600 font-medium">✅ Normal Customer</span>
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            await CustomerService.customerControllerToggleBlacklist({
+                              requestBody: { id: selectedCustomer.id }
+                            });
+                            await fetchCustomers();
+                            // Update selected customer in drawer
+                            const updatedCustomers = await CustomerService.customerControllerFindMany({});
+                            const updatedCustomer = updatedCustomers.data.find(c => c.id === selectedCustomer.id);
+                            if (updatedCustomer) {
+                              setSelectedCustomer(updatedCustomer);
+                            }
+                          } catch (error) {
+                            console.error("Error toggling blacklist:", error);
+                            alert("Failed to toggle blacklist status");
+                          }
+                        }}
+                        className={`${
+                          selectedCustomer.isBlacklisted
+                            ? "text-green-600 border-green-600 hover:bg-green-50"
+                            : "text-red-600 border-red-600 hover:bg-red-50"
+                        }`}
+                      >
+                        {selectedCustomer.isBlacklisted ? "Remove from Blacklist" : "Add to Blacklist"}
+                      </Button>
                     </div>
                   </div>
 

@@ -28,6 +28,7 @@ import { IoMdColorPalette } from "react-icons/io";
 import {
   TransactionResponse,
   TransactionService,
+  CustomerService,
 } from "../../../../../../../client";
 import { ImageDialog } from "./image-dialog";
 import { UploadedFile } from "./types";
@@ -66,6 +67,7 @@ export function TransactionDetailDrawer({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [isTogglingBlacklist, setIsTogglingBlacklist] = useState(false);
 
   const phaseLabels = {
     scheduled: "Scheduled",
@@ -86,17 +88,33 @@ export function TransactionDetailDrawer({
     try {
       setIsLoadingImages(true);
       const response =
-        await TransactionService.transactionControllerGetTransactionImagesGrouped(
-          {
-            id: appointment.id,
-          }
-        );
+        await TransactionService.transactionControllerGetTransactionImagesGrouped({
+          id: appointment.id
+        });
       setGroupedImages(response as GroupedImages);
     } catch (error) {
       console.error("Error fetching grouped images:", error);
       setGroupedImages({});
     } finally {
       setIsLoadingImages(false);
+    }
+  };
+
+  const handleBlacklistToggle = async () => {
+    setIsTogglingBlacklist(true);
+    try {
+      await CustomerService.customerControllerToggleBlacklist({
+        requestBody: {
+          id: appointment.customer.id,
+        }
+      });
+      // The drawer doesn't have a refresh callback, so we'll just show a success message
+      alert(`Customer ${appointment.customer.isBlacklisted ? 'removed from' : 'added to'} blacklist successfully. Please refresh the page to see the changes.`);
+    } catch (error) {
+      console.error("Error toggling blacklist:", error);
+      alert("Failed to toggle blacklist status. Please try again.");
+    } finally {
+      setIsTogglingBlacklist(false);
     }
   };
 
@@ -204,14 +222,41 @@ export function TransactionDetailDrawer({
                     {appointment.customer.lName.charAt(0)}
                   </span>
                 </div>
-                <div>
-                  <h4 className="font-medium">
-                    {appointment.customer.fName} {appointment.customer.lName}
-                  </h4>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium">
+                      {appointment.customer.fName} {appointment.customer.lName}
+                    </h4>
+                    {appointment.customer.isBlacklisted && (
+                      <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs font-bold rounded-full">
+                        BLACKLISTED
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center text-sm text-gray-500">
                     <FiPhoneCall className="mr-1 h-3 w-3" />
                     {appointment.customer.mobileNumber}
                   </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`text-xs ${
+                      appointment.customer.isBlacklisted
+                        ? "bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                        : "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                    }`}
+                    onClick={handleBlacklistToggle}
+                    disabled={isTogglingBlacklist}
+                  >
+                    {isTogglingBlacklist 
+                      ? "..." 
+                      : appointment.customer.isBlacklisted 
+                        ? "Remove from Blacklist" 
+                        : "Add to Blacklist"
+                    }
+                  </Button>
                 </div>
               </div>
             </div>

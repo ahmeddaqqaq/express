@@ -2,10 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type CancelTransactionDto = {
+export type ToggleBlacklistDto = {
     /**
-     * Notes for cancellation reason
+     * Customer ID to toggle blacklist status
      */
-    notes?: string;
+    id: string;
 };
 

@@ -24,5 +24,9 @@ export type UpdateCustomerDto = {
      * Whether the customer is active
      */
     isActive?: boolean;
+    /**
+     * Whether the customer is blacklisted
+     */
+    isBlacklisted?: boolean;
 };
 

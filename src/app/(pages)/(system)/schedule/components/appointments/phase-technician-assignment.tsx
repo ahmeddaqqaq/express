@@ -10,7 +10,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
-  TechnicianResponse,
   TechnicianService,
   TransactionResponse,
   TransactionService,
@@ -33,7 +32,7 @@ export function PhaseTechnicianAssignment({
   appointment,
   onSuccess,
 }: PhaseTechnicianAssignmentProps) {
-  const [technicians, setTechnicians] = useState<TechnicianResponse[]>([]);
+  const [technicians, setTechnicians] = useState<any[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
   const [assignments, setAssignments] = useState<any[]>([]);
 
@@ -52,15 +51,11 @@ export function PhaseTechnicianAssignment({
 
   const fetchTechnicians = async () => {
     try {
-      const resp = await TechnicianService.technicianControllerFindMany({
-        search: "",
-        skip: 0,
-        take: 100,
-      });
-      setTechnicians(resp.data);
+      const resp = await TechnicianService.technicianControllerGetActiveShiftTechnicians();
+      setTechnicians(resp);
     } catch (error) {
-      console.error("Error fetching technicians:", error);
-      toast.error("Failed to load technicians");
+      console.error("Error fetching active technicians:", error);
+      toast.error("Failed to load active technicians");
     }
   };
 

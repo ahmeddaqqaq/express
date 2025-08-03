@@ -106,17 +106,28 @@ export function CustomerSearchField({
                             field.onChange(customer.id);
                             setOpen(false);
                           }}
+                          className={customer.isBlacklisted ? "bg-red-50 border-l-4 border-l-red-500" : ""}
                         >
-                          {customer.fName} {customer.lName} (
-                          {customer.mobileNumber})
-                          <FiCheck
-                            className={cn(
-                              "ml-auto h-4 w-4",
-                              field.value === customer.id
-                                ? "opacity-100"
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2">
+                              <span>
+                                {customer.fName} {customer.lName} ({customer.mobileNumber})
+                              </span>
+                              {customer.isBlacklisted && (
+                                <span className="px-2 py-0.5 bg-red-100 text-red-800 text-xs font-bold rounded-full">
+                                  BLACKLISTED
+                                </span>
+                              )}
+                            </div>
+                            <FiCheck
+                              className={cn(
+                                "h-4 w-4",
+                                field.value === customer.id
+                                  ? "opacity-100"
                                 : "opacity-0"
                             )}
                           />
+                          </div>
                         </CommandItem>
                       ))}
                     </CommandGroup>

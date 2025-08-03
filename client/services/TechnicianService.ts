@@ -64,6 +64,23 @@ export class TechnicianService {
         });
     }
     /**
+     * Get technicians with active shifts
+     * Get all technicians who have active shifts or overtime for today (for ticket assignment)
+     * @returns any Active shift technicians retrieved successfully
+     * @throws ApiError
+     */
+    public static technicianControllerGetActiveShiftTechnicians(): CancelablePromise<Array<{
+        id?: string;
+        fName?: string;
+        lName?: string;
+        status?: string;
+    }>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/technician/active-shifts',
+        });
+    }
+    /**
      * Start technician shift
      * Start a new work shift for the technician
      * @returns any Shift started successfully

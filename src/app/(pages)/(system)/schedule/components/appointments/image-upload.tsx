@@ -107,8 +107,8 @@ export function ImageUpload({
     // Process all files in parallel
     const processPromises = Array.from(files).map(processFile);
     const processedFiles = await Promise.all(processPromises);
-    
-    processedFiles.forEach(processed => {
+
+    processedFiles.forEach((processed) => {
       if (processed) newFiles.push(processed);
     });
 
@@ -126,15 +126,13 @@ export function ImageUpload({
 
     try {
       const xhr = new XMLHttpRequest();
-      
+
       // Track real upload progress
-      xhr.upload.addEventListener('progress', (e) => {
+      xhr.upload.addEventListener("progress", (e) => {
         if (e.lengthComputable) {
           const progress = Math.round((e.loaded / e.total) * 100);
           setUploadedFiles((prev: UploadedFile[]) =>
-            prev.map((f) =>
-              f.id === uploadedFile.id ? { ...f, progress } : f
-            )
+            prev.map((f) => (f.id === uploadedFile.id ? { ...f, progress } : f))
           );
         }
       });
@@ -147,10 +145,10 @@ export function ImageUpload({
             reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
           }
         };
-        
-        xhr.onerror = () => reject(new Error('Network error'));
-        
-        xhr.open('PATCH', `${API_BASE}/${appointment.id}/upload`);
+
+        xhr.onerror = () => reject(new Error("Network error"));
+
+        xhr.open("PATCH", `${API_BASE}/${appointment.id}/upload`);
         xhr.withCredentials = true;
         xhr.send(formData);
       });

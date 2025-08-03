@@ -219,9 +219,9 @@ export function AddTicketDialog({
     try {
       const skip = (customerCurrentPage - 1) * customerItemsPerPage;
       const resp = await CustomerService.customerControllerFindMany({
-        search: customerSearchQuery || "",
         skip,
         take: customerItemsPerPage,
+        search: customerSearchQuery || ""
       });
       setCustomers(resp.data);
       setCustomerTotalCount(resp.rows || resp.data.length);
@@ -238,7 +238,7 @@ export function AddTicketDialog({
       const resp = await SupervisorService.supervisorControllerFindMany({
         search: supervisorSearchQuery || "",
         skip,
-        take: supervisorItemsPerPage,
+        take: supervisorItemsPerPage
       });
       setSupervisors(resp.data);
       setSupervisorTotalCount(resp.rows || resp.data.length);
@@ -246,6 +246,7 @@ export function AddTicketDialog({
       console.error("Error fetching supervisors:", error);
     }
   };
+
 
   const fetchServices = async () => {
     try {
@@ -270,9 +271,9 @@ export function AddTicketDialog({
     try {
       const skip = (brandCurrentPage - 1) * brandItemsPerPage;
       const response = await BrandService.brandControllerFindMany({
-        search: brandSearchQuery || "",
         skip,
         take: brandItemsPerPage,
+        search: brandSearchQuery || ""
       });
       setBrands(response.data);
       setBrandTotalCount(response.rows || response.data.length);
@@ -325,7 +326,7 @@ export function AddTicketDialog({
             serviceId: selectedServiceId,
             carId: currentCarId,
             addOnsIds: selectedAddOns,
-          },
+          }
         });
 
       setCalculation(response as unknown as { total: number });
@@ -395,6 +396,14 @@ export function AddTicketDialog({
   const createSchedule = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
+      // Check if customer is blacklisted
+      const selectedCustomer = customers.find(c => c.id === values.customerId);
+      if (selectedCustomer?.isBlacklisted) {
+        alert("⚠️ Cannot create ticket for blacklisted customer!\n\nPlease remove customer from blacklist first.");
+        setIsSubmitting(false);
+        return;
+      }
+
       await TransactionService.transactionControllerCreate({
         requestBody: {
           customerId: values.customerId,
@@ -404,7 +413,7 @@ export function AddTicketDialog({
           addOnsIds: values.addOnsIds || [],
           note: values.notes ?? "No Notes",
           deliverTime: values.deliveryTime ?? "",
-        },
+        }
       });
 
       onOpenChange(false);
@@ -421,7 +430,7 @@ export function AddTicketDialog({
     setIsCreatingCustomer(true);
     try {
       await CustomerService.customerControllerCreate({
-        requestBody: values,
+        requestBody: values
       });
 
       await fetchCustomers();
@@ -452,7 +461,7 @@ export function AddTicketDialog({
           year: values.year || undefined,
           color: values.color || undefined,
           customerId: selectedCustomerId,
-        },
+        }
       });
 
       console.log("Car created successfully:", response);
@@ -521,6 +530,25 @@ export function AddTicketDialog({
                   itemsPerPage={customerItemsPerPage}
                   onPageChange={setCustomerCurrentPage}
                 />
+                
+                {/* Blacklist Warning */}
+                {selectedCustomerId && (() => {
+                  const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+                  return selectedCustomer?.isBlacklisted ? (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <span className="text-red-600 font-bold">⚠️ WARNING:</span>
+                        <span className="text-red-800">
+                          This customer is <strong>BLACKLISTED</strong>. You cannot create a ticket for them.
+                        </span>
+                      </div>
+                      <p className="text-red-700 text-sm mt-1">
+                        Please remove the customer from the blacklist first to proceed.
+                      </p>
+                    </div>
+                  ) : null;
+                })()}
+
                 <div className="flex w-full gap-4">
                   <CarSearchField customers={customers} />
                   <ServiceSearchField services={services} />
@@ -600,15 +628,30 @@ export function AddTicketDialog({
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSubmitting}>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting || (() => {
+                      const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+                      return selectedCustomer?.isBlacklisted;
+                    })()}
+                    className={(() => {
+                      const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+                      return selectedCustomer?.isBlacklisted 
+                        ? "opacity-50 cursor-not-allowed" 
+                        : "";
+                    })()}
+                  >
                     {isSubmitting ? (
                       <>
                         <FaDotCircle />
                         Creating...
                       </>
-                    ) : (
-                      "Book"
-                    )}
+                    ) : (() => {
+                      const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+                      return selectedCustomer?.isBlacklisted 
+                        ? "Cannot Create (Customer Blacklisted)" 
+                        : "Book";
+                    })()}
                   </Button>
                 </DialogFooter>
               </form>
