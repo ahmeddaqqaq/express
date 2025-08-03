@@ -16,6 +16,7 @@ export type { AuditLogResponse } from './models/AuditLogResponse';
 export type { BrandManyResponse } from './models/BrandManyResponse';
 export type { BrandResponse } from './models/BrandResponse';
 export type { CalculateTotalDto } from './models/CalculateTotalDto';
+export type { CancelTransactionDto } from './models/CancelTransactionDto';
 export type { CardStatsResponse } from './models/CardStatsResponse';
 export type { CarResponse } from './models/CarResponse';
 export { CarType } from './models/CarType';
