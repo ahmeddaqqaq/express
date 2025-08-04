@@ -32,69 +32,57 @@ function fromUTC3(utc3Date: Date): Date {
 }
 
 /**
- * Get the start of business day (1 AM UTC+3)
+ * Get the start of business day (1 AM Jordan time)
  * @param date - The date to get start of day for (in any timezone)
- * @returns Date object representing 1 AM UTC+3 of the given date, converted to server timezone
+ * @returns Date object representing 1 AM Jordan time of the given date
  */
 export function getStartOfBusinessDay(date: Date = new Date()): Date {
-  // Convert input to UTC+3
-  const utc3Date = toUTC3(date);
+  // Convert to Jordan timezone
+  const jordanTime = new Date(date.toLocaleString("en-US", {timeZone: "Asia/Amman"}));
   
-  // Create a new date at 1 AM UTC+3
-  const startOfDay = new Date(utc3Date);
-  startOfDay.setHours(1, 0, 0, 0);
-  
-  // If the UTC+3 time is before 1 AM, we're still in the previous business day
-  if (utc3Date.getHours() < 1) {
-    startOfDay.setDate(startOfDay.getDate() - 1);
+  // If it's before 1 AM Jordan time, use previous day
+  if (jordanTime.getHours() < 1) {
+    jordanTime.setDate(jordanTime.getDate() - 1);
   }
   
-  // Convert back to server timezone for use in the application
-  return fromUTC3(startOfDay);
+  // Set to 1 AM Jordan time for the business day start
+  jordanTime.setHours(1, 0, 0, 0);
+  
+  return jordanTime;
 }
 
 /**
- * Get the end of business day (12:59:59 AM UTC+3 of next day)
+ * Get the end of business day (0:59:59 AM Jordan time of next day)
  * @param date - The date to get end of day for (in any timezone)
- * @returns Date object representing 12:59:59 AM UTC+3 of the next day, converted to server timezone
+ * @returns Date object representing 12:59:59 AM Jordan time just before 1 AM cutoff
  */
 export function getEndOfBusinessDay(date: Date = new Date()): Date {
-  // Convert input to UTC+3
-  const utc3Date = toUTC3(date);
+  // Get start of business day
+  const startOfDay = getStartOfBusinessDay(date);
   
-  // Create a new date
-  const endOfDay = new Date(utc3Date);
+  // Add 24 hours to get to next day's 1 AM, then subtract 1 second to get 12:59:59 AM
+  const endOfDay = new Date(startOfDay.getTime() + (24 * 60 * 60 * 1000) - 1000);
   
-  // If current UTC+3 time is before 1 AM, end of day is today at 12:59:59 AM
-  if (utc3Date.getHours() < 1) {
-    endOfDay.setHours(0, 59, 59, 999);
-  } else {
-    // Otherwise, end of day is tomorrow at 12:59:59 AM
-    endOfDay.setDate(endOfDay.getDate() + 1);
-    endOfDay.setHours(0, 59, 59, 999);
-  }
-  
-  // Convert back to server timezone
-  return fromUTC3(endOfDay);
+  return endOfDay;
 }
 
 /**
- * Get the current business date based on UTC+3 time
- * If it's between 12:00 AM and 1:00 AM UTC+3, returns yesterday's date
+ * Get the current business date based on Jordan time
+ * If it's between 12:00 AM and 1:00 AM Jordan time, returns yesterday's date
  * @returns The current business date
  */
 export function getCurrentBusinessDate(): Date {
   const now = new Date();
-  const utc3Now = toUTC3(now);
+  const jordanTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Amman"}));
   
-  if (utc3Now.getHours() < 1) {
-    // It's between 12:00 AM and 1:00 AM UTC+3, so we're still in yesterday's business day
-    const yesterday = new Date(utc3Now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    return yesterday;
+  if (jordanTime.getHours() < 1) {
+    // It's between 12:00 AM and 1:00 AM Jordan time, so we're still in yesterday's business day
+    jordanTime.setDate(jordanTime.getDate() - 1);
   }
   
-  return utc3Now;
+  // Return the business date (without time)
+  jordanTime.setHours(0, 0, 0, 0);
+  return jordanTime;
 }
 
 /**
@@ -196,16 +184,15 @@ export function formatJordanDateTime(date: Date): string {
 
 /**
  * Get the business day date for display (YYYY-MM-DD format)
- * Takes into account that business day starts at 1 AM UTC+3
- * @param date - Date to get business day for
+ * Takes into account that business day starts at 1 AM Jordan time
  * @returns Business day date string
  */
-export function getBusinessDayString(date: Date = new Date()): string {
-  // Get the business day for the given date (considering 1 AM UTC+3 cutoff)
-  const utc3Date = toUTC3(date);
-  if (utc3Date.getHours() < 1) {
-    // If before 1 AM UTC+3, use previous day
-    utc3Date.setDate(utc3Date.getDate() - 1);
-  }
-  return formatDateForAPI(utc3Date);
+export function getBusinessDayString(): string {
+  const businessDate = getCurrentBusinessDate();
+  
+  const year = businessDate.getFullYear();
+  const month = String(businessDate.getMonth() + 1).padStart(2, '0');
+  const day = String(businessDate.getDate()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}`;
 }
