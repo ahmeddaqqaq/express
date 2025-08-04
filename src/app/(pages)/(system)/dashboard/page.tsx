@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/chart";
 import { FaCalendarAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { getCurrentBusinessDate } from "@/lib/date-utils";
 import {
   CardStatsResponse,
   CompletionRatioResponse,
@@ -111,10 +112,13 @@ export default function Dashboard() {
   const [timeRange, setTimeRange] = useState<"day" | "month" | "year" | "all">(
     "day"
   );
+  const currentBusinessDate = getCurrentBusinessDate();
 
   useEffect(() => {
     async function fetchAllData() {
       try {
+        // Use currentBusinessDate to ensure we're fetching data for the correct business day
+        console.log('Fetching data for business date:', currentBusinessDate);
 
         const [
           cardStats,
@@ -201,7 +205,7 @@ export default function Dashboard() {
             </h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <FiActivity className="h-4 w-4" />
-              Dashboard Overview
+              Dashboard Overview - Business Date: {currentBusinessDate.toLocaleDateString()}
             </p>
           </div>
           <div className="flex items-center space-x-4">

@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FiDownload, FiCalendar } from "react-icons/fi";
 import { format } from "date-fns";
+import { getCurrentBusinessDate, formatDateForAPI } from "@/lib/date-utils";
 import { StatisticsService } from "../../../../../client";
 import type { DailyReportResponseDto } from "../../../../../client";
 import { generatePDF } from "./utils/pdf-generator";
 import { toast } from "sonner";
 
 export default function DailyReportsPage() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(getCurrentBusinessDate());
   const [reportData, setReportData] = useState<DailyReportResponseDto | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -25,7 +26,7 @@ export default function DailyReportsPage() {
 
     setIsGenerating(true);
     try {
-      const dateString = format(selectedDate, "yyyy-MM-dd");
+      const dateString = formatDateForAPI(selectedDate);
       const data = await StatisticsService.statisticsControllerGetDailyReport({
         date: dateString,
       });
@@ -80,7 +81,7 @@ export default function DailyReportsPage() {
               selected={selectedDate}
               onSelect={setSelectedDate}
               className="rounded-md border"
-              disabled={(date) => date > new Date()}
+              disabled={(date) => date > getCurrentBusinessDate()}
             />
             <div className="space-y-2">
               <Button
