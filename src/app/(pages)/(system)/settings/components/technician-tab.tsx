@@ -844,7 +844,7 @@ export default function TechniciansTab() {
                                 </span>
                               </div>
                               <span className="text-sm font-semibold text-blue-700">
-                                {formatDuration(selectedTechnician.totalShiftTime)}
+                                {formatDuration(dailyWorkingHours[selectedTechnician.id]?.shiftTime || selectedTechnician.totalShiftTime)}
                               </span>
                             </div>
 
@@ -856,7 +856,7 @@ export default function TechniciansTab() {
                                 </span>
                               </div>
                               <span className="text-sm font-semibold text-orange-700">
-                                {formatDuration(selectedTechnician.totalBreakTime)}
+                                {formatDuration(dailyWorkingHours[selectedTechnician.id]?.breakTime || selectedTechnician.totalBreakTime)}
                               </span>
                             </div>
 
@@ -868,7 +868,7 @@ export default function TechniciansTab() {
                                 </span>
                               </div>
                               <span className="text-sm font-semibold text-purple-700">
-                                {formatDuration(selectedTechnician.totalOvertimeTime)}
+                                {formatDuration(dailyWorkingHours[selectedTechnician.id]?.overtimeTime || selectedTechnician.totalOvertimeTime)}
                               </span>
                             </div>
                             
