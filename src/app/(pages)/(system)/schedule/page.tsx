@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 import { AddTicketDialog } from "./components/schedule/add-ticket-dialog";
 import { ScheduleColumns } from "./components/schedule/schedule-columns";
 import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-drawer";
-import confetti from "canvas-confetti";
 
 export default function Schedule() {
   const [currentDate, setCurrentDate] = useState<string>(
@@ -38,65 +37,6 @@ export default function Schedule() {
 
   const handleSuccess = () => {
     setRefreshKey((prev) => prev + 1);
-  };
-
-  const triggerConfetti = () => {
-    // Multiple bursts for a bigger effect
-    const count = 200;
-    const defaults = {
-      origin: { y: 0.7 }
-    };
-
-    function fire(particleRatio: number, opts: any) {
-      confetti({
-        ...defaults,
-        ...opts,
-        particleCount: Math.floor(count * particleRatio)
-      });
-    }
-
-    // Fire multiple bursts with different configurations
-    fire(0.25, {
-      spread: 26,
-      startVelocity: 55,
-    });
-    fire(0.2, {
-      spread: 60,
-    });
-    fire(0.35, {
-      spread: 100,
-      decay: 0.91,
-      scalar: 0.8
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 25,
-      decay: 0.92,
-      scalar: 1.2
-    });
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 45,
-    });
-
-    // Additional side bursts
-    setTimeout(() => {
-      confetti({
-        particleCount: 150,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.6 }
-      });
-    }, 100);
-
-    setTimeout(() => {
-      confetti({
-        particleCount: 150,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.6 }
-      });
-    }, 200);
   };
 
   useEffect(() => {
@@ -359,9 +299,6 @@ export default function Schedule() {
                 />
               </PopoverContent>
             </Popover>
-            <Button onClick={triggerConfetti} className="text-white bg-red-500">
-              HAPPY BIRTHDAY Abu El-Zoooz
-            </Button>
           </div>
         </div>
         <div className="flex gap-3">
