@@ -33,6 +33,20 @@ export type TransactionResponse = {
         isActive?: boolean;
         technician?: Record<string, any>;
     }>;
+    salesAssignments: Array<{
+        id?: string;
+        transactionId?: string;
+        salesId?: string;
+        addOnNames?: Array<string>;
+        assignedAt?: string;
+        sales?: {
+            id?: string;
+            firstName?: string;
+            lastName?: string;
+            mobileNumber?: string;
+            isActive?: boolean;
+        };
+    }>;
     deliverTime: string;
     notes: string;
     OTP: string;

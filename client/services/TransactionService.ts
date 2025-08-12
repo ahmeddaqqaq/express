@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { AssignSalesToAddonsDto } from '../models/AssignSalesToAddonsDto';
 import type { AssignTechnicianToPhaseDto } from '../models/AssignTechnicianToPhaseDto';
 import type { CalculateTotalDto } from '../models/CalculateTotalDto';
 import type { CancelTransactionDto } from '../models/CancelTransactionDto';
@@ -505,6 +506,41 @@ export class TransactionService {
             },
             query: {
                 'phase': phase,
+            },
+        });
+    }
+    /**
+     * Assign sales person to transaction addons
+     * @returns any Sales person assigned to addons successfully
+     * @throws ApiError
+     */
+    public static transactionControllerAssignSalesToAddons({
+        requestBody,
+    }: {
+        requestBody: AssignSalesToAddonsDto,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/transaction/assign-sales-to-addons',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Get sales assignments for a transaction
+     * @returns any Sales assignments retrieved successfully
+     * @throws ApiError
+     */
+    public static transactionControllerGetSalesAssignments({
+        id,
+    }: {
+        id: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/transaction/{id}/sales-assignments',
+            path: {
+                'id': id,
             },
         });
     }

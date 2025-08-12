@@ -34,6 +34,7 @@ interface SupervisorSearchFieldProps {
   totalCount: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
+  label?: string;
 }
 
 export function SupervisorSearchField({
@@ -44,6 +45,7 @@ export function SupervisorSearchField({
   totalCount,
   itemsPerPage,
   onPageChange,
+  label = "Supervisor",
 }: SupervisorSearchFieldProps) {
   const [open, setOpen] = useState(false);
 
@@ -57,7 +59,7 @@ export function SupervisorSearchField({
         name="supervisorId"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>Supervisor</FormLabel>
+            <FormLabel>{label}</FormLabel>
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -76,7 +78,7 @@ export function SupervisorSearchField({
                           supervisors.find(
                             (supervisor) => supervisor.id === field.value
                           )?.lastName
-                        : "Select supervisor..."}
+                        : `Select ${label.toLowerCase()}...`}
                     </span>
                     <FiChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>

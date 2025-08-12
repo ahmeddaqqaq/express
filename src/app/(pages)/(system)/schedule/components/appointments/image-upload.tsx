@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { UploadedFile, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from "./types";
-import { TransactionResponse } from "../../../../../../../client";
+import { TransactionResponse, TransactionService } from "../../../../../../../client";
 
 interface ImageUploadProps {
   appointment: TransactionResponse;
@@ -30,10 +30,6 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const API_BASE = `${
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://lionsinternationalco.com"
-  }/express/transaction`;
 
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {
@@ -121,48 +117,21 @@ export function ImageUpload({
   };
 
   const uploadFile = async (uploadedFile: UploadedFile) => {
-    const formData = new FormData();
-    formData.append("file", uploadedFile.file);
-
     try {
-      const xhr = new XMLHttpRequest();
+      setUploadedFiles((prev: UploadedFile[]) =>
+        prev.map((f) => (f.id === uploadedFile.id ? { ...f, progress: 50 } : f))
+      );
 
-      // Track real upload progress
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          const progress = Math.round((e.loaded / e.total) * 100);
-          setUploadedFiles((prev: UploadedFile[]) =>
-            prev.map((f) => (f.id === uploadedFile.id ? { ...f, progress } : f))
-          );
-        }
+      await TransactionService.transactionControllerUploadImage({
+        id: appointment.id,
+        formData: {
+          file: uploadedFile.file,
+        },
       });
 
-      const uploadPromise = new Promise<Response>((resolve, reject) => {
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(new Response(xhr.responseText, { status: xhr.status }));
-          } else {
-            reject(new Error(`Upload failed: ${xhr.status} ${xhr.statusText}`));
-          }
-        };
-
-        xhr.onerror = () => reject(new Error("Network error"));
-
-        xhr.open("PATCH", `${API_BASE}/${appointment.id}/upload`);
-        xhr.withCredentials = true;
-        xhr.send(formData);
-      });
-
-      const res = await uploadPromise;
-
-      if (!res.ok) {
-        let errorDetails = `${res.status} ${res.statusText}`;
-        try {
-          const errorBody = await res.text();
-          if (errorBody) errorDetails += `: ${errorBody}`;
-        } catch (_) {}
-        throw new Error(`Upload failed: ${errorDetails}`);
-      }
+      setUploadedFiles((prev: UploadedFile[]) =>
+        prev.map((f) => (f.id === uploadedFile.id ? { ...f, progress: 100 } : f))
+      );
 
       setUploadedFiles((prev: UploadedFile[]) =>
         prev.map((f) =>

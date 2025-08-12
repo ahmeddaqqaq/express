@@ -40,19 +40,14 @@ interface TransactionDetailDrawerProps {
 }
 
 interface PhaseImage {
-  id: string;
-  key: string;
-  url: string;
-  isActive: boolean;
-  uploadedAtStage:
-    | "scheduled"
-    | "stageOne"
-    | "stageTwo"
-    | "stageThree"
-    | "completed"
-    | "cancelled";
-  createdAt: string;
-  updatedAt: string;
+  id?: string;
+  key?: string;
+  url?: string;
+  isActive?: boolean;
+  uploadedAtStage?: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed" | "cancelled";
+  uploadedBy?: Record<string, any>;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 type GroupedImages = Record<string, PhaseImage[]>;
@@ -91,7 +86,7 @@ export function TransactionDetailDrawer({
         await TransactionService.transactionControllerGetTransactionImagesGrouped({
           id: appointment.id
         });
-      setGroupedImages(response as GroupedImages);
+      setGroupedImages(response as Record<string, PhaseImage[]>);
     } catch (error) {
       console.error("Error fetching grouped images:", error);
       setGroupedImages({});
@@ -122,7 +117,7 @@ export function TransactionDetailDrawer({
     const uploadedFiles: UploadedFile[] = images.map((image, index) => ({
       id: `${image.id}-${index}`,
       file: new File([], "image.jpg"), // Placeholder file
-      preview: image.url,
+      preview: image.url || "",
       progress: 100,
       status: "success" as const,
     }));
@@ -318,27 +313,29 @@ export function TransactionDetailDrawer({
               </div>
             </div>
 
-            {/* Add-Ons */}
             {appointment.addOns.length > 0 && (
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                   <FiPackage className="mr-2" />
                   Add-Ons
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="space-y-2">
                   {appointment.addOns.map((addOn) => (
-                    <span
-                      key={addOn.id}
-                      className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm"
-                    >
-                      {addOn.name}
-                    </span>
+                    <div key={addOn.id} className="bg-white p-3 rounded-lg border">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-medium text-blue-600">{addOn.name}</span>
+                        <span className="text-sm font-semibold">${addOn.price}</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        <span className="font-medium">Added by:</span>
+                        <span className="italic ml-1">Sales person not assigned</span>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Phase Assignments */}
             {appointment.assignments && appointment.assignments.length > 0 && (
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-medium text-gray-700 mb-3 flex items-center">
@@ -378,22 +375,30 @@ export function TransactionDetailDrawer({
               </div>
             )}
 
-            {/* Supervisor Information */}
             {appointment.createdBy && (
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                   <FiUser className="mr-2" />
-                  Supervisor
+                  Created By
                 </h3>
-                <div className="flex items-center gap-3 p-2 bg-white rounded-lg">
-                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                    {appointment.createdBy.firstName?.charAt(0)}
-                    {appointment.createdBy.lastName?.charAt(0)}
+                <div className="bg-white p-3 rounded-lg">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                      {appointment.createdBy.firstName?.charAt(0)}
+                      {appointment.createdBy.lastName?.charAt(0)}
+                    </div>
+                    <span className="font-medium">
+                      {appointment.createdBy.firstName}{" "}
+                      {appointment.createdBy.lastName}
+                    </span>
                   </div>
-                  <span className="font-medium">
-                    {appointment.createdBy.firstName}{" "}
-                    {appointment.createdBy.lastName}
-                  </span>
+                  <div className="text-xs text-gray-500">
+                    <span className="font-medium">Role:</span> Sales/Supervisor
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    <span className="font-medium">Created on:</span>{" "}
+                    {new Date(appointment.createdAt).toLocaleString()}
+                  </div>
                 </div>
               </div>
             )}
@@ -422,7 +427,6 @@ export function TransactionDetailDrawer({
               </div>
             </div>
 
-            {/* Phase Images */}
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                 <FiImage className="mr-2" />
@@ -452,31 +456,53 @@ export function TransactionDetailDrawer({
                         </div>
 
                         {images.length > 0 ? (
-                          <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-2">
                             {images.slice(0, 6).map((image, index) => (
-                              <div
-                                key={image.id}
-                                className="relative group"
-                                onClick={() => openImageDialog(images, index)}
-                              >
-                                <img
-                                  src={image.url}
-                                  alt={`${phaseLabel} image ${index + 1}`}
-                                  className="w-full h-16 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
-                                />
-                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all">
-                                  <FiEye className="text-white opacity-0 group-hover:opacity-100 h-4 w-4" />
+                              <div key={image.id} className="bg-gray-50 p-2 rounded border">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div
+                                    className="relative group flex-shrink-0"
+                                    onClick={() => openImageDialog(images, index)}
+                                  >
+                                    <img
+                                      src={image.url}
+                                      alt={`${phaseLabel} image ${index + 1}`}
+                                      className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
+                                    />
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all">
+                                      <FiEye className="text-white opacity-0 group-hover:opacity-100 h-3 w-3" />
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-xs font-medium text-gray-700">
+                                      Image {index + 1}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {image.uploadedBy ? (
+                                        <span>
+                                          <span className="font-medium">Taken by:</span> {image.uploadedBy.name}
+                                        </span>
+                                      ) : (
+                                        <span className="italic">Unknown photographer</span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-gray-400">
+                                      {image.createdAt ? new Date(image.createdAt).toLocaleString() : "Unknown date"}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             ))}
                             {images.length > 6 && (
-                              <div
-                                className="w-full h-16 bg-gray-200 rounded flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors"
-                                onClick={() => openImageDialog(images, 6)}
-                              >
-                                <span className="text-xs text-gray-600">
-                                  +{images.length - 6} more
-                                </span>
+                              <div className="bg-blue-50 p-2 rounded border border-blue-200">
+                                <div
+                                  className="w-full text-center cursor-pointer hover:bg-blue-100 transition-colors py-2 rounded"
+                                  onClick={() => openImageDialog(images, 6)}
+                                >
+                                  <span className="text-sm text-blue-600 font-medium">
+                                    View {images.length - 6} more images...
+                                  </span>
+                                </div>
                               </div>
                             )}
                           </div>

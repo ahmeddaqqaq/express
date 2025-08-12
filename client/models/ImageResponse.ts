@@ -8,6 +8,10 @@ export type ImageResponse = {
     url: string;
     isActive: boolean;
     uploadedAtStage?: ImageResponse.uploadedAtStage;
+    /**
+     * User who uploaded this image
+     */
+    uploadedBy?: Record<string, any>;
     createdAt: string;
     updatedAt: string;
 };

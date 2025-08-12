@@ -10,6 +10,7 @@ import {
   FiEdit,
   FiInfo,
   FiX,
+  FiFileText,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +41,7 @@ import { TransactionDetailDrawer } from "./transaction-detail-drawer";
 import { SimpleImageDialog } from "./simple-image-dialog";
 import { SimpleTechnicianDialog } from "./simple-technician-dialog";
 import { EditTransactionDialog } from "./edit-transaction-dialog";
+import { getErrorMessage } from "@/lib/error-handler";
 
 export function AppointmentsCard({
   appointment,
@@ -135,14 +137,14 @@ export function AppointmentsCard({
           });
 
         if (!images || images.length === 0) {
-          alert("Please upload at least one image before moving to Phase 1");
+          alert("Please upload at least one image before moving to Phase 1.");
           return;
         }
 
         await handleStatusChange(appointment.id, from, to);
       } catch (error) {
         console.error("Error checking images:", error);
-        alert("Error checking images. Please try again.");
+        alert(getErrorMessage(error));
         return;
       }
     } else {
@@ -212,11 +214,7 @@ export function AppointmentsCard({
       onRefresh?.();
     } catch (error: any) {
       console.error("Error cancelling transaction:", error);
-      if (error.body?.message) {
-        alert(`Error: ${error.body.message}`);
-      } else {
-        alert("Failed to cancel the transaction. Please try again.");
-      }
+      alert(getErrorMessage(error));
     } finally {
       setIsCancelling(false);
     }
@@ -233,7 +231,7 @@ export function AppointmentsCard({
       onRefresh?.();
     } catch (error) {
       console.error("Error toggling blacklist:", error);
-      alert("Failed to toggle blacklist status. Please try again.");
+      alert(getErrorMessage(error));
     } finally {
       setIsTogglingBlacklist(false);
     }
@@ -286,6 +284,9 @@ export function AppointmentsCard({
                 <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-[0.6rem] font-bold rounded-full">
                   BLACKLISTED
                 </span>
+              )}
+              {appointment.notes && appointment.notes.trim() !== "" && appointment.notes !== "No Notes" && (
+                <FiFileText className="ml-2 h-3 w-3 text-blue-600" title="Has notes" />
               )}
             </div>
             {appointment.customer.isBlacklisted && (

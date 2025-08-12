@@ -22,7 +22,7 @@ export type CreateTransactionDto = {
     /**
      * ID of the supervisor creating this transaction
      */
-    createdById: string;
+    createdById?: string;
     /**
      * Expected delivery time (optional)
      */

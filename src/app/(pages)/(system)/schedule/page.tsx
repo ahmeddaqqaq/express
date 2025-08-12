@@ -308,7 +308,9 @@ export default function Schedule() {
             className="flex items-center gap-2"
           >
             <FiCheckCircle className="w-4 h-4 text-green-600" />
-            <span>Completed ({completed.length + cancelled.length})</span>
+            <span>
+              Completed ({completed.length}) | Cancelled ({cancelled.length})
+            </span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>

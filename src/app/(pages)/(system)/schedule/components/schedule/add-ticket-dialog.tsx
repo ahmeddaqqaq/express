@@ -61,6 +61,7 @@ import {
 } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/error-handler";
 
 const formSchema = z.object({
   customerId: z.string().min(1, "Customer is required"),
@@ -68,7 +69,7 @@ const formSchema = z.object({
   serviceId: z.string().min(1, "Service is required"),
   addOnsIds: z.array(z.string()).optional(),
   notes: z.string().optional(),
-  supervisorId: z.string().min(1, "Supervisor is required"),
+  supervisorId: z.string().min(1, "Sales person is required"),
   deliveryTime: z.string().optional(),
 });
 
@@ -399,7 +400,7 @@ export function AddTicketDialog({
       // Check if customer is blacklisted
       const selectedCustomer = customers.find(c => c.id === values.customerId);
       if (selectedCustomer?.isBlacklisted) {
-        alert("⚠️ Cannot create ticket for blacklisted customer!\n\nPlease remove customer from blacklist first.");
+        alert("Cannot create ticket for blacklisted customer. Please remove the customer from the blacklist first.");
         setIsSubmitting(false);
         return;
       }
@@ -421,6 +422,7 @@ export function AddTicketDialog({
       onSuccess?.();
     } catch (error) {
       console.error("Error creating schedule:", error);
+      alert(getErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
@@ -440,6 +442,7 @@ export function AddTicketDialog({
       console.log("Customer created successfully");
     } catch (error) {
       console.error("Error creating customer:", error);
+      alert(getErrorMessage(error));
     } finally {
       setIsCreatingCustomer(false);
     }
@@ -474,7 +477,7 @@ export function AddTicketDialog({
       console.log("Switched back to ticket tab");
     } catch (error) {
       console.error("Error creating car:", error);
-      console.error("Error details:", error);
+      alert(getErrorMessage(error));
     } finally {
       setIsCreatingCar(false);
     }
@@ -564,6 +567,7 @@ export function AddTicketDialog({
                       totalCount={supervisorTotalCount}
                       itemsPerPage={supervisorItemsPerPage}
                       onPageChange={setSupervisorCurrentPage}
+                      label="Sales by"
                     />
 
                     <FormField

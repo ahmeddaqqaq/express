@@ -14,19 +14,18 @@ interface PhaseImagesDisplayProps {
 }
 
 interface PhaseImage {
-  id: string;
-  key: string;
-  url: string;
-  isActive: boolean;
-  uploadedAtStage:
-    | "scheduled"
-    | "stageOne"
-    | "stageTwo"
-    | "stageThree"
-    | "completed"
-    | "cancelled";
-  createdAt: string;
-  updatedAt: string;
+  id?: string;
+  key?: string;
+  url?: string;
+  isActive?: boolean;
+  uploadedAtStage?: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed" | "cancelled";
+  uploadedBy?: Record<string, any>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface GroupedImagesResponse {
+  [phase: string]: PhaseImage[];
 }
 
 type GroupedImages = Record<string, PhaseImage[]>;
@@ -60,7 +59,7 @@ export function PhaseImagesDisplay({ appointment }: PhaseImagesDisplayProps) {
             id: appointment.id,
           }
         );
-      setGroupedImages(response as GroupedImages);
+      setGroupedImages(response as GroupedImagesResponse);
     } catch (error) {
       console.error("Error fetching grouped images:", error);
       setGroupedImages({});
@@ -73,7 +72,7 @@ export function PhaseImagesDisplay({ appointment }: PhaseImagesDisplayProps) {
     const uploadedFiles: UploadedFile[] = images.map((image, index) => ({
       id: `${image.id}-${index}`,
       file: new File([], "image.jpg"), // Placeholder file
-      preview: image.url,
+      preview: image.url || "",
       progress: 100,
       status: "success" as const,
     }));
@@ -128,15 +127,21 @@ export function PhaseImagesDisplay({ appointment }: PhaseImagesDisplayProps) {
                         key={image.id}
                         className="relative group"
                         onClick={() => openImageDialog(images, index)}
+                        title={image.uploadedBy && (image.uploadedBy as any).name ? `Uploaded by ${(image.uploadedBy as any).name}` : 'No uploader information'}
                       >
                         <img
-                          src={image.url}
+                          src={image.url || ""}
                           alt={`${phaseLabel} image ${index + 1}`}
                           className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all">
                           <FiEye className="text-white opacity-0 group-hover:opacity-100 h-5 w-5" />
                         </div>
+                        {image.uploadedBy && (image.uploadedBy as any).name && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs px-1 py-0.5 rounded-b">
+                            {(image.uploadedBy as any).name}
+                          </div>
+                        )}
                       </div>
                     ))}
                     {images.length > 8 && (
