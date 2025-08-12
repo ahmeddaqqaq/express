@@ -109,27 +109,29 @@ export function SalesTab() {
       
       // Clean the data - remove empty mobile number
       const cleanData = {
-        ...data,
+        firstName: data.firstName,
+        lastName: data.lastName,
         mobileNumber: data.mobileNumber?.trim() || undefined,
       };
-
-      // Remove undefined values
-      const requestData = Object.fromEntries(
-        Object.entries(cleanData).filter(([_, value]) => value !== undefined)
-      );
       
       if (editingSales) {
         // Update existing sales person
         await SalesService.salesControllerUpdate({
           requestBody: {
             id: editingSales.id,
-            ...requestData,
+            firstName: cleanData.firstName,
+            lastName: cleanData.lastName,
+            ...(cleanData.mobileNumber && { mobileNumber: cleanData.mobileNumber }),
           },
         });
       } else {
         // Create new sales person
         await SalesService.salesControllerCreate({
-          requestBody: requestData,
+          requestBody: {
+            firstName: cleanData.firstName,
+            lastName: cleanData.lastName,
+            ...(cleanData.mobileNumber && { mobileNumber: cleanData.mobileNumber }),
+          },
         });
       }
 
