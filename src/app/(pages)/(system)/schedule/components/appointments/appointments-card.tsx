@@ -10,8 +10,8 @@ import {
   FiEdit,
   FiInfo,
   FiX,
-  FiFileText,
 } from "react-icons/fi";
+import { IoWarning } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -285,9 +285,14 @@ export function AppointmentsCard({
                   BLACKLISTED
                 </span>
               )}
-              {appointment.notes && appointment.notes.trim() !== "" && appointment.notes !== "No Notes" && (
-                <FiFileText className="ml-2 h-3 w-3 text-blue-600" title="Has notes" />
-              )}
+              {appointment.notes &&
+                appointment.notes.trim() !== "" &&
+                appointment.notes !== "No Notes" && (
+                  <IoWarning
+                    className="ml-2 h-3 w-3 text-red-600"
+                    title="Has notes"
+                  />
+                )}
             </div>
             {appointment.customer.isBlacklisted && (
               <div className="flex items-center gap-1 mt-1">
@@ -341,7 +346,22 @@ export function AppointmentsCard({
           )}
         </div>
         <div className="flex items-center text-xs text-gray-600 mb-1">
-          <FaCar className="mr-1 h-3 w-3" />
+          {appointment.car.brand.logoUrl ? (
+            <img
+              src={appointment.car.brand.logoUrl}
+              alt={appointment.car.brand.name}
+              className="mr-2 h-8 w-8 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+                e.currentTarget.nextElementSibling?.classList.remove("hidden");
+              }}
+            />
+          ) : null}
+          <FaCar
+            className={`mr-1 h-3 w-3 ${
+              appointment.car.brand.logoUrl ? "hidden" : ""
+            }`}
+          />
           {appointment.car.brand.name} {appointment.car.model.name}
         </div>
         {assignedTechnician && (
@@ -596,9 +616,17 @@ export function AppointmentsCard({
               ?
               <br />
               <span className="text-sm text-gray-500 mt-2 block">
-                Vehicle: {appointment.car.brand.name}{" "}
-                {appointment.car.model.name}
-                <br />
+                <div className="flex items-center">
+                  Vehicle:
+                  {appointment.car.brand.logoUrl && (
+                    <img
+                      src={appointment.car.brand.logoUrl}
+                      alt={appointment.car.brand.name}
+                      className="ml-1 mr-1 h-4 w-4 object-contain inline"
+                    />
+                  )}
+                  {appointment.car.brand.name} {appointment.car.model.name}
+                </div>
                 Service: {appointment.service.name}
               </span>
               <br />

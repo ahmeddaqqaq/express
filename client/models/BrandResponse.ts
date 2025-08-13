@@ -6,6 +6,7 @@ import type { ModelResponse } from './ModelResponse';
 export type BrandResponse = {
     id: string;
     name: string;
+    logoUrl?: string;
     models: Array<ModelResponse>;
     imageId: string;
     createdAt: string;

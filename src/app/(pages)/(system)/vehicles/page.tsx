@@ -358,10 +358,26 @@ export default function VehiclesPage() {
           {brands.map((brand) => (
             <Card key={brand.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-2">
-                <CardTitle>{brand.name}</CardTitle>
-                <CardDescription>
-                  {models.filter((m) => m.brandId === brand.id).length} models
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {brand.logoUrl && (
+                      <img 
+                        src={brand.logoUrl} 
+                        alt={brand.name}
+                        className="h-10 w-10 object-contain"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    <div>
+                      <CardTitle>{brand.name}</CardTitle>
+                      <CardDescription>
+                        {models.filter((m) => m.brandId === brand.id).length} models
+                      </CardDescription>
+                    </div>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
