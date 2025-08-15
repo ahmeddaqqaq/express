@@ -413,6 +413,16 @@ export function AppointmentsCard({
           </span>
         </div>
 
+        {/* Creator information */}
+        {appointment.createdByUser && (
+          <div className="mt-1 flex items-center text-[0.65rem] text-gray-600">
+            <FiUser className="mr-1 h-3 w-3" />
+            <span>
+              Created by: {appointment.createdByUser.name || "Unknown"}
+            </span>
+          </div>
+        )}
+
         {appointment.deliverTime && (
           <div className="mt-1 text-[0.65rem] bg-green-50 text-green-700 px-1.5 py-0.5 rounded">
             Delivered at: {appointment.deliverTime}
@@ -500,18 +510,10 @@ export function AppointmentsCard({
           ) : status === "stageOne" ||
             status === "stageTwo" ||
             status === "stageThree" ? (
-            /* Phase columns - Assign Technician and Move to Next Phase */
+            /* Phase columns - Move to Next Phase, Assign and Edit */
             <>
               <button
-                className="py-0.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors flex items-center justify-center"
-                onClick={() => setIsTechnicianDialogOpen(true)}
-                disabled={!!movingItemId}
-              >
-                <FiUserPlus className="mr-1 h-2.5 w-2.5" />
-                Assign
-              </button>
-              <button
-                className={`flex-1 py-0.5 ${currentStatus.buttonColor} text-xs rounded transition-colors flex items-center justify-center`}
+                className={`py-0.5 ${currentStatus.buttonColor} text-xs rounded transition-colors flex items-center justify-center`}
                 onClick={
                   () =>
                     currentStatus.hasNext
@@ -539,6 +541,24 @@ export function AppointmentsCard({
                   </>
                 )}
               </button>
+              <div className="flex space-x-1">
+                <button
+                  className="flex-1 py-0.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+                  onClick={() => setIsTechnicianDialogOpen(true)}
+                  disabled={!!movingItemId}
+                >
+                  <FiUserPlus className="mr-1 h-2.5 w-2.5" />
+                  Assign
+                </button>
+                <button
+                  className="py-0.5 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+                  onClick={() => setIsEditDialogOpen(true)}
+                  disabled={!!movingItemId}
+                  title="Edit Order"
+                >
+                  <FiEdit className="h-2.5 w-2.5" />
+                </button>
+              </div>
             </>
           ) : null}
         </div>

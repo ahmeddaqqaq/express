@@ -4,24 +4,28 @@
 /* eslint-disable */
 export type EditScheduledTransactionDto = {
     /**
-     * Transaction ID to edit (must be in scheduled status)
+     * Transaction ID to edit (works for all statuses with restrictions)
      */
     id: string;
     /**
-     * New service ID
+     * New service ID (only allowed for scheduled transactions)
      */
     serviceId?: string;
     /**
-     * Array of addon IDs to replace current addons
+     * Array of addon IDs to replace current addons (allowed for all statuses)
      */
     addOnsIds?: Array<string>;
     /**
-     * Updated delivery time
+     * Updated delivery time (only allowed for scheduled transactions)
      */
     deliverTime?: string;
     /**
-     * Updated notes
+     * Updated notes (allowed for all statuses)
      */
     notes?: string;
+    /**
+     * Sales person ID for addon sales tracking (allowed for all statuses, required when adding new addons)
+     */
+    salesPersonId?: string;
 };
 

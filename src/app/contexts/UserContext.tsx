@@ -30,7 +30,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = async () => {
     try {
+      console.log('Fetching user data...');
       const response: UserInfoResponse = await AuthService.authControllerGetCurrentUser();
+      console.log('User API response:', response);
       
       // Map API response to our User interface
       const userData: User = {
@@ -41,6 +43,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         isActive: response.isActive,
       };
       
+      console.log('Mapped user data:', userData);
       setUser(userData);
     } catch (error) {
       console.error('Failed to fetch user:', error);

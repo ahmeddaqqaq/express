@@ -118,7 +118,7 @@ export default function Dashboard() {
     async function fetchAllData() {
       try {
         // Use currentBusinessDate to ensure we're fetching data for the correct business day
-        console.log('Fetching data for business date:', currentBusinessDate);
+        console.log("Fetching data for business date:", currentBusinessDate);
 
         const [
           cardStats,
@@ -205,7 +205,8 @@ export default function Dashboard() {
             </h1>
             <p className="text-muted-foreground flex items-center gap-2">
               <FiActivity className="h-4 w-4" />
-              Dashboard Overview - Business Date: {currentBusinessDate.toLocaleDateString()}
+              Dashboard Overview - Business Date:{" "}
+              {currentBusinessDate.toLocaleDateString()}
             </p>
           </div>
           <div className="flex items-center space-x-4">

@@ -168,20 +168,26 @@ export default function DailyReportsPage() {
                       <thead>
                         <tr className="border-b">
                           <th className="text-left p-2">Technician</th>
-                          <th className="text-left p-2">Shift Time</th>
+                          <th className="text-left p-2">Start Time</th>
+                          <th className="text-left p-2">End Time</th>
                           <th className="text-left p-2">Break Time</th>
                           <th className="text-left p-2">Overtime</th>
                           <th className="text-left p-2">Working Time</th>
+                          <th className="text-left p-2">OT Compensation</th>
                         </tr>
                       </thead>
                       <tbody>
                         {reportData.technicianShifts.map((shift) => (
                           <tr key={shift.technicianId} className="border-b">
                             <td className="p-2">{shift.technicianName}</td>
-                            <td className="p-2">{shift.totalShiftTime}</td>
+                            <td className="p-2">{shift.shiftStartTime}</td>
+                            <td className="p-2">{shift.shiftEndTime}</td>
                             <td className="p-2">{shift.totalBreakTime}</td>
                             <td className="p-2">{shift.totalOvertimeTime}</td>
                             <td className="p-2 font-semibold">{shift.totalWorkingTime}</td>
+                            <td className="p-2 text-green-600 font-semibold">
+                              ${shift.overtimeCompensation.toFixed(2)}
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -189,26 +195,95 @@ export default function DailyReportsPage() {
                   </div>
                 </div>
 
-                {/* Supervisor Sales */}
+                {/* Sales Attribution */}
                 <div>
-                  <h4 className="font-semibold mb-3 text-[#4b3526]">Supervisor Add-on Sales</h4>
+                  <h4 className="font-semibold mb-3 text-[#4b3526]">Sales Attribution</h4>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b">
-                          <th className="text-left p-2">Supervisor</th>
-                          <th className="text-left p-2">Add-ons Sold</th>
+                          <th className="text-left p-2">Person</th>
+                          <th className="text-left p-2">Role</th>
+                          <th className="text-left p-2">Services</th>
+                          <th className="text-left p-2">Add-ons</th>
+                          <th className="text-left p-2">Commission</th>
                           <th className="text-left p-2">Total Revenue</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {reportData.supervisorSales.map((sale) => (
-                          <tr key={sale.supervisorId} className="border-b">
-                            <td className="p-2">{sale.supervisorName}</td>
-                            <td className="p-2">{sale.addOnCount}</td>
-                            <td className="p-2 font-semibold">${sale.totalAddOnRevenue.toFixed(2)}</td>
+                        {reportData.userSales.map((sale) => (
+                          <tr key={sale.userId} className="border-b">
+                            <td className="p-2 font-medium">{sale.userName}</td>
+                            <td className="p-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                sale.userRole === 'SALES_PERSON' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {sale.userRole === 'SALES_PERSON' ? 'Sales Person' : sale.userRole}
+                              </span>
+                            </td>
+                            <td className="p-2">
+                              <div className="text-xs text-gray-600">
+                                {sale.services.count || 0} sold
+                              </div>
+                              <div className="font-semibold">
+                                ${(sale.services.total || 0).toFixed(2)}
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <div className="text-xs text-gray-600">
+                                {sale.addOns.count || 0} sold
+                              </div>
+                              <div className="font-semibold">
+                                ${(sale.addOns.total || 0).toFixed(2)}
+                              </div>
+                            </td>
+                            <td className="p-2 text-orange-600 font-semibold">
+                              ${(sale.addOnCommission || 0).toFixed(2)}
+                            </td>
+                            <td className="p-2 font-bold text-purple-600">
+                              ${((sale.services.total || 0) + (sale.addOns.total || 0)).toFixed(2)}
+                            </td>
                           </tr>
                         ))}
+                        {reportData.userSales.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="p-4 text-center text-gray-500">
+                              No sales data available for this date
+                            </td>
+                          </tr>
+                        )}
+                        {/* Summary Row */}
+                        {reportData.userSales.length > 0 && (
+                          <tr className="bg-gray-100 font-bold">
+                            <td className="p-2">TOTAL</td>
+                            <td className="p-2"></td>
+                            <td className="p-2">
+                              <div className="text-xs">
+                                {reportData.userSales.reduce((sum, sale) => sum + (sale.services.count || 0), 0)} sold
+                              </div>
+                              <div className="text-green-600">
+                                ${reportData.userSales.reduce((sum, sale) => sum + (sale.services.total || 0), 0).toFixed(2)}
+                              </div>
+                            </td>
+                            <td className="p-2">
+                              <div className="text-xs">
+                                {reportData.userSales.reduce((sum, sale) => sum + (sale.addOns.count || 0), 0)} sold
+                              </div>
+                              <div className="text-blue-600">
+                                ${reportData.userSales.reduce((sum, sale) => sum + (sale.addOns.total || 0), 0).toFixed(2)}
+                              </div>
+                            </td>
+                            <td className="p-2 text-orange-600">
+                              ${reportData.userSales.reduce((sum, sale) => sum + (sale.addOnCommission || 0), 0).toFixed(2)}
+                            </td>
+                            <td className="p-2 text-purple-600">
+                              ${reportData.userSales.reduce((sum, sale) => 
+                                sum + (sale.services.total || 0) + (sale.addOns.total || 0), 0).toFixed(2)}
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>

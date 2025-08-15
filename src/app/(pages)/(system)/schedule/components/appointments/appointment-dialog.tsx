@@ -99,22 +99,22 @@ export function AppointmentDialog({
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <FiUser className="text-gray-500" />
-                    Supervisor
+                    Created By
                   </h4>
-                  {appointment.createdBy ? (
+                  {appointment.createdByUser ? (
                     <div className="flex items-center gap-3 p-2 bg-white rounded-lg">
                       <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                        {appointment.createdBy.firstName?.charAt(0)}
-                        {appointment.createdBy.lastName?.charAt(0)}
+                        {appointment.createdByUser.name
+                          ?.charAt(0)
+                          .toUpperCase() || "U"}
                       </div>
                       <span className="font-medium">
-                        {appointment.createdBy.firstName}{" "}
-                        {appointment.createdBy.lastName}
+                        {appointment.createdByUser.name || "Unknown"}
                       </span>
                     </div>
                   ) : (
                     <div className="text-gray-400 italic p-2 bg-white rounded-lg">
-                      No supervisor assigned
+                      No creator information
                     </div>
                   )}
                 </div>

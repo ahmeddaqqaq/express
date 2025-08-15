@@ -20,26 +20,20 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  ServiceResponse,
-  ServiceService,
   AddOnsResponse,
   AddOnsService,
   TransactionResponse,
   TransactionService,
 } from "../../../../../../../client";
-import { ServiceSearchField } from "../service-search-field";
 import { AddOnsField } from "../add-ons-field";
 import { SalesSearchField } from "../sales-search-field";
 import { getErrorMessage } from "@/lib/error-handler";
 import { SalesService, SalesResponse } from "../../../../../../../client";
 
 const editTransactionSchema = z.object({
-  serviceId: z.string().min(1, "Service is required"),
   addOnsIds: z.array(z.string()).optional(),
-  deliverTime: z.string().optional(),
   notes: z.string().optional(),
   salesPersonId: z.string().optional(),
 }).refine(
@@ -70,7 +64,6 @@ export function EditTransactionDialog({
   appointment,
   onSuccess,
 }: EditTransactionDialogProps) {
-  const [services, setServices] = useState<ServiceResponse[]>([]);
   const [addOns, setAddOns] = useState<AddOnsResponse[]>([]);
   const [salesPersons, setSalesPersons] = useState<SalesResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -78,46 +71,31 @@ export function EditTransactionDialog({
   const form = useForm<EditTransactionFormData>({
     resolver: zodResolver(editTransactionSchema),
     defaultValues: {
-      serviceId: appointment.service.id,
       addOnsIds: appointment.addOns.map(addOn => addOn.id),
-      deliverTime: appointment.deliverTime || "",
       notes: appointment.notes || "",
-      salesPersonId: "", // Will be loaded from sales assignments
+      salesPersonId: "",
     },
   });
 
   useEffect(() => {
     if (isOpen) {
-      loadServices();
       loadAddOns();
       loadSalesPersons();
-      loadSalesAssignments();
       // Reset form with current appointment data when dialog opens
       form.reset({
-        serviceId: appointment.service.id,
         addOnsIds: appointment.addOns.map(addOn => addOn.id),
-        deliverTime: appointment.deliverTime || "",
         notes: appointment.notes || "",
-        salesPersonId: "", // Will be set after loading sales assignments
+        salesPersonId: "",
       });
     }
   }, [isOpen, appointment, form]);
-
-  const loadServices = async () => {
-    try {
-      const resp = (await ServiceService.serviceControllerFindMany()) as unknown as ServiceResponse[];
-      setServices(resp);
-    } catch (error) {
-      console.error("Error fetching services:", error);
-    }
-  };
 
   const loadAddOns = async () => {
     try {
       const response = await AddOnsService.addOnsControllerFindMany({});
       setAddOns(response.data);
     } catch (error) {
-      console.error("Error fetching add-ons:", error);
+      // Error fetching add-ons - handle silently
     }
   };
 
@@ -130,57 +108,29 @@ export function EditTransactionDialog({
       });
       setSalesPersons(response.data);
     } catch (error) {
-      console.error("Error fetching sales persons:", error);
+      // Error fetching sales persons - handle silently
     }
   };
 
-  const loadSalesAssignments = async () => {
-    try {
-      const assignments = await TransactionService.transactionControllerGetSalesAssignments({
-        id: appointment.id,
-      });
-      if (assignments && assignments.length > 0) {
-        const firstAssignment = assignments[0];
-        form.setValue("salesPersonId", firstAssignment.salesId || "");
-      }
-    } catch (error) {
-      console.error("Error fetching sales assignments:", error);
-    }
-  };
 
   const onSubmit = async (data: EditTransactionFormData) => {
     setIsLoading(true);
     try {
+      // Update transaction with notes, add-ons, and sales person
       await TransactionService.transactionControllerEditScheduled({
         requestBody: {
           id: appointment.id,
-          serviceId: data.serviceId,
+          serviceId: appointment.service.id, // Keep the existing service
           addOnsIds: data.addOnsIds || [],
-          deliverTime: data.deliverTime,
+          deliverTime: appointment.deliverTime, // Keep the existing delivery time
           notes: data.notes,
+          salesPersonId: data.salesPersonId, // Include sales person for addon tracking
         },
       });
-
-      if (data.salesPersonId && data.addOnsIds && data.addOnsIds.length > 0) {
-        const selectedAddonNames = addOns
-          .filter(addon => data.addOnsIds?.includes(addon.id))
-          .map(addon => addon.name);
-
-        if (selectedAddonNames.length > 0) {
-          await TransactionService.transactionControllerAssignSalesToAddons({
-            requestBody: {
-              transactionId: appointment.id,
-              salesId: data.salesPersonId,
-              addOnNames: selectedAddonNames,
-            },
-          });
-        }
-      }
       
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      console.error("Error updating transaction:", error);
       alert(getErrorMessage(error));
     } finally {
       setIsLoading(false);
@@ -199,10 +149,7 @@ export function EditTransactionDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 gap-4">
-              <ServiceSearchField services={services} />
-
               <AddOnsField addOns={addOns} />
-
 
               {(form.watch("addOnsIds")?.length || 0) > 0 && (
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -210,7 +157,7 @@ export function EditTransactionDialog({
                     Sales Person Assignment
                   </h4>
                   <p className="text-xs text-blue-700 mb-3">
-                    Assign a sales person who added these add-ons to this order
+                    Select who sold these add-ons to track sales commission
                   </p>
                   <SalesSearchField
                     sales={salesPersons}
@@ -220,24 +167,6 @@ export function EditTransactionDialog({
                   />
                 </div>
               )}
-
-              <FormField
-                control={form.control}
-                name="deliverTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Delivery Time</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="e.g., 2:00 PM"
-                        type="text"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <FormField
                 control={form.control}

@@ -8,7 +8,7 @@ import type { CustomerResponse } from './CustomerResponse';
 import type { ImageResponse } from './ImageResponse';
 import type { InvoiceResponse } from './InvoiceResponse';
 import type { ServiceResponse } from './ServiceResponse';
-import type { SupervisorResponse } from './SupervisorResponse';
+import type { UserInfoResponse } from './UserInfoResponse';
 export type TransactionResponse = {
     id: string;
     status: TransactionResponse.status;
@@ -21,7 +21,7 @@ export type TransactionResponse = {
     addOns: Array<AddOnsResponse>;
     invoice: InvoiceResponse;
     images: Array<ImageResponse>;
-    createdBy: SupervisorResponse;
+    createdByUser: UserInfoResponse;
     assignments: Array<{
         id?: string;
         technicianId?: string;
@@ -32,20 +32,6 @@ export type TransactionResponse = {
         completedAt?: string | null;
         isActive?: boolean;
         technician?: Record<string, any>;
-    }>;
-    salesAssignments: Array<{
-        id?: string;
-        transactionId?: string;
-        salesId?: string;
-        addOnNames?: Array<string>;
-        assignedAt?: string;
-        sales?: {
-            id?: string;
-            firstName?: string;
-            lastName?: string;
-            mobileNumber?: string;
-            isActive?: boolean;
-        };
     }>;
     deliverTime: string;
     notes: string;

@@ -1,7 +1,10 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import type { DailyReportResponseDto } from '../../../../../../client';
+
+// For now, using default fonts to ensure PDF generation works
+// Arabic support can be added later with local font files
 
 // Define styles
 const styles = StyleSheet.create({
@@ -158,20 +161,26 @@ const DailyReportDocument = ({ reportData, selectedDate }: {
       <Text style={styles.sectionTitle}>Technician Performance</Text>
       <View style={styles.table}>
         <View style={[styles.tableRow, styles.tableHeader]}>
-          <View style={[styles.tableColHeader, { width: '25%' }]}>
+          <View style={[styles.tableColHeader, { width: '20%' }]}>
             <Text style={styles.tableCellHeader}>Technician</Text>
           </View>
-          <View style={[styles.tableColHeader, { width: '18%' }]}>
-            <Text style={styles.tableCellHeader}>Shift</Text>
+          <View style={[styles.tableColHeader, { width: '12%' }]}>
+            <Text style={styles.tableCellHeader}>Start</Text>
           </View>
-          <View style={[styles.tableColHeader, { width: '18%' }]}>
+          <View style={[styles.tableColHeader, { width: '12%' }]}>
+            <Text style={styles.tableCellHeader}>End</Text>
+          </View>
+          <View style={[styles.tableColHeader, { width: '12%' }]}>
             <Text style={styles.tableCellHeader}>Break</Text>
           </View>
-          <View style={[styles.tableColHeader, { width: '19%' }]}>
+          <View style={[styles.tableColHeader, { width: '12%' }]}>
             <Text style={styles.tableCellHeader}>Overtime</Text>
           </View>
-          <View style={[styles.tableColHeader, { width: '20%' }]}>
+          <View style={[styles.tableColHeader, { width: '16%' }]}>
             <Text style={styles.tableCellHeader}>Working</Text>
+          </View>
+          <View style={[styles.tableColHeader, { width: '16%' }]}>
+            <Text style={styles.tableCellHeader}>OT Comp.</Text>
           </View>
         </View>
         {reportData.technicianShifts.filter(shift => shift.worked).length > 0 ? (
@@ -179,21 +188,29 @@ const DailyReportDocument = ({ reportData, selectedDate }: {
             .filter(shift => shift.worked)
             .map((shift, index) => (
               <View key={shift.technicianId} style={[styles.tableRow, index % 2 === 0 ? styles.evenRow : {}]}>
-                <View style={[styles.tableCol, { width: '25%' }]}>
+                <View style={[styles.tableCol, { width: '20%' }]}>
                   <Text style={styles.tableCell}>{shift.technicianName}</Text>
                 </View>
-                <View style={[styles.tableCol, { width: '18%' }]}>
-                  <Text style={styles.tableCellCenter}>{shift.totalShiftTime || '00:00:00'}</Text>
+                <View style={[styles.tableCol, { width: '12%' }]}>
+                  <Text style={styles.tableCellCenter}>{shift.shiftStartTime || '00:00:00'}</Text>
                 </View>
-                <View style={[styles.tableCol, { width: '18%' }]}>
+                <View style={[styles.tableCol, { width: '12%' }]}>
+                  <Text style={styles.tableCellCenter}>{shift.shiftEndTime || '00:00:00'}</Text>
+                </View>
+                <View style={[styles.tableCol, { width: '12%' }]}>
                   <Text style={styles.tableCellCenter}>{shift.totalBreakTime || '00:00:00'}</Text>
                 </View>
-                <View style={[styles.tableCol, { width: '19%' }]}>
+                <View style={[styles.tableCol, { width: '12%' }]}>
                   <Text style={styles.tableCellCenter}>{shift.totalOvertimeTime || '00:00:00'}</Text>
                 </View>
-                <View style={[styles.tableCol, { width: '20%' }]}>
+                <View style={[styles.tableCol, { width: '16%' }]}>
                   <Text style={[styles.tableCellCenter, { fontWeight: 'bold' }]}>
                     {shift.totalWorkingTime || '00:00:00'}
+                  </Text>
+                </View>
+                <View style={[styles.tableCol, { width: '16%' }]}>
+                  <Text style={[styles.tableCellCenter, { color: '#16a34a', fontWeight: 'bold' }]}>
+                    ${shift.overtimeCompensation.toFixed(2)}
                   </Text>
                 </View>
               </View>
@@ -207,38 +224,101 @@ const DailyReportDocument = ({ reportData, selectedDate }: {
         )}
       </View>
 
-      {/* Supervisor Sales */}
-      <Text style={styles.sectionTitle}>Supervisor Sales Performance</Text>
+      {/* Sales Attribution */}
+      <Text style={styles.sectionTitle}>Sales Attribution</Text>
       <View style={styles.table}>
         <View style={[styles.tableRow, styles.tableHeader]}>
-          <View style={[styles.tableColHeader, { width: '40%' }]}>
-            <Text style={styles.tableCellHeader}>Supervisor</Text>
+          <View style={[styles.tableColHeader, { width: '25%' }]}>
+            <Text style={styles.tableCellHeader}>Person</Text>
           </View>
-          <View style={[styles.tableColHeader, { width: '30%' }]}>
-            <Text style={styles.tableCellHeader}>Add-ons Sold</Text>
+          <View style={[styles.tableColHeader, { width: '12%' }]}>
+            <Text style={styles.tableCellHeader}>Role</Text>
           </View>
-          <View style={[styles.tableColHeader, { width: '30%' }]}>
-            <Text style={styles.tableCellHeader}>Revenue</Text>
+          <View style={[styles.tableColHeader, { width: '18%' }]}>
+            <Text style={styles.tableCellHeader}>Services</Text>
+          </View>
+          <View style={[styles.tableColHeader, { width: '18%' }]}>
+            <Text style={styles.tableCellHeader}>Add-ons</Text>
+          </View>
+          <View style={[styles.tableColHeader, { width: '12%' }]}>
+            <Text style={styles.tableCellHeader}>Commission</Text>
+          </View>
+          <View style={[styles.tableColHeader, { width: '15%' }]}>
+            <Text style={styles.tableCellHeader}>Total</Text>
           </View>
         </View>
-        {reportData.supervisorSales.length > 0 ? (
-          reportData.supervisorSales.map((sale, index) => (
-            <View key={sale.supervisorId} style={[styles.tableRow, index % 2 === 0 ? styles.evenRow : {}]}>
-              <View style={[styles.tableCol, { width: '40%' }]}>
-                <Text style={styles.tableCell}>{sale.supervisorName}</Text>
+        {reportData.userSales.length > 0 ? (
+          reportData.userSales.map((sale, index) => (
+            <View key={sale.userId} style={[styles.tableRow, index % 2 === 0 ? styles.evenRow : {}]}>
+              <View style={[styles.tableCol, { width: '25%' }]}>
+                <Text style={styles.tableCell}>{sale.userName}</Text>
               </View>
-              <View style={[styles.tableCol, { width: '30%' }]}>
-                <Text style={styles.tableCellCenter}>{sale.addOnCount}</Text>
+              <View style={[styles.tableCol, { width: '12%' }]}>
+                <Text style={[styles.tableCell, { fontSize: 8 }]}>
+                  {sale.userRole === 'SALES_PERSON' ? 'Sales' : sale.userRole}
+                </Text>
               </View>
-              <View style={[styles.tableCol, { width: '30%' }]}>
-                <Text style={styles.tableCellRight}>${sale.totalAddOnRevenue.toFixed(2)}</Text>
+              <View style={[styles.tableCol, { width: '18%' }]}>
+                <Text style={styles.tableCellCenter}>
+                  {sale.services.count || 0} (${(sale.services.total || 0).toFixed(2)})
+                </Text>
+              </View>
+              <View style={[styles.tableCol, { width: '18%' }]}>
+                <Text style={styles.tableCellCenter}>
+                  {sale.addOns.count || 0} (${(sale.addOns.total || 0).toFixed(2)})
+                </Text>
+              </View>
+              <View style={[styles.tableCol, { width: '12%' }]}>
+                <Text style={[styles.tableCellCenter, { color: '#ea580c', fontWeight: 'bold' }]}>
+                  ${(sale.addOnCommission || 0).toFixed(2)}
+                </Text>
+              </View>
+              <View style={[styles.tableCol, { width: '15%' }]}>
+                <Text style={styles.tableCellRight}>
+                  ${((sale.services.total || 0) + (sale.addOns.total || 0)).toFixed(2)}
+                </Text>
               </View>
             </View>
           ))
         ) : (
           <View style={styles.tableRow}>
             <View style={[styles.tableCol, { width: '100%' }]}>
-              <Text style={styles.noData}>No supervisor sales recorded</Text>
+              <Text style={styles.noData}>No sales data recorded for this date</Text>
+            </View>
+          </View>
+        )}
+        
+        {/* Summary Row */}
+        {reportData.userSales.length > 0 && (
+          <View style={[styles.tableRow, { backgroundColor: '#f3f4f6' }]}>
+            <View style={[styles.tableCol, { width: '25%' }]}>
+              <Text style={[styles.tableCell, { fontWeight: 'bold' }]}>TOTAL</Text>
+            </View>
+            <View style={[styles.tableCol, { width: '12%' }]}>
+              <Text style={styles.tableCell}></Text>
+            </View>
+            <View style={[styles.tableCol, { width: '18%' }]}>
+              <Text style={[styles.tableCellCenter, { fontWeight: 'bold', color: '#16a34a' }]}>
+                {reportData.userSales.reduce((sum, sale) => sum + (sale.services.count || 0), 0)} 
+                (${reportData.userSales.reduce((sum, sale) => sum + (sale.services.total || 0), 0).toFixed(2)})
+              </Text>
+            </View>
+            <View style={[styles.tableCol, { width: '18%' }]}>
+              <Text style={[styles.tableCellCenter, { fontWeight: 'bold', color: '#2563eb' }]}>
+                {reportData.userSales.reduce((sum, sale) => sum + (sale.addOns.count || 0), 0)} 
+                (${reportData.userSales.reduce((sum, sale) => sum + (sale.addOns.total || 0), 0).toFixed(2)})
+              </Text>
+            </View>
+            <View style={[styles.tableCol, { width: '12%' }]}>
+              <Text style={[styles.tableCellCenter, { fontWeight: 'bold', color: '#ea580c' }]}>
+                ${reportData.userSales.reduce((sum, sale) => sum + (sale.addOnCommission || 0), 0).toFixed(2)}
+              </Text>
+            </View>
+            <View style={[styles.tableCol, { width: '15%' }]}>
+              <Text style={[styles.tableCellRight, { fontWeight: 'bold', color: '#9333ea' }]}>
+                ${reportData.userSales.reduce((sum, sale) => 
+                  sum + (sale.services.total || 0) + (sale.addOns.total || 0), 0).toFixed(2)}
+              </Text>
             </View>
           </View>
         )}

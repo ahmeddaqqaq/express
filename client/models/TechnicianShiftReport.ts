@@ -12,6 +12,14 @@ export type TechnicianShiftReport = {
      */
     technicianName: string;
     /**
+     * Shift start time in HH:MM:SS format
+     */
+    shiftStartTime: string;
+    /**
+     * Shift end time in HH:MM:SS format
+     */
+    shiftEndTime: string;
+    /**
      * Total shift time in HH:MM:SS format
      */
     totalShiftTime: string;
@@ -27,6 +35,10 @@ export type TechnicianShiftReport = {
      * Total working time (shift + overtime - break) in HH:MM:SS format
      */
     totalWorkingTime: string;
+    /**
+     * Overtime compensation (overtime hours * 1.5)
+     */
+    overtimeCompensation: number;
     /**
      * Whether technician worked on this date
      */

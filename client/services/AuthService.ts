@@ -116,4 +116,25 @@ export class AuthService {
             },
         });
     }
+    /**
+     * Get all users with supervisor role
+     * @returns any Supervisor users retrieved successfully
+     * @throws ApiError
+     */
+    public static authControllerGetSupervisors(): CancelablePromise<Array<{
+        userId?: string;
+        name?: string;
+        mobileNumber?: string;
+        role?: 'SUPERVISOR';
+        isActive?: boolean;
+        createdAt?: string;
+    }>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/auth/supervisors',
+            errors: {
+                401: `Unauthorized`,
+            },
+        });
+    }
 }

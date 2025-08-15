@@ -175,10 +175,10 @@ export class StatisticsService {
         });
     }
     /**
-     * @returns any Returns supervisor add-on sales statistics
+     * @returns any Returns user add-on sales statistics
      * @throws ApiError
      */
-    public static statisticsControllerGetSupervisorAddsOnSell({
+    public static statisticsControllerGetUserAddOnSales({
         range = 'all',
         customStart,
         customEnd,
@@ -187,14 +187,14 @@ export class StatisticsService {
         customStart?: string,
         customEnd?: string,
     }): CancelablePromise<Array<{
-        supervisorId?: string;
-        supervisorName?: string;
+        userId?: string;
+        userName?: string;
         totalAddOnRevenue?: number;
         addOnCount?: number;
     }>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/express/statistics/supervisorAddOnSales',
+            url: '/express/statistics/userAddOnSales',
             query: {
                 'range': range,
                 'customStart': customStart,
@@ -203,7 +203,7 @@ export class StatisticsService {
         });
     }
     /**
-     * @returns DailyReportResponseDto Returns comprehensive daily report with technician shifts, cash summary, and supervisor sales
+     * @returns DailyReportResponseDto Returns comprehensive daily report with technician shifts, cash summary, and user sales
      * @throws ApiError
      */
     public static statisticsControllerGetDailyReport({
@@ -219,6 +219,51 @@ export class StatisticsService {
             url: '/express/statistics/dailyReport',
             query: {
                 'date': date,
+            },
+        });
+    }
+    /**
+     * @returns any Returns detailed sales report showing who sold what
+     * @throws ApiError
+     */
+    public static statisticsControllerGetDetailedSalesReport({
+        startDate,
+        endDate,
+        includeIncomplete,
+    }: {
+        /**
+         * Start date for the report (YYYY-MM-DD)
+         */
+        startDate?: string,
+        /**
+         * End date for the report (YYYY-MM-DD)
+         */
+        endDate?: string,
+        /**
+         * Include sales from incomplete transactions
+         */
+        includeIncomplete?: boolean,
+    }): CancelablePromise<Array<{
+        id?: string;
+        transactionId?: string;
+        saleType?: 'SERVICE' | 'ADDON';
+        itemName?: string;
+        price?: number;
+        quantity?: number;
+        totalAmount?: number;
+        soldAt?: string;
+        sellerType?: 'USER' | 'SALES_PERSON';
+        sellerName?: string;
+        sellerRole?: string;
+        transactionStatus?: string;
+    }>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/detailedSalesReport',
+            query: {
+                'startDate': startDate,
+                'endDate': endDate,
+                'includeIncomplete': includeIncomplete,
             },
         });
     }

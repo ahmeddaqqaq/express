@@ -20,9 +20,9 @@ export type CreateTransactionDto = {
      */
     note?: string;
     /**
-     * ID of the supervisor creating this transaction
+     * ID of the user creating this transaction
      */
-    createdById?: string;
+    createdByUserId?: string;
     /**
      * Expected delivery time (optional)
      */

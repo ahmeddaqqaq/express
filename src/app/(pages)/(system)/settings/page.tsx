@@ -4,8 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TechniciansTab from "./components/technician-tab";
 import ServicesTab from "./components/services-tab";
 import AddOnsTab from "./components/add-ons-tab";
-import SupervisorsTab from "./components/supervisors-tab";
 import { SalesTab } from "./components/sales-tab";
+import { UsersTab } from "./components/users-tab";
 
 export default function AdminSettings() {
   return (
@@ -17,7 +17,7 @@ export default function AdminSettings() {
           <TabsTrigger value="technicians">Technicians</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="addOns">Add-Ons</TabsTrigger>
-          <TabsTrigger value="supervisors">Supervisors</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="sales">Sales</TabsTrigger>
         </TabsList>
 
@@ -32,8 +32,9 @@ export default function AdminSettings() {
         <TabsContent value="addOns" className="mt-6">
           <AddOnsTab />
         </TabsContent>
-        <TabsContent value="supervisors" className="mt-6">
-          <SupervisorsTab />
+        
+        <TabsContent value="users" className="mt-6">
+          <UsersTab />
         </TabsContent>
         
         <TabsContent value="sales" className="mt-6">

@@ -44,7 +44,13 @@ interface PhaseImage {
   key?: string;
   url?: string;
   isActive?: boolean;
-  uploadedAtStage?: "scheduled" | "stageOne" | "stageTwo" | "stageThree" | "completed" | "cancelled";
+  uploadedAtStage?:
+    | "scheduled"
+    | "stageOne"
+    | "stageTwo"
+    | "stageThree"
+    | "completed"
+    | "cancelled";
   uploadedBy?: Record<string, any>;
   createdAt?: string;
   updatedAt?: string;
@@ -83,9 +89,11 @@ export function TransactionDetailDrawer({
     try {
       setIsLoadingImages(true);
       const response =
-        await TransactionService.transactionControllerGetTransactionImagesGrouped({
-          id: appointment.id
-        });
+        await TransactionService.transactionControllerGetTransactionImagesGrouped(
+          {
+            id: appointment.id,
+          }
+        );
       setGroupedImages(response as Record<string, PhaseImage[]>);
     } catch (error) {
       console.error("Error fetching grouped images:", error);
@@ -101,10 +109,14 @@ export function TransactionDetailDrawer({
       await CustomerService.customerControllerToggleBlacklist({
         requestBody: {
           id: appointment.customer.id,
-        }
+        },
       });
       // The drawer doesn't have a refresh callback, so we'll just show a success message
-      alert(`Customer ${appointment.customer.isBlacklisted ? 'removed from' : 'added to'} blacklist successfully. Please refresh the page to see the changes.`);
+      alert(
+        `Customer ${
+          appointment.customer.isBlacklisted ? "removed from" : "added to"
+        } blacklist successfully. Please refresh the page to see the changes.`
+      );
     } catch (error) {
       console.error("Error toggling blacklist:", error);
       alert("Failed to toggle blacklist status. Please try again.");
@@ -245,12 +257,11 @@ export function TransactionDetailDrawer({
                     onClick={handleBlacklistToggle}
                     disabled={isTogglingBlacklist}
                   >
-                    {isTogglingBlacklist 
-                      ? "..." 
-                      : appointment.customer.isBlacklisted 
-                        ? "Remove from Blacklist" 
-                        : "Add to Blacklist"
-                    }
+                    {isTogglingBlacklist
+                      ? "..."
+                      : appointment.customer.isBlacklisted
+                      ? "Remove from Blacklist"
+                      : "Add to Blacklist"}
                   </Button>
                 </div>
               </div>
@@ -321,14 +332,17 @@ export function TransactionDetailDrawer({
                 </h3>
                 <div className="space-y-2">
                   {appointment.addOns.map((addOn) => (
-                    <div key={addOn.id} className="bg-white p-3 rounded-lg border">
+                    <div
+                      key={addOn.id}
+                      className="bg-white p-3 rounded-lg border"
+                    >
                       <div className="flex justify-between items-start mb-1">
-                        <span className="font-medium text-blue-600">{addOn.name}</span>
-                        <span className="text-sm font-semibold">${addOn.price}</span>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        <span className="font-medium">Added by:</span>
-                        <span className="italic ml-1">Sales person not assigned</span>
+                        <span className="font-medium text-blue-600">
+                          {addOn.name}
+                        </span>
+                        <span className="text-sm font-semibold">
+                          ${addOn.price}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -375,7 +389,7 @@ export function TransactionDetailDrawer({
               </div>
             )}
 
-            {appointment.createdBy && (
+            {appointment.createdByUser && (
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="font-medium text-gray-700 mb-3 flex items-center">
                   <FiUser className="mr-2" />
@@ -384,16 +398,17 @@ export function TransactionDetailDrawer({
                 <div className="bg-white p-3 rounded-lg">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-                      {appointment.createdBy.firstName?.charAt(0)}
-                      {appointment.createdBy.lastName?.charAt(0)}
+                      {appointment.createdByUser.name
+                        ?.charAt(0)
+                        .toUpperCase() || "U"}
                     </div>
                     <span className="font-medium">
-                      {appointment.createdBy.firstName}{" "}
-                      {appointment.createdBy.lastName}
+                      {appointment.createdByUser.name || "Unknown"}
                     </span>
                   </div>
                   <div className="text-xs text-gray-500">
-                    <span className="font-medium">Role:</span> Sales/Supervisor
+                    <span className="font-medium">Role:</span>{" "}
+                    {appointment.createdByUser?.role || "Supervisor"}
                   </div>
                   <div className="text-xs text-gray-500">
                     <span className="font-medium">Created on:</span>{" "}
@@ -458,11 +473,16 @@ export function TransactionDetailDrawer({
                         {images.length > 0 ? (
                           <div className="space-y-2">
                             {images.slice(0, 6).map((image, index) => (
-                              <div key={image.id} className="bg-gray-50 p-2 rounded border">
+                              <div
+                                key={image.id}
+                                className="bg-gray-50 p-2 rounded border"
+                              >
                                 <div className="flex items-center gap-2 mb-1">
                                   <div
                                     className="relative group flex-shrink-0"
-                                    onClick={() => openImageDialog(images, index)}
+                                    onClick={() =>
+                                      openImageDialog(images, index)
+                                    }
                                   >
                                     <img
                                       src={image.url}
@@ -480,14 +500,23 @@ export function TransactionDetailDrawer({
                                     <div className="text-xs text-gray-500">
                                       {image.uploadedBy ? (
                                         <span>
-                                          <span className="font-medium">Taken by:</span> {image.uploadedBy.name}
+                                          <span className="font-medium">
+                                            Taken by:
+                                          </span>{" "}
+                                          {image.uploadedBy.name}
                                         </span>
                                       ) : (
-                                        <span className="italic">Unknown photographer</span>
+                                        <span className="italic">
+                                          Unknown photographer
+                                        </span>
                                       )}
                                     </div>
                                     <div className="text-xs text-gray-400">
-                                      {image.createdAt ? new Date(image.createdAt).toLocaleString() : "Unknown date"}
+                                      {image.createdAt
+                                        ? new Date(
+                                            image.createdAt
+                                          ).toLocaleString()
+                                        : "Unknown date"}
                                     </div>
                                   </div>
                                 </div>

@@ -15,8 +15,6 @@ import {
   CustomerService,
   ServiceResponse,
   ServiceService,
-  SupervisorResponse,
-  SupervisorService,
   TransactionService,
   CarService,
 } from "../../../../../../../client";
@@ -43,8 +41,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { CustomerSearchField } from "../customer-search-field";
 import { CarSearchField } from "../car-search-field";
 import { ServiceSearchField } from "../service-search-field";
-import { SupervisorSearchField } from "../supervisor-search-field";
 import { AddOnsField } from "../add-ons-field";
+import { useUser } from "@/app/contexts/UserContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Popover,
@@ -69,7 +67,6 @@ const formSchema = z.object({
   serviceId: z.string().min(1, "Service is required"),
   addOnsIds: z.array(z.string()).optional(),
   notes: z.string().optional(),
-  supervisorId: z.string().min(1, "Sales person is required"),
   deliveryTime: z.string().optional(),
 });
 
@@ -99,6 +96,7 @@ export function AddTicketDialog({
   onOpenChange,
   onSuccess,
 }: AddTicketDialogProps) {
+  const { user } = useUser();
   const [activeTab, setActiveTab] = useState("ticket");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
@@ -114,13 +112,6 @@ export function AddTicketDialog({
   const [customerCurrentPage, setCustomerCurrentPage] = useState(1);
   const [customerTotalCount, setCustomerTotalCount] = useState(0);
   const customerItemsPerPage = 10;
-
-  // Supervisor state
-  const [supervisors, setSupervisors] = useState<SupervisorResponse[]>([]);
-  const [supervisorSearchQuery, setSupervisorSearchQuery] = useState("");
-  const [supervisorCurrentPage, setSupervisorCurrentPage] = useState(1);
-  const [supervisorTotalCount, setSupervisorTotalCount] = useState(0);
-  const supervisorItemsPerPage = 5;
 
   const [brandSearchQuery, setBrandSearchQuery] = useState("");
   const [brandCurrentPage, setBrandCurrentPage] = useState(1);
@@ -152,7 +143,6 @@ export function AddTicketDialog({
       carId: "",
       serviceId: "",
       addOnsIds: [],
-      supervisorId: "",
       deliveryTime: "",
     },
   });
@@ -232,22 +222,6 @@ export function AddTicketDialog({
       setCustomerTotalCount(0);
     }
   };
-
-  const fetchSupervisors = async () => {
-    try {
-      const skip = (supervisorCurrentPage - 1) * supervisorItemsPerPage;
-      const resp = await SupervisorService.supervisorControllerFindMany({
-        search: supervisorSearchQuery || "",
-        skip,
-        take: supervisorItemsPerPage
-      });
-      setSupervisors(resp.data);
-      setSupervisorTotalCount(resp.rows || resp.data.length);
-    } catch (error) {
-      console.error("Error fetching supervisors:", error);
-    }
-  };
-
 
   const fetchServices = async () => {
     try {
@@ -359,10 +333,6 @@ export function AddTicketDialog({
   }, [customerSearchQuery, customerCurrentPage]);
 
   useEffect(() => {
-    fetchSupervisors();
-  }, [supervisorSearchQuery, supervisorCurrentPage]);
-
-  useEffect(() => {
     fetchServices();
     fetchAddOns();
     fetchBrands();
@@ -405,11 +375,22 @@ export function AddTicketDialog({
         return;
       }
 
+      // Debug: Check user state
+      console.log("Current user:", user);
+      console.log("User ID:", user?.id);
+
+      // Check if user is logged in
+      if (!user?.id) {
+        alert(`You must be logged in to create a ticket. User data: ${JSON.stringify(user)}`);
+        setIsSubmitting(false);
+        return;
+      }
+
       await TransactionService.transactionControllerCreate({
         requestBody: {
           customerId: values.customerId,
           carId: values.carId,
-          createdById: values.supervisorId,
+          createdByUserId: user.id,
           serviceId: values.serviceId,
           addOnsIds: values.addOnsIds || [],
           note: values.notes ?? "No Notes",
@@ -559,17 +540,6 @@ export function AddTicketDialog({
 
                 <div className="flex gap-4">
                   <div className="flex flex-col gap-2 w-1/2">
-                    <SupervisorSearchField
-                      supervisors={supervisors}
-                      searchQuery={supervisorSearchQuery}
-                      onSearchChange={setSupervisorSearchQuery}
-                      currentPage={supervisorCurrentPage}
-                      totalCount={supervisorTotalCount}
-                      itemsPerPage={supervisorItemsPerPage}
-                      onPageChange={setSupervisorCurrentPage}
-                      label="Sales by"
-                    />
-
                     <FormField
                       control={ticketForm.control}
                       name="deliveryTime"

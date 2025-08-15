@@ -22,8 +22,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FiPlus, FiUser, FiX, FiTrash2 } from "react-icons/fi";
 import {
-  SupervisorService,
-  SupervisorResponse,
+  AuthService,
+  UserInfoResponse,
+  SignupDto,
 } from "../../../../../../client";
 import {
   Drawer,
@@ -46,19 +47,21 @@ import {
 import { FaPerson } from "react-icons/fa6";
 
 export default function SupervisorsTab() {
-  const [supervisors, setSupervisors] = useState<SupervisorResponse[]>([]);
+  const [supervisors, setSupervisors] = useState<UserInfoResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedSupervisor, setSelectedSupervisor] =
-    useState<SupervisorResponse | null>(null);
+    useState<UserInfoResponse | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [supervisorToDelete, setSupervisorToDelete] =
-    useState<SupervisorResponse | null>(null);
+    useState<UserInfoResponse | null>(null);
   const [newSupervisor, setNewSupervisor] = useState({
     fName: "",
     lName: "",
+    mobileNumber: "",
+    password: "",
   });
 
   useEffect(() => {
@@ -68,8 +71,8 @@ export default function SupervisorsTab() {
   const fetchSupervisors = async () => {
     setIsFetching(true);
     try {
-      const resp = await SupervisorService.supervisorControllerFindMany({});
-      setSupervisors(resp.data);
+      const resp = await AuthService.authControllerGetSupervisors() as UserInfoResponse[];
+      setSupervisors(resp);
     } catch (error) {
       console.error("Failed to fetch supervisors:", error);
     } finally {
@@ -86,16 +89,19 @@ export default function SupervisorsTab() {
   };
 
   const createSupervisor = async () => {
-    if (!newSupervisor.fName.trim() || !newSupervisor.lName.trim()) {
+    if (!newSupervisor.fName.trim() || !newSupervisor.lName.trim() || 
+        !newSupervisor.mobileNumber.trim() || !newSupervisor.password.trim()) {
       return;
     }
 
     setIsLoading(true);
     try {
-      await SupervisorService.supervisorControllerCreate({
+      await AuthService.authControllerSignup({
         requestBody: {
-          firstName: newSupervisor.fName,
-          lastName: newSupervisor.lName,
+          name: `${newSupervisor.fName} ${newSupervisor.lName}`,
+          mobileNumber: newSupervisor.mobileNumber,
+          password: newSupervisor.password,
+          role: SignupDto.role.SUPERVISOR,
         },
       });
 
@@ -103,6 +109,8 @@ export default function SupervisorsTab() {
       setNewSupervisor({
         fName: "",
         lName: "",
+        mobileNumber: "",
+        password: "",
       });
       setIsDialogOpen(false);
     } catch (error) {
@@ -112,12 +120,12 @@ export default function SupervisorsTab() {
     }
   };
 
-  function openSupervisorDrawer(supervisor: SupervisorResponse) {
+  function openSupervisorDrawer(supervisor: UserInfoResponse) {
     setSelectedSupervisor(supervisor);
     setIsDrawerOpen(true);
   }
 
-  const deleteSupervisor = async (supervisor: SupervisorResponse) => {
+  const deleteSupervisor = async (supervisor: UserInfoResponse) => {
     setSupervisorToDelete(supervisor);
     setDeleteDialogOpen(true);
   };
@@ -126,9 +134,11 @@ export default function SupervisorsTab() {
     if (!supervisorToDelete) return;
 
     try {
-      await SupervisorService.supervisorControllerDelete({
-        id: supervisorToDelete.id,
-      });
+      // TODO: Delete supervisor endpoint not available
+      console.error('Delete supervisor endpoint not available');
+      // await SupervisorService.supervisorControllerDelete({
+      //   id: supervisorToDelete.userId,
+      // });
       await fetchSupervisors();
       setDeleteDialogOpen(false);
       setSupervisorToDelete(null);
@@ -176,6 +186,27 @@ export default function SupervisorsTab() {
                   placeholder="Last name"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="mobileNumber">Mobile Number *</Label>
+                <Input
+                  id="mobileNumber"
+                  name="mobileNumber"
+                  value={newSupervisor.mobileNumber}
+                  onChange={handleInputChange}
+                  placeholder="07XXXXXXXX"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password *</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value={newSupervisor.password}
+                  onChange={handleInputChange}
+                  placeholder="Minimum 6 characters"
+                />
+              </div>
               <Button onClick={createSupervisor} disabled={isLoading}>
                 {isLoading ? "Creating..." : "Create Supervisor"}
               </Button>
@@ -204,12 +235,12 @@ export default function SupervisorsTab() {
             <TableBody>
               {supervisors.map((tech) => (
                 <TableRow
-                  key={tech.id}
+                  key={tech.userId}
                   onClick={() => openSupervisorDrawer(tech)}
                   className="cursor-pointer hover:bg-gray-50"
                 >
                   <TableCell>
-                    {tech.firstName} {tech.lastName}
+                    {tech.name}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -279,8 +310,7 @@ export default function SupervisorsTab() {
                                 Name
                               </Label>
                               <p className="text-sm font-medium">
-                                {selectedSupervisor.firstName}{" "}
-                                {selectedSupervisor.lastName}
+                                {selectedSupervisor.name}
                               </p>
                             </div>
                           </div>
@@ -298,8 +328,7 @@ export default function SupervisorsTab() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Supervisor</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete {supervisorToDelete?.firstName}{" "}
-                  {supervisorToDelete?.lastName}? This action cannot be undone.
+                  Are you sure you want to delete {supervisorToDelete?.name}? This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

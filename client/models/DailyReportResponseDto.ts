@@ -3,8 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CashSummary } from './CashSummary';
-import type { SupervisorSalesReport } from './SupervisorSalesReport';
 import type { TechnicianShiftReport } from './TechnicianShiftReport';
+import type { UserSalesReport } from './UserSalesReport';
 export type DailyReportResponseDto = {
     /**
      * Report date
@@ -19,9 +19,9 @@ export type DailyReportResponseDto = {
      */
     cashSummary: CashSummary;
     /**
-     * Supervisor sales for add-ons
+     * User sales for add-ons
      */
-    supervisorSales: Array<SupervisorSalesReport>;
+    userSales: Array<UserSalesReport>;
     /**
      * Report generation timestamp
      */

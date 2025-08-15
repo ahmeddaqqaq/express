@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { AssignSalesToAddonsDto } from '../models/AssignSalesToAddonsDto';
 import type { AssignTechnicianToPhaseDto } from '../models/AssignTechnicianToPhaseDto';
 import type { CalculateTotalDto } from '../models/CalculateTotalDto';
 import type { CancelTransactionDto } from '../models/CancelTransactionDto';
@@ -268,9 +267,9 @@ export class TransactionService {
         });
     }
     /**
-     * Edit scheduled transaction details
-     * Edit service, addons, delivery time, and notes for transactions in scheduled status only
-     * @returns TransactionResponse Scheduled transaction edited successfully
+     * Edit transaction details
+     * Edit transaction details. For scheduled transactions: all fields can be edited. For other statuses: only notes, add-ons, and sales person can be edited.
+     * @returns TransactionResponse Transaction edited successfully
      * @throws ApiError
      */
     public static transactionControllerEditScheduled({
@@ -284,7 +283,7 @@ export class TransactionService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                400: `Bad request - transaction not in scheduled status or invalid data`,
+                400: `Bad request - trying to edit restricted fields for non-scheduled transaction or invalid data`,
                 404: `Transaction, service, or addon not found`,
             },
         });
@@ -506,41 +505,6 @@ export class TransactionService {
             },
             query: {
                 'phase': phase,
-            },
-        });
-    }
-    /**
-     * Assign sales person to transaction addons
-     * @returns any Sales person assigned to addons successfully
-     * @throws ApiError
-     */
-    public static transactionControllerAssignSalesToAddons({
-        requestBody,
-    }: {
-        requestBody: AssignSalesToAddonsDto,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/express/transaction/assign-sales-to-addons',
-            body: requestBody,
-            mediaType: 'application/json',
-        });
-    }
-    /**
-     * Get sales assignments for a transaction
-     * @returns any Sales assignments retrieved successfully
-     * @throws ApiError
-     */
-    public static transactionControllerGetSalesAssignments({
-        id,
-    }: {
-        id: string,
-    }): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/express/transaction/{id}/sales-assignments',
-            path: {
-                'id': id,
             },
         });
     }

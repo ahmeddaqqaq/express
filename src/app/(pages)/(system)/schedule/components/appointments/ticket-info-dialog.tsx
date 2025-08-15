@@ -18,18 +18,11 @@ interface TicketInfoDialogProps {
   appointment: TransactionResponse;
 }
 
-
 export default function TicketInfoDialog({
   isOpen,
   onOpenChange,
   appointment,
 }: TicketInfoDialogProps) {
-  const getSalesPersonForAddon = (addonName: string) => {
-    const assignment = appointment.salesAssignments?.find(sa => 
-      sa.addOnNames?.includes(addonName)
-    );
-    return assignment?.sales;
-  };
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -103,10 +96,10 @@ export default function TicketInfoDialog({
                   <p className="text-sm text-gray-600">{appointment.notes}</p>
                 </div>
               )}
-              {appointment.createdBy && (
+              {appointment.createdByUser && (
                 <div className="col-span-2 flex items-center">
                   <span className="font-medium mr-2">Created by:</span>
-                  <span>{appointment.createdBy.firstName} {appointment.createdBy.lastName}</span>
+                  <span>{appointment.createdByUser.name || "Unknown"}</span>
                 </div>
               )}
             </div>
@@ -122,17 +115,9 @@ export default function TicketInfoDialog({
                   <div key={addOn.id} className="bg-gray-50 p-2 rounded">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">{addOn.name}</span>
-                      <span className="text-sm text-gray-600">${addOn.price}</span>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Sales person: {(() => {
-                        const salesPerson = getSalesPersonForAddon(addOn.name);
-                        return salesPerson ? (
-                          <span className="font-medium">{salesPerson.firstName} {salesPerson.lastName}</span>
-                        ) : (
-                          <span className="italic">Not assigned</span>
-                        );
-                      })()}
+                      <span className="text-sm text-gray-600">
+                        ${addOn.price}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -151,16 +136,27 @@ export default function TicketInfoDialog({
                     <div key={image.id} className="mb-1">
                       <span className="font-medium">Image {index + 1}:</span>
                       {image.uploadedBy && (image.uploadedBy as any).name ? (
-                        <span className="ml-1">Taken by {(image.uploadedBy as any).name}</span>
+                        <span className="ml-1">
+                          Taken by {(image.uploadedBy as any).name}
+                        </span>
                       ) : (
-                        <span className="ml-1 italic">Unknown photographer</span>
+                        <span className="ml-1 italic">
+                          Unknown photographer
+                        </span>
                       )}
                       {image.uploadedAtStage && (
                         <span className="ml-2 text-blue-600">
-                          ({image.uploadedAtStage === 'scheduled' ? 'Scheduled' : 
-                            image.uploadedAtStage === 'stageOne' ? 'Phase 1' :
-                            image.uploadedAtStage === 'stageTwo' ? 'Phase 2' :
-                            image.uploadedAtStage === 'stageThree' ? 'Phase 3' : image.uploadedAtStage})
+                          (
+                          {image.uploadedAtStage === "scheduled"
+                            ? "Scheduled"
+                            : image.uploadedAtStage === "stageOne"
+                            ? "Phase 1"
+                            : image.uploadedAtStage === "stageTwo"
+                            ? "Phase 2"
+                            : image.uploadedAtStage === "stageThree"
+                            ? "Phase 3"
+                            : image.uploadedAtStage}
+                          )
                         </span>
                       )}
                     </div>
