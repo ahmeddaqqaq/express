@@ -10,6 +10,9 @@ import {
   FiEdit,
   FiInfo,
   FiX,
+  FiImage,
+  FiClock,
+  FiTruck,
 } from "react-icons/fi";
 import { IoWarning } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
@@ -243,15 +246,15 @@ export function AppointmentsCard({
   const getCardBackgroundColor = () => {
     // Red background: overdue (existing logic)
     if (timeDisplay?.isOverdue) {
-      return "bg-red-100 text-red-700";
+      return "bg-gradient-to-r from-red-50 to-red-100";
     }
     // Yellow background: time warning (existing logic)
     if (timeDisplay && timeDisplay.time <= 300) {
-      return "bg-orange-100 text-orange-700";
+      return "bg-gradient-to-r from-orange-50 to-orange-100";
     }
     // Green background: technician assigned to current phase
     if (assignedTechnician) {
-      return "bg-green-50 text-green-700";
+      return "bg-gradient-to-r from-green-50 to-emerald-50";
     }
     // White background: no technician assigned
     return "bg-white";
@@ -269,19 +272,21 @@ export function AppointmentsCard({
         }}
         exit={{ opacity: 0, x: -100 }}
         transition={{ duration: 0.3 }}
-        className={`rounded-lg shadow-sm p-3 mb-3 border-l-4 ${
+        className={`rounded-xl shadow-sm p-3 mb-2.5 border-l-4 ${
           currentStatus.borderColor
-        } hover:shadow-md transition-shadow ${getCardBackgroundColor()}`}
+        } hover:shadow-lg transition-all ${getCardBackgroundColor()}`}
       >
-        <div className="flex justify-between">
-          <div>
-            <div className="flex items-center text-xs text-gray-600 mb-1">
-              <FiUser className="mr-1 h-3 w-3" />
-              <span>
+        <div className="grid grid-cols-12 gap-3">
+          {/* Left Section - Main Information (8 columns) */}
+          <div className="col-span-7">
+            {/* Customer Row with Badges and Blacklist Button */}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <div className="flex items-center text-sm font-semibold text-gray-800">
+                <FiUser className="mr-1.5 h-4 w-4 text-gray-600" />
                 {appointment.customer.fName} {appointment.customer.lName}
-              </span>
+              </div>
               {appointment.customer.isBlacklisted && (
-                <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-[0.6rem] font-bold rounded-full">
+                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[0.65rem] font-bold rounded-full animate-pulse">
                   BLACKLISTED
                 </span>
               )}
@@ -289,278 +294,294 @@ export function AppointmentsCard({
                 appointment.notes.trim() !== "" &&
                 appointment.notes !== "No Notes" && (
                   <IoWarning
-                    className="ml-2 h-3 w-3 text-red-600"
+                    className="h-4 w-4 text-amber-500"
                     title="Has notes"
                   />
                 )}
-            </div>
-            {appointment.customer.isBlacklisted && (
-              <div className="flex items-center gap-1 mt-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-5 px-2 text-[0.6rem] bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
-                  onClick={handleBlacklistToggle}
-                  disabled={isTogglingBlacklist}
-                >
-                  {isTogglingBlacklist ? "..." : "Remove from Blacklist"}
-                </Button>
-              </div>
-            )}
-            {!appointment.customer.isBlacklisted && (
-              <div className="flex items-center gap-1 mt-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-5 px-2 text-[0.6rem] bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
-                  onClick={handleBlacklistToggle}
-                  disabled={isTogglingBlacklist}
-                >
-                  {isTogglingBlacklist ? "..." : "Add to Blacklist"}
-                </Button>
-              </div>
-            )}
-          </div>
-          {showInfoButton && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className={`h-6 w-6 ${
-                status === "completed" ? "bg-blue-50 hover:bg-blue-100" : ""
-              }`}
-              onClick={() => {
-                if (status === "completed") {
-                  setIsTransactionDrawerOpen(true);
-                } else {
-                  setIsInfoDialogOpen(true);
-                }
-              }}
-              title="View Details"
-            >
-              {status === "completed" ? (
-                <FiInfo className="h-4 w-4 text-blue-600" />
-              ) : (
-                <FiSettings className="h-3 w-3" />
-              )}
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center text-xs text-gray-600 mb-1">
-          {appointment.car.brand.logoUrl ? (
-            <img
-              src={appointment.car.brand.logoUrl}
-              alt={appointment.car.brand.name}
-              className="mr-2 h-8 w-8 object-contain"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                e.currentTarget.nextElementSibling?.classList.remove("hidden");
-              }}
-            />
-          ) : null}
-          <FaCar
-            className={`mr-1 h-3 w-3 ${
-              appointment.car.brand.logoUrl ? "hidden" : ""
-            }`}
-          />
-          {appointment.car.brand.name} {appointment.car.model.name}
-        </div>
-        {assignedTechnician && (
-          <div className="flex items-center text-xs text-green-600 mb-1">
-            <FiUser className="mr-1 h-3 w-3" />
-            Assigned: {assignedTechnician.fName} {assignedTechnician.lName}
-          </div>
-        )}
-        {appointment.OTP && (
-          <div className="flex text-[0.65rem] font-bold text-gray-600 px-1.5 py-0.5 rounded">
-            OTP: {appointment.OTP}
-          </div>
-        )}
-        <div className="flex justify-between items-center mt-1">
-          <div className="flex items-center gap-2">
-            {timeDisplay ? (
-              <span
-                className={`text-[0.65rem] px-1.5 py-0.5 rounded ${
-                  timeDisplay.isOverdue
-                    ? "bg-red-100 text-red-700"
-                    : timeDisplay.time <= 300
-                    ? "bg-orange-100 text-orange-700"
-                    : "bg-blue-50 text-blue-700"
-                }`}
-              >
-                {timeDisplay.isCountUp ? "+" : ""}
-                {formatCountdown(timeDisplay.time)}
-              </span>
-            ) : (
-              <span className="text-[0.65rem] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">
-                {currentStatus.timePrefix}
-                {formatTime(
-                  status === "scheduled"
-                    ? appointment.createdAt
-                    : appointment.updatedAt
-                )}
-              </span>
-            )}
-            {/* Payment indicator for finished orders */}
-            {status === "stageThree" && appointment.isPaid && (
-              <span className="text-[0.65rem] bg-green-100 text-green-700 px-1.5 py-0.5 rounded flex items-center">
-                <FiDollarSign className="mr-1 h-2.5 w-2.5" />
-                PAID
-              </span>
-            )}
-          </div>
-          <span className="text-[0.65rem] text-gray-500">
-            {appointment.service.name}
-          </span>
-        </div>
-
-        {/* Creator information */}
-        {appointment.createdByUser && (
-          <div className="mt-1 flex items-center text-[0.65rem] text-gray-600">
-            <FiUser className="mr-1 h-3 w-3" />
-            <span>
-              Created by: {appointment.createdByUser.name || "Unknown"}
-            </span>
-          </div>
-        )}
-
-        {appointment.deliverTime && (
-          <div className="mt-1 text-[0.65rem] bg-green-50 text-green-700 px-1.5 py-0.5 rounded">
-            Delivered at: {appointment.deliverTime}
-          </div>
-        )}
-
-        {/* Add-ons list */}
-        {appointment.addOns && appointment.addOns.length > 0 && (
-          <div className="mt-2 mb-1">
-            <div className="text-[0.65rem] text-gray-600 mb-1 font-medium">
-              Add-ons:
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {appointment.addOns.map((addOn) => (
-                <span
-                  key={addOn.id}
-                  className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium"
-                >
-                  {addOn.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="mt-2 flex flex-col space-y-1">
-          {/* Scheduled column - Move to Phase 1, Add Images, and Edit */}
-          {status === "scheduled" ? (
-            <>
-              <button
-                className={`py-0.5 ${currentStatus.buttonColor} text-xs rounded transition-colors flex items-center justify-center`}
-                onClick={() =>
-                  handleStatusChangeClick(
-                    status,
-                    currentStatus.hasNext ? currentStatus.nextStatus : status
-                  )
-                }
-                disabled={!!movingItemId}
-              >
-                {movingItemId === appointment.id ? (
-                  <span className="inline-flex items-center justify-center">
-                    <FaDotCircle className="mr-1 h-2.5 w-2.5" />
-                    Moving...
-                  </span>
-                ) : (
-                  <>
-                    {currentStatus.icon}
-                    Move to Phase 1
-                  </>
-                )}
-              </button>
-              <div className="flex space-x-1">
+              {/* Blacklist Toggle Button */}
+              {appointment.customer.isBlacklisted ? (
                 <button
-                  className="py-0.5 px-2 bg-red-500 hover:bg-red-600 text-white text-xs rounded transition-colors flex items-center justify-center"
-                  onClick={handleCancelClick}
-                  disabled={!!movingItemId || isCancelling}
-                  title="Cancel Order"
+                  className="px-2 py-0.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 text-[0.6rem] rounded-full transition-all font-medium"
+                  onClick={handleBlacklistToggle}
+                  disabled={isTogglingBlacklist}
                 >
-                  {isCancelling ? (
-                    <span className="inline-flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-2.5 w-2.5 border-t border-white"></div>
+                  {isTogglingBlacklist ? "..." : "Remove"}
+                </button>
+              ) : (
+                <button
+                  className="px-2 py-0.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-500 text-[0.6rem] rounded-full transition-all"
+                  onClick={handleBlacklistToggle}
+                  disabled={isTogglingBlacklist}
+                >
+                  {isTogglingBlacklist ? "..." : "Blacklist"}
+                </button>
+              )}
+            </div>
+
+            {/* Vehicle Info with Logo */}
+            <div className="flex items-center gap-3 mb-2">
+              {appointment.car.brand.logoUrl ? (
+                <img
+                  src={appointment.car.brand.logoUrl}
+                  alt={appointment.car.brand.name}
+                  className="h-8 w-8 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.nextElementSibling?.classList.remove("hidden");
+                  }}
+                />
+              ) : null}
+              <FaCar
+                className={`h-5 w-5 text-gray-500 ${
+                  appointment.car.brand.logoUrl ? "hidden" : ""
+                }`}
+              />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-gray-800">
+                  {appointment.car.brand.name} {appointment.car.model.name}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Service: {appointment.service.name}
+                </div>
+              </div>
+            </div>
+
+            {/* Status Badges Row */}
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              {assignedTechnician && (
+                <div className="flex items-center text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium">
+                  <FiUser className="mr-1 h-3 w-3" />
+                  {assignedTechnician.fName} {assignedTechnician.lName}
+                </div>
+              )}
+              
+              {timeDisplay ? (
+                <div
+                  className={`flex items-center text-xs px-2.5 py-1 rounded-full font-bold ${
+                    timeDisplay.isOverdue
+                      ? "bg-red-100 text-red-700 animate-pulse"
+                      : timeDisplay.time <= 300
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  <FiClock className="mr-1 h-3 w-3" />
+                  {timeDisplay.isCountUp ? "+" : ""}
+                  {formatCountdown(timeDisplay.time)}
+                </div>
+              ) : (
+                <div className="flex items-center text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">
+                  <FiClock className="mr-1 h-3 w-3" />
+                  {currentStatus.timePrefix}
+                  {formatTime(
+                    status === "scheduled"
+                      ? appointment.createdAt
+                      : appointment.updatedAt
+                  )}
+                </div>
+              )}
+
+              {status === "stageThree" && appointment.isPaid && (
+                <div className="flex items-center text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-bold">
+                  <FiDollarSign className="mr-1 h-3 w-3" />
+                  PAID
+                </div>
+              )}
+
+              {appointment.deliverTime && (
+                <div className="flex items-center text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-medium">
+                  <FiTruck className="mr-1 h-3 w-3" />
+                  {appointment.deliverTime}
+                </div>
+              )}
+            </div>
+
+            {/* Add-ons */}
+            {appointment.addOns && appointment.addOns.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {appointment.addOns.map((addOn) => (
+                  <span
+                    key={addOn.id}
+                    className="text-[0.65rem] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium"
+                  >
+                    + {addOn.name}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Meta Info */}
+            {appointment.createdByUser && (
+              <div className="text-[0.65rem] text-gray-500 flex items-center">
+                <FiUser className="mr-1 h-2.5 w-2.5" />
+                Created by {appointment.createdByUser.name || "Unknown"}
+              </div>
+            )}
+          </div>
+
+          {/* Middle Section - OTP Display (2 columns) */}
+          <div className="col-span-2 flex items-start justify-center">
+            {appointment.OTP && (
+              <div className="bg-gradient-to-br from-gray-900 to-gray-700 text-white px-3 py-2 rounded-xl text-center shadow-lg">
+                <div className="text-[0.55rem] text-gray-300 uppercase tracking-wider mb-0.5">
+                  OTP Code
+                </div>
+                <div className="text-lg font-bold tracking-wider font-mono">
+                  {appointment.OTP}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Section - Actions (3 columns) */}
+          <div className="col-span-3 flex flex-col gap-1.5">
+            {/* Info Button */}
+            <div className="flex justify-end mb-1">
+              {showInfoButton && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`h-8 w-8 rounded-lg ${
+                    status === "completed"
+                      ? "bg-blue-100 hover:bg-blue-200 text-blue-600"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-600"
+                  }`}
+                  onClick={() => {
+                    if (status === "completed") {
+                      setIsTransactionDrawerOpen(true);
+                    } else {
+                      setIsInfoDialogOpen(true);
+                    }
+                  }}
+                  title="View Details"
+                >
+                  {status === "completed" ? (
+                    <FiInfo className="h-4 w-4" />
+                  ) : (
+                    <FiSettings className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </div>
+
+            {/* Action Buttons based on status */}
+            {status === "scheduled" ? (
+              <>
+                {/* Primary Action - Start Phase 1 */}
+                <button
+                  className={`w-full py-1.5 px-2.5 ${currentStatus.buttonColor} text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
+                  onClick={() =>
+                    handleStatusChangeClick(
+                      status,
+                      currentStatus.hasNext ? currentStatus.nextStatus : status
+                    )
+                  }
+                  disabled={!!movingItemId}
+                >
+                  {movingItemId === appointment.id ? (
+                    <span className="inline-flex items-center">
+                      <FaDotCircle className="mr-1 h-3 w-3 animate-spin" />
+                      Moving...
                     </span>
                   ) : (
-                    <FiX className="h-2.5 w-2.5" />
+                    <>
+                      {currentStatus.icon}
+                      Start Phase 1
+                    </>
                   )}
                 </button>
+                
+                {/* Secondary Actions - Images and Edit */}
                 <button
-                  className="flex-1 py-0.5 px-2 bg-green-500 hover:bg-green-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+                  className="w-full py-1.5 px-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsImageDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiSettings className="mr-1 h-2.5 w-2.5" />
+                  <FiImage className="mr-1 h-3.5 w-3.5" />
                   Add Images
                 </button>
+                
                 <button
-                  className="py-0.5 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+                  className="w-full py-1.5 px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
-                  title="Edit Order"
                 >
-                  <FiEdit className="h-2.5 w-2.5" />
+                  <FiEdit className="mr-1 h-3.5 w-3.5" />
+                  Edit Order
                 </button>
-              </div>
-            </>
-          ) : status === "stageOne" ||
-            status === "stageTwo" ||
-            status === "stageThree" ? (
-            /* Phase columns - Move to Next Phase, Assign and Edit */
-            <>
-              <button
-                className={`py-0.5 ${currentStatus.buttonColor} text-xs rounded transition-colors flex items-center justify-center`}
-                onClick={
-                  () =>
-                    currentStatus.hasNext
-                      ? handleStatusChangeClick(
-                          status,
-                          currentStatus.nextStatus
-                        )
-                      : handleStatusChangeClick(status, "completed") // For stageThree, move to completed
-                }
-                disabled={!!movingItemId}
-              >
-                {movingItemId === appointment.id ? (
-                  <span className="inline-flex items-center justify-center">
-                    <FaDotCircle className="mr-1 h-2.5 w-2.5" />
-                    Moving...
-                  </span>
-                ) : (
-                  <>
-                    {currentStatus.icon}
-                    {status === "stageOne"
-                      ? "To Phase 2"
-                      : status === "stageTwo"
-                      ? "To Phase 3"
-                      : "Finish"}
-                  </>
-                )}
-              </button>
-              <div className="flex space-x-1">
+
+                {/* Cancel Button - Smaller */}
                 <button
-                  className="flex-1 py-0.5 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+                  className="w-full py-1 px-2 bg-red-500 hover:bg-red-600 text-white text-[0.65rem] rounded-lg transition-all flex items-center justify-center shadow-sm hover:shadow"
+                  onClick={handleCancelClick}
+                  disabled={!!movingItemId || isCancelling}
+                >
+                  {isCancelling ? (
+                    <div className="animate-spin rounded-full h-2.5 w-2.5 border-t-2 border-white"></div>
+                  ) : (
+                    <>
+                      <FiX className="mr-0.5 h-2.5 w-2.5" />
+                      Cancel
+                    </>
+                  )}
+                </button>
+              </>
+            ) : status === "stageOne" ||
+              status === "stageTwo" ||
+              status === "stageThree" ? (
+              <>
+                {/* Primary Action - Move to Next Phase */}
+                <button
+                  className={`w-full py-1.5 px-2.5 ${currentStatus.buttonColor} text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
+                  onClick={
+                    () =>
+                      currentStatus.hasNext
+                        ? handleStatusChangeClick(
+                            status,
+                            currentStatus.nextStatus
+                          )
+                        : handleStatusChangeClick(status, "completed")
+                  }
+                  disabled={!!movingItemId}
+                >
+                  {movingItemId === appointment.id ? (
+                    <span className="inline-flex items-center">
+                      <FaDotCircle className="mr-1 h-3 w-3 animate-spin" />
+                      Moving...
+                    </span>
+                  ) : (
+                    <>
+                      {currentStatus.icon}
+                      {status === "stageOne"
+                        ? "Move to Phase 2"
+                        : status === "stageTwo"
+                        ? "Move to Phase 3"
+                        : "Complete Order"}
+                    </>
+                  )}
+                </button>
+                
+                {/* Secondary Actions */}
+                <button
+                  className="w-full py-1.5 px-2.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsTechnicianDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiUserPlus className="mr-1 h-2.5 w-2.5" />
-                  Assign
+                  <FiUserPlus className="mr-1 h-3.5 w-3.5" />
+                  Assign Tech
                 </button>
+                
                 <button
-                  className="py-0.5 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors flex items-center justify-center"
+                  className="w-full py-1.5 px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
-                  title="Edit Order"
                 >
-                  <FiEdit className="h-2.5 w-2.5" />
+                  <FiEdit className="mr-1 h-3.5 w-3.5" />
+                  Edit Order
                 </button>
-              </div>
-            </>
-          ) : null}
+              </>
+            ) : null}
+          </div>
         </div>
       </motion.div>
 
