@@ -14,7 +14,6 @@ import {
   FiClock,
   FiTruck,
 } from "react-icons/fi";
-import { IoWarning } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -478,7 +477,7 @@ export function AppointmentsCard({
               <>
                 {/* Primary Action - Start Phase 1 */}
                 <button
-                  className={`w-full py-5 px-5 sm:py-1.5 sm:px-2.5 ${currentStatus.buttonColor} text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
+                  className={`w-full py-7 px-5 sm:py-1.5 sm:px-2.5 ${currentStatus.buttonColor} text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
                   onClick={() =>
                     handleStatusChangeClick(
                       status,
@@ -502,7 +501,7 @@ export function AppointmentsCard({
 
                 {/* Secondary Actions - Images and Edit */}
                 <button
-                  className="w-full py-4.5 px-5 sm:py-1.5 sm:px-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                  className="w-full py-7 px-5 sm:py-1.5 sm:px-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsImageDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
@@ -511,7 +510,7 @@ export function AppointmentsCard({
                 </button>
 
                 <button
-                  className="w-full py-4.5 px-5 sm:py-1.5 sm:px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                  className="w-full py-7 px-5 sm:py-1.5 sm:px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
@@ -541,7 +540,7 @@ export function AppointmentsCard({
               <>
                 {/* Primary Action - Move to Next Phase */}
                 <button
-                  className={`w-full py-5 px-5 sm:py-1.5 sm:px-2.5 ${currentStatus.buttonColor} text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
+                  className={`w-full py-7 px-5 sm:py-1.5 sm:px-2.5 ${currentStatus.buttonColor} text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
                   onClick={() =>
                     currentStatus.hasNext
                       ? handleStatusChangeClick(
@@ -571,7 +570,7 @@ export function AppointmentsCard({
 
                 {/* Secondary Actions */}
                 <button
-                  className="w-full py-4.5 px-5 sm:py-1.5 sm:px-2.5 bg-blue-500 hover:bg-blue-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                  className="w-full py-7 px-5 sm:py-1.5 sm:px-2.5 bg-blue-500 hover:bg-blue-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsTechnicianDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
@@ -580,7 +579,7 @@ export function AppointmentsCard({
                 </button>
 
                 <button
-                  className="w-full py-4.5 px-5 sm:py-1.5 sm:px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                  className="w-full py-7 px-5 sm:py-1.5 sm:px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
