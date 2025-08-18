@@ -272,32 +272,24 @@ export function AppointmentsCard({
         }}
         exit={{ opacity: 0, x: -100 }}
         transition={{ duration: 0.3 }}
-        className={`rounded-xl shadow-sm p-3 mb-2.5 border-l-4 ${
+        className={`rounded-xl shadow-sm p-3 mb-2.5 border-l-4 md:border-l-6 ${
           currentStatus.borderColor
         } hover:shadow-lg transition-all ${getCardBackgroundColor()}`}
       >
-        <div className="grid grid-cols-12 gap-3">
-          {/* Left Section - Main Information (8 columns) */}
-          <div className="col-span-7">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+          {/* Left Section - Main Information */}
+          <div className="col-span-1 lg:col-span-7">
             {/* Customer Row with Badges and Blacklist Button */}
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <div className="flex items-center text-sm font-semibold text-gray-800">
-                <FiUser className="mr-1.5 h-4 w-4 text-gray-600" />
+              <div className="flex items-center text-sm md:text-base font-semibold text-gray-800">
+                <FiUser className="mr-1.5 h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                 {appointment.customer.fName} {appointment.customer.lName}
               </div>
               {appointment.customer.isBlacklisted && (
-                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[0.65rem] font-bold rounded-full animate-pulse">
+                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[0.65rem] md:text-xs font-bold rounded-full animate-pulse">
                   BLACKLISTED
                 </span>
               )}
-              {appointment.notes &&
-                appointment.notes.trim() !== "" &&
-                appointment.notes !== "No Notes" && (
-                  <IoWarning
-                    className="h-4 w-4 text-amber-500"
-                    title="Has notes"
-                  />
-                )}
               {/* Blacklist Toggle Button */}
               {appointment.customer.isBlacklisted ? (
                 <button
@@ -318,46 +310,59 @@ export function AppointmentsCard({
               )}
             </div>
 
-            {/* Vehicle Info with Logo */}
+            {/* Notes Warning - Clear and Flashing */}
+            {appointment.notes &&
+              appointment.notes.trim() !== "" &&
+              appointment.notes !== "No Notes" && (
+                <div className="mb-2">
+                  <div className="bg-amber-100 border-2 border-amber-400 text-amber-800 px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm animate-pulse flex items-center gap-2 inline-flex">
+                    <span>⚠️ ORDER HAS NOTES </span>
+                  </div>
+                </div>
+              )}
+
+            {/* Vehicle Info with Bigger Logo */}
             <div className="flex items-center gap-3 mb-2">
               {appointment.car.brand.logoUrl ? (
                 <img
                   src={appointment.car.brand.logoUrl}
                   alt={appointment.car.brand.name}
-                  className="h-8 w-8 object-contain"
+                  className="h-12 w-12 md:h-16 md:w-16 object-contain"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
-                    e.currentTarget.nextElementSibling?.classList.remove("hidden");
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      "hidden"
+                    );
                   }}
                 />
               ) : null}
               <FaCar
-                className={`h-5 w-5 text-gray-500 ${
+                className={`h-8 w-8 md:h-10 md:w-10 text-gray-500 ${
                   appointment.car.brand.logoUrl ? "hidden" : ""
                 }`}
               />
               <div className="flex-1">
-                <div className="text-sm font-semibold text-gray-800">
+                <div className="text-sm md:text-base lg:text-lg font-semibold text-gray-800">
                   {appointment.car.brand.name} {appointment.car.model.name}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs md:text-sm text-gray-500">
                   Service: {appointment.service.name}
                 </div>
               </div>
             </div>
 
             {/* Status Badges Row */}
-            <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-2">
               {assignedTechnician && (
-                <div className="flex items-center text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium">
-                  <FiUser className="mr-1 h-3 w-3" />
+                <div className="flex items-center text-[0.65rem] md:text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                  <FiUser className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                   {assignedTechnician.fName} {assignedTechnician.lName}
                 </div>
               )}
-              
+
               {timeDisplay ? (
                 <div
-                  className={`flex items-center text-xs px-2.5 py-1 rounded-full font-bold ${
+                  className={`flex items-center text-[0.65rem] md:text-xs px-2 py-0.5 rounded-full font-bold ${
                     timeDisplay.isOverdue
                       ? "bg-red-100 text-red-700 animate-pulse"
                       : timeDisplay.time <= 300
@@ -365,13 +370,13 @@ export function AppointmentsCard({
                       : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  <FiClock className="mr-1 h-3 w-3" />
+                  <FiClock className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                   {timeDisplay.isCountUp ? "+" : ""}
                   {formatCountdown(timeDisplay.time)}
                 </div>
               ) : (
-                <div className="flex items-center text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">
-                  <FiClock className="mr-1 h-3 w-3" />
+                <div className="flex items-center text-[0.65rem] md:text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
+                  <FiClock className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                   {currentStatus.timePrefix}
                   {formatTime(
                     status === "scheduled"
@@ -382,29 +387,33 @@ export function AppointmentsCard({
               )}
 
               {status === "stageThree" && appointment.isPaid && (
-                <div className="flex items-center text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-bold">
-                  <FiDollarSign className="mr-1 h-3 w-3" />
+                <div className="flex items-center text-[0.65rem] md:text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
+                  <FiDollarSign className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                   PAID
                 </div>
               )}
 
               {appointment.deliverTime && (
-                <div className="flex items-center text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-medium">
-                  <FiTruck className="mr-1 h-3 w-3" />
+                <div className="flex items-center text-[0.65rem] md:text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">
+                  <FiTruck className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                   {appointment.deliverTime}
                 </div>
               )}
             </div>
 
-            {/* Add-ons */}
+            {/* Add-ons with intense flashing animation */}
             {appointment.addOns && appointment.addOns.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                {appointment.addOns.map((addOn) => (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {appointment.addOns.map((addOn, index) => (
                   <span
                     key={addOn.id}
-                    className="text-[0.65rem] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-medium"
+                    className="text-sm md:text-base bg-gradient-to-r from-blue-200 to-blue-300 text-blue-900 px-2 py-1.5 rounded-lg font-bold shadow-lg animate-pulse border-2 border-blue-400"
+                    style={{
+                      animationDelay: `${index * 0.3}s`,
+                      animationDuration: "2s",
+                    }}
                   >
-                    + {addOn.name}
+                    {addOn.name}
                   </span>
                 ))}
               </div>
@@ -419,22 +428,22 @@ export function AppointmentsCard({
             )}
           </div>
 
-          {/* Middle Section - OTP Display (2 columns) */}
-          <div className="col-span-2 flex items-start justify-center">
-            {appointment.OTP && (
-              <div className="bg-gradient-to-br from-gray-900 to-gray-700 text-white px-3 py-2 rounded-xl text-center shadow-lg">
-                <div className="text-[0.55rem] text-gray-300 uppercase tracking-wider mb-0.5">
+          {/* Middle Section - OTP Display (only for completed) */}
+          <div className="col-span-1 lg:col-span-2 flex items-start justify-center">
+            {appointment.OTP && status === "completed" && (
+              <div className="bg-gradient-to-br from-gray-900 to-gray-700 text-white px-3 py-2 md:px-4 md:py-3 rounded-xl text-center shadow-lg">
+                <div className="text-[0.55rem] md:text-xs text-gray-300 uppercase tracking-wider mb-0.5">
                   OTP Code
                 </div>
-                <div className="text-lg font-bold tracking-wider font-mono">
+                <div className="text-lg md:text-xl font-bold tracking-wider font-mono">
                   {appointment.OTP}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right Section - Actions (3 columns) */}
-          <div className="col-span-3 flex flex-col gap-1.5">
+          {/* Right Section - Actions */}
+          <div className="col-span-1 lg:col-span-3 flex flex-col gap-3.5 sm:gap-1.5">
             {/* Info Button */}
             <div className="flex justify-end mb-1">
               {showInfoButton && (
@@ -469,7 +478,7 @@ export function AppointmentsCard({
               <>
                 {/* Primary Action - Start Phase 1 */}
                 <button
-                  className={`w-full py-1.5 px-2.5 ${currentStatus.buttonColor} text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
+                  className={`w-full py-5 px-5 sm:py-1.5 sm:px-2.5 ${currentStatus.buttonColor} text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
                   onClick={() =>
                     handleStatusChangeClick(
                       status,
@@ -480,7 +489,7 @@ export function AppointmentsCard({
                 >
                   {movingItemId === appointment.id ? (
                     <span className="inline-flex items-center">
-                      <FaDotCircle className="mr-1 h-3 w-3 animate-spin" />
+                      <FaDotCircle className="mr-1 h-4 w-4 sm:h-3 sm:w-3 animate-spin" />
                       Moving...
                     </span>
                   ) : (
@@ -490,37 +499,37 @@ export function AppointmentsCard({
                     </>
                   )}
                 </button>
-                
+
                 {/* Secondary Actions - Images and Edit */}
                 <button
-                  className="w-full py-1.5 px-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                  className="w-full py-4.5 px-5 sm:py-1.5 sm:px-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsImageDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiImage className="mr-1 h-3.5 w-3.5" />
+                  <FiImage className="mr-1 h-4 w-4 sm:h-3.5 sm:w-3.5" />
                   Add Images
                 </button>
-                
+
                 <button
-                  className="w-full py-1.5 px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                  className="w-full py-4.5 px-5 sm:py-1.5 sm:px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiEdit className="mr-1 h-3.5 w-3.5" />
+                  <FiEdit className="mr-1 h-4 w-4 sm:h-3.5 sm:w-3.5" />
                   Edit Order
                 </button>
 
                 {/* Cancel Button - Smaller */}
                 <button
-                  className="w-full py-1 px-2 bg-red-500 hover:bg-red-600 text-white text-[0.65rem] rounded-lg transition-all flex items-center justify-center shadow-sm hover:shadow"
+                  className="w-full py-4 px-5 sm:py-1 sm:px-2 bg-red-500 hover:bg-red-600 text-white text-base sm:text-[0.65rem] rounded-lg transition-all flex items-center justify-center shadow-sm hover:shadow"
                   onClick={handleCancelClick}
                   disabled={!!movingItemId || isCancelling}
                 >
                   {isCancelling ? (
-                    <div className="animate-spin rounded-full h-2.5 w-2.5 border-t-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-2.5 sm:w-2.5 border-t-2 border-white"></div>
                   ) : (
                     <>
-                      <FiX className="mr-0.5 h-2.5 w-2.5" />
+                      <FiX className="mr-0.5 h-3 w-3 sm:h-2.5 sm:w-2.5" />
                       Cancel
                     </>
                   )}
@@ -532,21 +541,20 @@ export function AppointmentsCard({
               <>
                 {/* Primary Action - Move to Next Phase */}
                 <button
-                  className={`w-full py-1.5 px-2.5 ${currentStatus.buttonColor} text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
-                  onClick={
-                    () =>
-                      currentStatus.hasNext
-                        ? handleStatusChangeClick(
-                            status,
-                            currentStatus.nextStatus
-                          )
-                        : handleStatusChangeClick(status, "completed")
+                  className={`w-full py-5 px-5 sm:py-1.5 sm:px-2.5 ${currentStatus.buttonColor} text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
+                  onClick={() =>
+                    currentStatus.hasNext
+                      ? handleStatusChangeClick(
+                          status,
+                          currentStatus.nextStatus
+                        )
+                      : handleStatusChangeClick(status, "completed")
                   }
                   disabled={!!movingItemId}
                 >
                   {movingItemId === appointment.id ? (
                     <span className="inline-flex items-center">
-                      <FaDotCircle className="mr-1 h-3 w-3 animate-spin" />
+                      <FaDotCircle className="mr-1 h-4 w-4 sm:h-3 sm:w-3 animate-spin" />
                       Moving...
                     </span>
                   ) : (
@@ -560,23 +568,23 @@ export function AppointmentsCard({
                     </>
                   )}
                 </button>
-                
+
                 {/* Secondary Actions */}
                 <button
-                  className="w-full py-1.5 px-2.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                  className="w-full py-4.5 px-5 sm:py-1.5 sm:px-2.5 bg-blue-500 hover:bg-blue-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsTechnicianDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiUserPlus className="mr-1 h-3.5 w-3.5" />
+                  <FiUserPlus className="mr-1 h-4 w-4 sm:h-3.5 sm:w-3.5" />
                   Assign Tech
                 </button>
-                
+
                 <button
-                  className="w-full py-1.5 px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                  className="w-full py-4.5 px-5 sm:py-1.5 sm:px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiEdit className="mr-1 h-3.5 w-3.5" />
+                  <FiEdit className="mr-1 h-4 w-4 sm:h-3.5 sm:w-3.5" />
                   Edit Order
                 </button>
               </>
