@@ -13,6 +13,7 @@ export type TransactionResponse = {
     id: string;
     status: TransactionResponse.status;
     isPaid: boolean;
+    isPulled: boolean;
     customerId: string;
     carId: string;
     customer: CustomerResponse;

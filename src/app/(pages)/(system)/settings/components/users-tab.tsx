@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FiPlus, FiUser, FiPhone, FiKey, FiUserCheck } from "react-icons/fi";
+import { FiPlus, FiUser, FiPhone, FiKey, FiUserCheck, FiEdit, FiTrash, FiLock, FiMoreVertical } from "react-icons/fi";
 import {
   Card,
   CardContent,
@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -29,8 +30,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { AuthService, SignupDto } from "../../../../../../client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AuthService, SignupDto, UpdateUserDto, ResetPasswordDto, DeleteUserDto } from "../../../../../../client";
 import { getErrorMessage } from "@/lib/error-handler";
+import { useUser } from "@/app/contexts/UserContext";
 
 const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -46,8 +54,29 @@ const userSchema = z.object({
 
 type UserFormData = z.infer<typeof userSchema>;
 
+const updateUserSchema = z.object({
+  name: z.string().min(1, "Name is required").optional(),
+  mobileNumber: z
+    .string()
+    .regex(/^07\d{8}$/, "Mobile number must be 10 digits starting with 07")
+    .optional(),
+});
+
+type UpdateUserFormData = z.infer<typeof updateUserSchema>;
+
+const resetPasswordSchema = z.object({
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+
 export function UsersTab() {
+  const { isAdmin } = useUser();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
 
@@ -58,6 +87,21 @@ export function UsersTab() {
       mobileNumber: "",
       password: "",
       role: "SUPERVISOR",
+    },
+  });
+
+  const updateForm = useForm<UpdateUserFormData>({
+    resolver: zodResolver(updateUserSchema),
+    defaultValues: {
+      name: "",
+      mobileNumber: "",
+    },
+  });
+
+  const resetPasswordForm = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      newPassword: "",
     },
   });
 
@@ -100,6 +144,96 @@ export function UsersTab() {
       alert("User created successfully!");
     } catch (error) {
       console.error("Error creating user:", error);
+      alert(getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onUpdateSubmit = async (data: UpdateUserFormData) => {
+    if (!selectedUser) return;
+    
+    setIsLoading(true);
+    try {
+      const updateData: UpdateUserDto = {
+        userId: selectedUser.userId,
+      };
+      if (data.name) updateData.name = data.name;
+      if (data.mobileNumber && data.mobileNumber !== selectedUser.mobileNumber) {
+        updateData.mobileNumber = data.mobileNumber;
+      }
+
+      await AuthService.authControllerUpdateUser({
+        requestBody: updateData,
+      });
+
+      // Refresh the users list
+      const supervisors = await AuthService.authControllerGetSupervisors();
+      setUsers(supervisors);
+      
+      setIsUpdateDialogOpen(false);
+      updateForm.reset();
+      setSelectedUser(null);
+      
+      alert("User updated successfully!");
+    } catch (error) {
+      console.error("Error updating user:", error);
+      alert(getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onResetPasswordSubmit = async (data: ResetPasswordFormData) => {
+    if (!selectedUser) return;
+    
+    setIsLoading(true);
+    try {
+      const resetData: ResetPasswordDto = {
+        mobileNumber: selectedUser.mobileNumber,
+        newPassword: data.newPassword,
+      };
+
+      await AuthService.authControllerResetPassword({
+        requestBody: resetData,
+      });
+      
+      setIsResetPasswordDialogOpen(false);
+      resetPasswordForm.reset();
+      setSelectedUser(null);
+      
+      alert("Password reset successfully!");
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      alert(getErrorMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onDeleteUser = async () => {
+    if (!selectedUser) return;
+    
+    setIsLoading(true);
+    try {
+      const deleteData: DeleteUserDto = {
+        mobileNumber: selectedUser.mobileNumber,
+      };
+
+      await AuthService.authControllerDeleteUser({
+        requestBody: deleteData,
+      });
+
+      // Refresh the users list
+      const supervisors = await AuthService.authControllerGetSupervisors();
+      setUsers(supervisors);
+      
+      setIsDeleteDialogOpen(false);
+      setSelectedUser(null);
+      
+      alert("User deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting user:", error);
       alert(getErrorMessage(error));
     } finally {
       setIsLoading(false);
@@ -273,6 +407,47 @@ export function UsersTab() {
                       <Badge variant="secondary" className="bg-green-100 text-green-800">
                         {user.isActive ? 'Active' : 'Inactive'}
                       </Badge>
+                      {isAdmin && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <FiMoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedUser(user);
+                                updateForm.setValue('name', user.name);
+                                updateForm.setValue('mobileNumber', user.mobileNumber);
+                                setIsUpdateDialogOpen(true);
+                              }}
+                            >
+                              <FiEdit className="mr-2 h-4 w-4" />
+                              Update User
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setIsResetPasswordDialogOpen(true);
+                              }}
+                            >
+                              <FiLock className="mr-2 h-4 w-4" />
+                              Reset Password
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setIsDeleteDialogOpen(true);
+                              }}
+                            >
+                              <FiTrash className="mr-2 h-4 w-4" />
+                              Delete User
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -295,8 +470,187 @@ export function UsersTab() {
           <p>• ADMIN users must be created through other means for security</p>
           <p>• Mobile numbers must be unique and follow Jordanian format (07XXXXXXXX)</p>
           <p>• Users will be able to log in immediately after creation</p>
+          {isAdmin && (
+            <>
+              <p>• As an admin, you can update, delete, or reset passwords for users</p>
+              <p>• Use the actions menu (⋮) on each user card to manage them</p>
+            </>
+          )}
         </CardContent>
       </Card>
+
+      {/* Update User Dialog */}
+      <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <FiEdit className="mr-2 h-5 w-5" />
+              Update User
+            </DialogTitle>
+            <DialogDescription>
+              Update user information for {selectedUser?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...updateForm}>
+            <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-4">
+              <FormField
+                control={updateForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <FiUser className="mr-1 h-4 w-4" />
+                      Full Name
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Enter full name"
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={updateForm.control}
+                name="mobileNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <FiPhone className="mr-1 h-4 w-4" />
+                      Mobile Number
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="07XXXXXXXX"
+                        disabled={isLoading}
+                        maxLength={10}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsUpdateDialogOpen(false);
+                    updateForm.reset();
+                    setSelectedUser(null);
+                  }}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Updating..." : "Update User"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <FiLock className="mr-2 h-5 w-5" />
+              Reset Password
+            </DialogTitle>
+            <DialogDescription>
+              Reset password for {selectedUser?.name} ({selectedUser?.mobileNumber})
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...resetPasswordForm}>
+            <form onSubmit={resetPasswordForm.handleSubmit(onResetPasswordSubmit)} className="space-y-4">
+              <FormField
+                control={resetPasswordForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center">
+                      <FiKey className="mr-1 h-4 w-4" />
+                      New Password
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        placeholder="Minimum 6 characters"
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsResetPasswordDialogOpen(false);
+                    resetPasswordForm.reset();
+                    setSelectedUser(null);
+                  }}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Resetting..." : "Reset Password"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-red-600">
+              <FiTrash className="mr-2 h-5 w-5" />
+              Delete User
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedUser?.name}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setSelectedUser(null);
+              }}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={onDeleteUser}
+              disabled={isLoading}
+            >
+              {isLoading ? "Deleting..." : "Delete User"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -36,7 +36,7 @@ export type TechnicianShiftReport = {
      */
     totalWorkingTime: string;
     /**
-     * Overtime compensation (overtime hours * 1.5)
+     * Overtime compensation in dollars (overtime minutes * $0.025 per minute)
      */
     overtimeCompensation: number;
     /**

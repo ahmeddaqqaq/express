@@ -6,6 +6,7 @@ import {
   FiUserCheck,
   FiDollarSign,
   FiImage,
+  FiTruck,
 } from "react-icons/fi";
 import { FaCar } from "react-icons/fa";
 import {
@@ -44,9 +45,26 @@ export function TransactionDetailsDrawer({
             <DrawerTitle className="text-xl font-bold flex items-center">
               Ticket Details
             </DrawerTitle>
-            <DrawerDescription className="flex items-center">
-              <FiClock className="mr-1" />
-              Completed at {formatTime(transaction.updatedAt)}
+            <DrawerDescription className="flex flex-col gap-2">
+              <div className="flex items-center">
+                <FiClock className="mr-1" />
+                Completed at {formatTime(transaction.updatedAt)}
+              </div>
+              {/* Transaction Status */}
+              <div className="flex flex-wrap gap-2">
+                {transaction.isPaid && (
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 flex items-center">
+                    <FiDollarSign className="mr-1 h-3 w-3" />
+                    PAID
+                  </span>
+                )}
+                {transaction.isPulled && (
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 flex items-center">
+                    <FiTruck className="mr-1 h-3 w-3" />
+                    PULLED
+                  </span>
+                )}
+              </div>
             </DrawerDescription>
           </DrawerHeader>
 

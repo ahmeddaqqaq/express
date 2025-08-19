@@ -196,3 +196,42 @@ export function getBusinessDayString(): string {
   
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Check if we're currently in the overnight period (12:00 AM - 1:00 AM Jordan time)
+ * When in this period, we're still in the previous day's business day
+ * @returns True if currently in overnight period
+ */
+export function isInOvernightPeriod(): boolean {
+  const now = new Date();
+  const jordanTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Amman"}));
+  
+  return jordanTime.getHours() === 0; // Between 12:00 AM and 1:00 AM
+}
+
+/**
+ * Get business day info for UI display
+ * @returns Object with business day information for display
+ */
+export function getBusinessDayInfo(): {
+  isCurrentBusinessDay: boolean;
+  isOvernightPeriod: boolean;
+  businessDateString: string;
+  displayText: string;
+} {
+  const isOvernight = isInOvernightPeriod();
+  const businessDateString = getBusinessDayString();
+  const isCurrentBusinessDay = businessDateString === getBusinessDayString();
+  
+  let displayText = "Business Day";
+  if (isOvernight) {
+    displayText = "Business Day (Extended Hours)";
+  }
+  
+  return {
+    isCurrentBusinessDay,
+    isOvernightPeriod: isOvernight,
+    businessDateString,
+    displayText
+  };
+}

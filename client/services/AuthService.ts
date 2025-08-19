@@ -2,8 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { DeleteUserDto } from '../models/DeleteUserDto';
+import type { ResetPasswordDto } from '../models/ResetPasswordDto';
 import type { SigninDto } from '../models/SigninDto';
 import type { SignupDto } from '../models/SignupDto';
+import type { UpdateUserDto } from '../models/UpdateUserDto';
 import type { UserInfoResponse } from '../models/UserInfoResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -113,6 +116,75 @@ export class AuthService {
             url: '/express/auth/me',
             errors: {
                 401: `Unauthorized`,
+            },
+        });
+    }
+    /**
+     * Delete a user (Admin only)
+     * @returns any User deactivated successfully
+     * @throws ApiError
+     */
+    public static authControllerDeleteUser({
+        requestBody,
+    }: {
+        requestBody: DeleteUserDto,
+    }): CancelablePromise<{
+        message?: string;
+    }> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/express/auth/delete',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                401: `Unauthorized - Admin role required`,
+                404: `User not found`,
+            },
+        });
+    }
+    /**
+     * Reset user password (Admin only)
+     * Allows an admin to reset a user's password by providing their mobile number and new password
+     * @returns any Password reset successfully
+     * @throws ApiError
+     */
+    public static authControllerResetPassword({
+        requestBody,
+    }: {
+        requestBody: ResetPasswordDto,
+    }): CancelablePromise<{
+        message?: string;
+    }> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/auth/reset-password',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                401: `Unauthorized - Admin role required`,
+                404: `User not found`,
+            },
+        });
+    }
+    /**
+     * Update current user profile
+     * Allows a user to update their name and/or mobile number
+     * @returns UserInfoResponse User updated successfully
+     * @throws ApiError
+     */
+    public static authControllerUpdateUser({
+        requestBody,
+    }: {
+        requestBody: UpdateUserDto,
+    }): CancelablePromise<UserInfoResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/express/auth/update',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                401: `Unauthorized`,
+                409: `Mobile number already in use`,
             },
         });
     }

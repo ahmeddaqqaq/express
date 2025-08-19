@@ -21,6 +21,7 @@ import {
   FiFileText,
   FiImage,
   FiEye,
+  FiTruck,
 } from "react-icons/fi";
 import { FaCar, FaIdCard } from "react-icons/fa";
 import { GiCarDoor } from "react-icons/gi";
@@ -204,6 +205,12 @@ export function TransactionDetailDrawer({
                     <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 flex items-center">
                       <FiDollarSign className="mr-1 h-3 w-3" />
                       PAID
+                    </span>
+                  )}
+                  {appointment.isPulled && (
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800 flex items-center">
+                      <FiTruck className="mr-1 h-3 w-3" />
+                      PULLED
                     </span>
                   )}
                 </div>

@@ -13,15 +13,16 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { getCurrentBusinessDate, getBusinessDayString, getBusinessDayInfo } from "@/lib/date-utils";
 import { AddTicketDialog } from "./components/schedule/add-ticket-dialog";
 import { ScheduleColumns } from "./components/schedule/schedule-columns";
 import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-drawer";
 
 export default function Schedule() {
   const [currentDate, setCurrentDate] = useState<string>(
-    format(new Date(), "yyyy-MM-dd")
+    getBusinessDayString()
   );
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(getCurrentBusinessDate());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [scheduled, setScheduled] = useState<TransactionResponse[]>([]);
   const [stageOne, setStageOne] = useState<TransactionResponse[]>([]);
@@ -122,7 +123,12 @@ export default function Schedule() {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleTimeString('en-US', { 
+      timeZone: 'Asia/Amman',
+      hour: "2-digit", 
+      minute: "2-digit",
+      hour12: true
+    });
   };
 
   const handleStatusChange = async (
@@ -250,6 +256,15 @@ export default function Schedule() {
           <div className="text-2xl font-bold text-gray-800">
             Tickets ({format(new Date(currentDate), "MMMM d, yyyy")})
           </div>
+          {currentDate === getBusinessDayString() && (
+            <div className={`text-sm px-2 py-1 rounded-full font-medium ${
+              getBusinessDayInfo().isOvernightPeriod 
+                ? 'bg-purple-100 text-purple-800' 
+                : 'bg-blue-100 text-blue-800'
+            }`}>
+              {getBusinessDayInfo().displayText}
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
@@ -272,10 +287,10 @@ export default function Schedule() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDateSelect(new Date())}
+                      onClick={() => handleDateSelect(getCurrentBusinessDate())}
                       className="text-xs"
                     >
-                      Today
+                      Business Day
                     </Button>
                     <Button
                       variant="outline"

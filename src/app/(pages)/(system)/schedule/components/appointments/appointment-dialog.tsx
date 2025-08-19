@@ -195,6 +195,32 @@ export function AppointmentDialog({
                     {appointment.service.name}
                   </div>
                 </div>
+
+                {/* Payment and Pulled Status */}
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2">
+                    Transaction Status
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {appointment.isPaid && (
+                      <div className="flex items-center text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold">
+                        <FiUser className="mr-1 h-4 w-4" />
+                        PAID
+                      </div>
+                    )}
+                    {appointment.isPulled && (
+                      <div className="flex items-center text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-bold">
+                        <FiUser className="mr-1 h-4 w-4" />
+                        PULLED
+                      </div>
+                    )}
+                    {!appointment.isPaid && !appointment.isPulled && (
+                      <div className="text-gray-400 italic p-2 bg-white rounded-lg text-sm">
+                        Not paid or pulled
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

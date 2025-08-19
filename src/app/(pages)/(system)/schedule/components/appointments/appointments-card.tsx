@@ -385,10 +385,17 @@ export function AppointmentsCard({
                 </div>
               )}
 
-              {status === "stageThree" && appointment.isPaid && (
+              {appointment.isPaid && (
                 <div className="flex items-center text-[0.65rem] md:text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
                   <FiDollarSign className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
                   PAID
+                </div>
+              )}
+
+              {appointment.isPulled && (
+                <div className="flex items-center text-[0.65rem] md:text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">
+                  <FiTruck className="mr-1 h-2.5 w-2.5 md:h-3 md:w-3" />
+                  PULLED
                 </div>
               )}
 

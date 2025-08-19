@@ -5,7 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FiUser, FiMail } from "react-icons/fi";
+import { FiUser, FiMail, FiDollarSign, FiTruck } from "react-icons/fi";
 import { FaCar, FaIdCard } from "react-icons/fa";
 import { GiCarDoor } from "react-icons/gi";
 import { IoMdColorPalette } from "react-icons/io";
@@ -165,6 +165,30 @@ export default function TicketInfoDialog({
               </div>
             </div>
           )}
+
+          {/* Transaction Status Section */}
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm">Transaction Status</h3>
+            <div className="flex flex-wrap gap-2">
+              {appointment.isPaid && (
+                <div className="flex items-center text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold">
+                  <FiDollarSign className="mr-1 h-4 w-4" />
+                  PAID
+                </div>
+              )}
+              {appointment.isPulled && (
+                <div className="flex items-center text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-bold">
+                  <FiTruck className="mr-1 h-4 w-4" />
+                  PULLED
+                </div>
+              )}
+              {!appointment.isPaid && !appointment.isPulled && (
+                <div className="text-gray-400 italic text-sm">
+                  Not paid or pulled
+                </div>
+              )}
+            </div>
+          </div>
 
           {appointment.OTP && (
             <div className="p-3 bg-gray-100 rounded-md text-center">
