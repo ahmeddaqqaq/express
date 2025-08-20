@@ -13,6 +13,7 @@ import {
   FiImage,
   FiClock,
   FiTruck,
+  FiArrowRight,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
@@ -275,7 +276,7 @@ export function AppointmentsCard({
           currentStatus.borderColor
         } hover:shadow-lg transition-all ${getCardBackgroundColor()}`}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 relative">
           {/* Left Section - Main Information */}
           <div className="col-span-1 lg:col-span-7">
             {/* Customer Row with Badges and Blacklist Button */}
@@ -309,13 +310,25 @@ export function AppointmentsCard({
               )}
             </div>
 
+            {/* OTP Display (only for completed) - Positioned absolutely */}
+            {appointment.OTP && status === "completed" && (
+              <div className="absolute bottom-3 right-3 bg-gradient-to-br from-gray-900 to-gray-700 text-white px-3 py-2 md:px-4 md:py-3 rounded-xl text-center shadow-lg z-10">
+                <div className="text-[0.55rem] md:text-xs text-gray-300 uppercase tracking-wider mb-0.5">
+                  OTP Code
+                </div>
+                <div className="text-lg md:text-xl font-bold tracking-wider font-mono">
+                  {appointment.OTP}
+                </div>
+              </div>
+            )}
+
             {/* Notes Warning - Clear and Flashing */}
             {appointment.notes &&
               appointment.notes.trim() !== "" &&
               appointment.notes !== "No Notes" && (
                 <div className="mb-2">
-                  <div className="bg-amber-100 border-2 border-amber-400 text-amber-800 px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm animate-pulse flex items-center gap-2 inline-flex">
-                    <span>⚠️ ORDER HAS NOTES </span>
+                  <div className="bg-amber-100 border-2 border-amber-400 text-amber-800 px-3 py-1.5 rounded-lg font-bold text-xs md:text-sm animate-pulse items-center gap-2 inline-flex">
+                    <span>⚠️ NOTES </span>
                   </div>
                 </div>
               )}
@@ -434,22 +447,8 @@ export function AppointmentsCard({
             )}
           </div>
 
-          {/* Middle Section - OTP Display (only for completed) */}
-          <div className="col-span-1 lg:col-span-2 flex items-start justify-center">
-            {appointment.OTP && status === "completed" && (
-              <div className="bg-gradient-to-br from-gray-900 to-gray-700 text-white px-3 py-2 md:px-4 md:py-3 rounded-xl text-center shadow-lg">
-                <div className="text-[0.55rem] md:text-xs text-gray-300 uppercase tracking-wider mb-0.5">
-                  OTP Code
-                </div>
-                <div className="text-lg md:text-xl font-bold tracking-wider font-mono">
-                  {appointment.OTP}
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Right Section - Actions */}
-          <div className="col-span-1 lg:col-span-3 flex flex-col gap-3.5 sm:gap-1.5">
+          <div className="col-span-1 lg:col-span-5 flex flex-col gap-3.5 sm:gap-1.5">
             {/* Info Button */}
             <div className="flex justify-end mb-1">
               {showInfoButton && (
@@ -483,8 +482,10 @@ export function AppointmentsCard({
             {status === "scheduled" ? (
               <>
                 {/* Primary Action - Start Phase 1 */}
-                <button
-                  className={`w-full py-7 px-5 sm:py-1.5 sm:px-2.5 ${currentStatus.buttonColor} text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
+                <Button
+                  variant="default"
+                  size="icon"
+                  className={`w-full h-12 sm:h-8 ${currentStatus.buttonColor} rounded-lg transition-all shadow-sm hover:shadow`}
                   onClick={() =>
                     handleStatusChangeClick(
                       status,
@@ -494,40 +495,36 @@ export function AppointmentsCard({
                   disabled={!!movingItemId}
                 >
                   {movingItemId === appointment.id ? (
-                    <span className="inline-flex items-center">
-                      <FaDotCircle className="mr-1 h-4 w-4 sm:h-3 sm:w-3 animate-spin" />
-                      Moving...
-                    </span>
+                    <FaDotCircle className="h-5 w-5 sm:h-4 sm:w-4 animate-spin" />
                   ) : (
-                    <>
-                      {currentStatus.icon}
-                      Start Phase 1
-                    </>
+                    <FiArrowRight className="h-5 w-5 sm:h-4 sm:w-4" />
                   )}
-                </button>
+                </Button>
 
                 {/* Secondary Actions - Images and Edit */}
-                <button
-                  className="w-full py-7 px-5 sm:py-1.5 sm:px-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="w-full h-12 sm:h-8 bg-emerald-400 hover:bg-emerald-500 text-white rounded-lg transition-all shadow-sm hover:shadow"
                   onClick={() => setIsImageDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiImage className="mr-1 h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  Add Images
-                </button>
+                  <FiImage className="h-5 w-5 sm:h-4 sm:w-4" />
+                </Button>
 
-                <button
-                  className="w-full py-7 px-5 sm:py-1.5 sm:px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="w-full h-12 sm:h-8 bg-orange-400 hover:bg-orange-500 text-white rounded-lg transition-all shadow-sm hover:shadow"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiEdit className="mr-1 h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  Edit Order
-                </button>
+                  <FiEdit className="h-5 w-5 sm:h-4 sm:w-4" />
+                </Button>
 
                 {/* Cancel Button - Smaller */}
                 <button
-                  className="w-full py-4 px-5 sm:py-1 sm:px-2 bg-red-500 hover:bg-red-600 text-white text-base sm:text-[0.65rem] rounded-lg transition-all flex items-center justify-center shadow-sm hover:shadow"
+                  className="w-full py-4 px-5 sm:py-1 sm:px-2 bg-red-400 hover:bg-red-500 text-white text-base sm:text-[0.65rem] rounded-lg transition-all flex items-center justify-center shadow-sm hover:shadow"
                   onClick={handleCancelClick}
                   disabled={!!movingItemId || isCancelling}
                 >
@@ -546,8 +543,10 @@ export function AppointmentsCard({
               status === "stageThree" ? (
               <>
                 {/* Primary Action - Move to Next Phase */}
-                <button
-                  className={`w-full py-7 px-5 sm:py-1.5 sm:px-2.5 ${currentStatus.buttonColor} text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-semibold shadow-sm hover:shadow`}
+                <Button
+                  variant="default"
+                  size="icon"
+                  className={`w-full h-12 sm:h-8 ${currentStatus.buttonColor} rounded-lg transition-all shadow-sm hover:shadow`}
                   onClick={() =>
                     currentStatus.hasNext
                       ? handleStatusChangeClick(
@@ -559,40 +558,32 @@ export function AppointmentsCard({
                   disabled={!!movingItemId}
                 >
                   {movingItemId === appointment.id ? (
-                    <span className="inline-flex items-center">
-                      <FaDotCircle className="mr-1 h-4 w-4 sm:h-3 sm:w-3 animate-spin" />
-                      Moving...
-                    </span>
+                    <FaDotCircle className="h-5 w-5 sm:h-4 sm:w-4 animate-spin" />
                   ) : (
-                    <>
-                      {currentStatus.icon}
-                      {status === "stageOne"
-                        ? "Move to Phase 2"
-                        : status === "stageTwo"
-                        ? "Move to Phase 3"
-                        : "Complete Order"}
-                    </>
+                    <FiArrowRight className="h-5 w-5 sm:h-4 sm:w-4" />
                   )}
-                </button>
+                </Button>
 
                 {/* Secondary Actions */}
-                <button
-                  className="w-full py-7 px-5 sm:py-1.5 sm:px-2.5 bg-blue-500 hover:bg-blue-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="w-full h-12 sm:h-8 bg-blue-400 hover:bg-blue-500 text-white rounded-lg transition-all shadow-sm hover:shadow"
                   onClick={() => setIsTechnicianDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiUserPlus className="mr-1 h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  Assign Tech
-                </button>
+                  <FiUserPlus className="h-5 w-5 sm:h-4 sm:w-4" />
+                </Button>
 
-                <button
-                  className="w-full py-7 px-5 sm:py-1.5 sm:px-2.5 bg-orange-500 hover:bg-orange-600 text-white text-lg sm:text-xs rounded-lg transition-all flex items-center justify-center font-medium shadow-sm hover:shadow"
+                <Button
+                  variant="default"
+                  size="icon"
+                  className="w-full h-12 sm:h-8 bg-orange-400 hover:bg-orange-500 text-white rounded-lg transition-all shadow-sm hover:shadow"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
                 >
-                  <FiEdit className="mr-1 h-4 w-4 sm:h-3.5 sm:w-3.5" />
-                  Edit Order
-                </button>
+                  <FiEdit className="h-5 w-5 sm:h-4 sm:w-4" />
+                </Button>
               </>
             ) : null}
           </div>

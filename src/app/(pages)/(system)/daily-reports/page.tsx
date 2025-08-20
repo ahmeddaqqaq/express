@@ -12,6 +12,52 @@ import type { DailyReportResponseDto } from "../../../../../client";
 import { generatePDF } from "./utils/pdf-generator";
 import { toast } from "sonner";
 
+// Utility function to format time duration (assumes input is in minutes or time string)
+const formatTimeDuration = (input: number | string | null): string => {
+  if (input === null || input === undefined) return "-";
+  
+  // If it's a string that looks like HH:MM, return as is
+  if (typeof input === "string" && input.includes(":")) {
+    return input;
+  }
+  
+  // Convert to number if it's a string
+  const minutes = typeof input === "string" ? parseInt(input, 10) : input;
+  
+  if (isNaN(minutes)) return input?.toString() || "-";
+  
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  
+  if (hours === 0) {
+    return `${mins}m`;
+  }
+  
+  return mins === 0 ? `${hours}h` : `${hours}h ${mins}m`;
+};
+
+// Utility function to format time string (HH:MM format)
+const formatTime = (timeString: string | null): string => {
+  if (!timeString) return "-";
+  
+  // If it's already in HH:MM format, return as is
+  if (timeString.includes(":")) {
+    return timeString;
+  }
+  
+  // If it's a timestamp, extract time
+  try {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  } catch (error) {
+    return timeString;
+  }
+};
+
 export default function DailyReportsPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(getCurrentBusinessDate());
   const [reportData, setReportData] = useState<DailyReportResponseDto | null>(null);
@@ -80,7 +126,7 @@ export default function DailyReportsPage() {
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border"
+              className="rounded-md border w-full"
               disabled={(date) => date > getCurrentBusinessDate()}
             />
             <div className="space-y-2">
@@ -179,14 +225,14 @@ export default function DailyReportsPage() {
                       <tbody>
                         {reportData.technicianShifts.map((shift) => (
                           <tr key={shift.technicianId} className="border-b">
-                            <td className="p-2">{shift.technicianName}</td>
-                            <td className="p-2">{shift.shiftStartTime}</td>
-                            <td className="p-2">{shift.shiftEndTime}</td>
-                            <td className="p-2">{shift.totalBreakTime}</td>
-                            <td className="p-2">{shift.totalOvertimeTime}</td>
-                            <td className="p-2 font-semibold">{shift.totalWorkingTime}</td>
+                            <td className="p-2 font-medium">{shift.technicianName}</td>
+                            <td className="p-2">{formatTime(shift.shiftStartTime)}</td>
+                            <td className="p-2">{formatTime(shift.shiftEndTime)}</td>
+                            <td className="p-2">{formatTimeDuration(shift.totalBreakTime)}</td>
+                            <td className="p-2">{formatTimeDuration(shift.totalOvertimeTime)}</td>
+                            <td className="p-2 font-semibold">{formatTimeDuration(shift.totalWorkingTime)}</td>
                             <td className="p-2 text-green-600 font-semibold">
-                              ${shift.overtimeCompensation.toFixed(2)}
+                              ${(shift.overtimeCompensation || 0).toFixed(2)}
                             </td>
                           </tr>
                         ))}

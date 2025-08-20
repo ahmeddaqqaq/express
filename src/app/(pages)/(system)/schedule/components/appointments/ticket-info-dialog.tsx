@@ -130,7 +130,7 @@ export default function TicketInfoDialog({
               <h3 className="font-medium text-sm">
                 Images ({appointment.images.length})
               </h3>
-              <div className="text-xs text-gray-600">
+              <div className="text-xs text-gray-600 max-h-32 overflow-y-auto">
                 {appointment.images.map((image, index) => {
                   return (
                     <div key={image.id} className="mb-1">
