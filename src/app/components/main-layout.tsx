@@ -13,6 +13,7 @@ import {
   FiChevronRight,
   FiLogOut,
   FiFileText,
+  FiMenu,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +47,7 @@ export default function MainLayout({
     pathname.startsWith("/schedule")
   );
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const router = useRouter();
   const { isAdmin, isLoading } = useUser();
 
@@ -120,21 +122,35 @@ export default function MainLayout({
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -300 }}
-        animate={{ x: 0 }}
-        transition={{ type: "easeInOut", duration: "0.5" }}
-        className="hidden md:flex flex-col w-56 bg-gradient-to-b from-[#4b3526] to-[#3a281d] text-white p-4 shadow-xl border-r border-[#4b3526]/50"
+        animate={{ x: 0, width: isSidebarExpanded ? 224 : 80 }}
+        transition={{ type: "easeInOut", duration: 0.3 }}
+        className="hidden md:flex flex-col bg-gradient-to-b from-[#4b3526] to-[#3a281d] text-white p-4 shadow-xl border-r border-[#4b3526]/50"
       >
         {/* Logo/Brand */}
-        <div className="flex items-center space-x-3">
-          <div>
-            <Image
-              src="/ahmad.png"
-              alt="Radiant"
-              width={200}
-              height={200}
-              className="mb-3"
-            />
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <motion.div
+            animate={{ opacity: isSidebarExpanded ? 1 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            {isSidebarExpanded && (
+              <Image
+                src="/ahmad.png"
+                alt="Radiant"
+                width={120}
+                height={120}
+              />
+            )}
+          </motion.div>
+          
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+            className="p-2 rounded-lg hover:bg-[#4b3526]/50 transition-colors"
+          >
+            <FiMenu className="h-5 w-5" />
+          </motion.button>
         </div>
 
         {/* Navigation */}
@@ -142,97 +158,127 @@ export default function MainLayout({
           {navItems.map((item) => (
             <div key={item.name}>
               {item.path ? (
-                <Link href={item.path}>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 group ${
-                      isActive(item.path)
-                        ? "bg-[#5a4233] shadow-md"
-                        : "hover:bg-[#4b3526]/70"
-                    }`}
-                  >
-                    <div
-                      className={`mr-3 ${
-                        isActive(item.path)
-                          ? "text-white"
-                          : "text-[#d1c2b8] group-hover:text-white"
-                      }`}
-                    >
-                      {item.icon}
-                    </div>
-                    <span className="font-medium">{item.name}</span>
-                    {isActive(item.path) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link href={item.path}>
                       <motion.div
-                        layoutId="activeNavItem"
-                        className="ml-auto h-2 w-2 rounded-full bg-white"
-                        transition={{
-                          type: "spring",
-                          stiffness: 500,
-                          damping: 30,
-                        }}
-                      />
-                    )}
-                  </motion.div>
-                </Link>
-              ) : (
-                <>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 group cursor-pointer ${
-                      pathname.startsWith("/schedule")
-                        ? "bg-[#4b3526]/50"
-                        : "hover:bg-[#4b3526]/70"
-                    }`}
-                    onClick={toggleScheduleMenu}
-                  >
-                    <div className="mr-3 text-[#d1c2b8] group-hover:text-white">
-                      {item.icon}
-                    </div>
-                    <span className="font-medium">{item.name}</span>
-                    <div className="ml-auto">
-                      {isScheduleOpen ? (
-                        <FiChevronDown className="h-4 w-4" />
-                      ) : (
-                        <FiChevronRight className="h-4 w-4" />
-                      )}
-                    </div>
-                  </motion.div>
-                  {isScheduleOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="ml-8 space-y-1 overflow-hidden"
-                    >
-                      {item.submenu?.map((subItem) => (
-                        <Link href={subItem.path} key={subItem.path}>
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 group ${
+                          isActive(item.path)
+                            ? "bg-[#5a4233] shadow-md"
+                            : "hover:bg-[#4b3526]/70"
+                        } ${!isSidebarExpanded ? 'justify-center' : ''}`}
+                      >
+                        <div
+                          className={`${isSidebarExpanded ? 'mr-3' : ''} ${
+                            isActive(item.path)
+                              ? "text-white"
+                              : "text-[#d1c2b8] group-hover:text-white"
+                          }`}
+                        >
+                          {item.icon}
+                        </div>
+                        <motion.span 
+                          animate={{ opacity: isSidebarExpanded ? 1 : 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="font-medium overflow-hidden"
+                        >
+                          {isSidebarExpanded && item.name}
+                        </motion.span>
+                        {isActive(item.path) && isSidebarExpanded && (
                           <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 group`}
-                          >
-                            <span className="font-medium text-sm">
-                              {subItem.name}
-                            </span>
-                            {isActive(subItem.path) && (
-                              <motion.div
-                                layoutId="activeSubNavItem"
-                                className="ml-auto h-2 w-2 rounded-full bg-white"
-                                transition={{
-                                  type: "spring",
-                                  stiffness: 500,
-                                  damping: 30,
-                                }}
-                              />
-                            )}
-                          </motion.div>
-                        </Link>
-                      ))}
-                    </motion.div>
+                            layoutId="activeNavItem"
+                            className="ml-auto h-2 w-2 rounded-full bg-white"
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 30,
+                            }}
+                          />
+                        )}
+                      </motion.div>
+                    </Link>
+                  </TooltipTrigger>
+                  {!isSidebarExpanded && (
+                    <TooltipContent side="right" className="bg-[#4b3526] text-white">
+                      {item.name}
+                    </TooltipContent>
                   )}
-                </>
+                </Tooltip>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 group cursor-pointer ${
+                        pathname.startsWith("/schedule")
+                          ? "bg-[#4b3526]/50"
+                          : "hover:bg-[#4b3526]/70"
+                      } ${!isSidebarExpanded ? 'justify-center' : ''}`}
+                      onClick={isSidebarExpanded ? toggleScheduleMenu : undefined}
+                    >
+                      <div className={`${isSidebarExpanded ? 'mr-3' : ''} text-[#d1c2b8] group-hover:text-white`}>
+                        {item.icon}
+                      </div>
+                      <motion.span 
+                        animate={{ opacity: isSidebarExpanded ? 1 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="font-medium overflow-hidden"
+                      >
+                        {isSidebarExpanded && item.name}
+                      </motion.span>
+                      {isSidebarExpanded && (
+                        <div className="ml-auto">
+                          {isScheduleOpen ? (
+                            <FiChevronDown className="h-4 w-4" />
+                          ) : (
+                            <FiChevronRight className="h-4 w-4" />
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  </TooltipTrigger>
+                  {!isSidebarExpanded && (
+                    <TooltipContent side="right" className="bg-[#4b3526] text-white">
+                      {item.name}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              )}
+              {isScheduleOpen && isSidebarExpanded && item.submenu && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="ml-8 space-y-1 overflow-hidden"
+                >
+                  {item.submenu.map((subItem) => (
+                    <Link href={subItem.path} key={subItem.path}>
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`flex items-center w-full p-2 rounded-lg transition-all duration-200 group`}
+                      >
+                        <span className="font-medium text-sm">
+                          {subItem.name}
+                        </span>
+                        {isActive(subItem.path) && (
+                          <motion.div
+                            layoutId="activeSubNavItem"
+                            className="ml-auto h-2 w-2 rounded-full bg-white"
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 30,
+                            }}
+                          />
+                        )}
+                      </motion.div>
+                    </Link>
+                  ))}
+                </motion.div>
               )}
             </div>
           ))}
@@ -240,15 +286,32 @@ export default function MainLayout({
 
         {/* Logout Button */}
         <div className="mt-auto pt-4 border-t border-[#4b3526]/50">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowLogoutDialog(true)}
-            className="flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-[#4b3526]/50 text-white"
-          >
-            <FiLogOut className="h-5 w-5 mr-3" />
-            <span className="font-medium">Log Out</span>
-          </motion.button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setShowLogoutDialog(true)}
+                className={`flex items-center w-full p-3 rounded-lg transition-all duration-200 hover:bg-[#4b3526]/50 text-white ${
+                  !isSidebarExpanded ? 'justify-center' : ''
+                }`}
+              >
+                <FiLogOut className={`h-5 w-5 ${isSidebarExpanded ? 'mr-3' : ''}`} />
+                <motion.span 
+                  animate={{ opacity: isSidebarExpanded ? 1 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="font-medium overflow-hidden"
+                >
+                  {isSidebarExpanded && 'Log Out'}
+                </motion.span>
+              </motion.button>
+            </TooltipTrigger>
+            {!isSidebarExpanded && (
+              <TooltipContent side="right" className="bg-[#4b3526] text-white">
+                Log Out
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
       </motion.aside>
 
