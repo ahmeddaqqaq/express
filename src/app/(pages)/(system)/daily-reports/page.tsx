@@ -15,36 +15,36 @@ import { toast } from "sonner";
 // Utility function to format time duration (assumes input is in minutes or time string)
 const formatTimeDuration = (input: number | string | null): string => {
   if (input === null || input === undefined) return "-";
-  
+
   // If it's a string that looks like HH:MM, return as is
   if (typeof input === "string" && input.includes(":")) {
     return input;
   }
-  
+
   // Convert to number if it's a string
   const minutes = typeof input === "string" ? parseInt(input, 10) : input;
-  
+
   if (isNaN(minutes)) return input?.toString() || "-";
-  
+
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  
+
   if (hours === 0) {
     return `${mins}m`;
   }
-  
+
   return mins === 0 ? `${hours}h` : `${hours}h ${mins}m`;
 };
 
 // Utility function to format time string (HH:MM format)
 const formatTime = (timeString: string | null): string => {
   if (!timeString) return "-";
-  
+
   // If it's already in HH:MM format, return as is
   if (timeString.includes(":")) {
     return timeString;
   }
-  
+
   // If it's a timestamp, extract time
   try {
     const date = new Date(timeString);
@@ -59,8 +59,12 @@ const formatTime = (timeString: string | null): string => {
 };
 
 export default function DailyReportsPage() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(getCurrentBusinessDate());
-  const [reportData, setReportData] = useState<DailyReportResponseDto | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+    getCurrentBusinessDate()
+  );
+  const [reportData, setReportData] = useState<DailyReportResponseDto | null>(
+    null
+  );
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
@@ -88,7 +92,7 @@ export default function DailyReportsPage() {
 
   const handleDownloadPDF = async () => {
     if (!reportData || !selectedDate) return;
-    
+
     setIsGeneratingPDF(true);
     try {
       await generatePDF(reportData, selectedDate);
@@ -112,9 +116,9 @@ export default function DailyReportsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Date Selection Card */}
-        <Card className="lg:col-span-1">
+        <Card className="xl:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FiCalendar className="h-5 w-5" />
@@ -122,13 +126,15 @@ export default function DailyReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className="rounded-md border w-full"
-              disabled={(date) => date > getCurrentBusinessDate()}
-            />
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border w-fit max-w-full"
+                disabled={(date) => date > getCurrentBusinessDate()}
+              />
+            </div>
             <div className="space-y-2">
               <Button
                 onClick={handleGenerateReport}
@@ -153,7 +159,7 @@ export default function DailyReportsPage() {
         </Card>
 
         {/* Report Preview Card */}
-        <Card className="lg:col-span-2">
+        <Card className="xl:col-span-2">
           <CardHeader>
             <CardTitle>Report Preview</CardTitle>
           </CardHeader>
@@ -171,14 +177,17 @@ export default function DailyReportsPage() {
                     Daily Report - {format(selectedDate!, "MMMM dd, yyyy")}
                   </h3>
                   <p className="text-sm text-gray-500">
-                    Generated at: {new Date(reportData.generatedAt).toLocaleString()}
+                    Generated at:{" "}
+                    {new Date(reportData.generatedAt).toLocaleString()}
                   </p>
                 </div>
 
                 {/* Cash Summary */}
                 <div>
-                  <h4 className="font-semibold mb-3 text-[#4b3526]">Cash Summary</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <h4 className="font-semibold mb-3 text-[#4b3526]">
+                    Cash Summary
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-green-50 p-3 rounded-lg">
                       <p className="text-sm text-gray-600">Services Cash</p>
                       <p className="text-lg font-semibold text-green-600">
@@ -208,7 +217,9 @@ export default function DailyReportsPage() {
 
                 {/* Technician Shifts */}
                 <div>
-                  <h4 className="font-semibold mb-3 text-[#4b3526]">Technician Shifts</h4>
+                  <h4 className="font-semibold mb-3 text-[#4b3526]">
+                    Technician Shifts
+                  </h4>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
@@ -225,12 +236,24 @@ export default function DailyReportsPage() {
                       <tbody>
                         {reportData.technicianShifts.map((shift) => (
                           <tr key={shift.technicianId} className="border-b">
-                            <td className="p-2 font-medium">{shift.technicianName}</td>
-                            <td className="p-2">{formatTime(shift.shiftStartTime)}</td>
-                            <td className="p-2">{formatTime(shift.shiftEndTime)}</td>
-                            <td className="p-2">{formatTimeDuration(shift.totalBreakTime)}</td>
-                            <td className="p-2">{formatTimeDuration(shift.totalOvertimeTime)}</td>
-                            <td className="p-2 font-semibold">{formatTimeDuration(shift.totalWorkingTime)}</td>
+                            <td className="p-2 font-medium">
+                              {shift.technicianName}
+                            </td>
+                            <td className="p-2">
+                              {formatTime(shift.shiftStartTime)}
+                            </td>
+                            <td className="p-2">
+                              {formatTime(shift.shiftEndTime)}
+                            </td>
+                            <td className="p-2">
+                              {formatTimeDuration(shift.totalBreakTime)}
+                            </td>
+                            <td className="p-2">
+                              {formatTimeDuration(shift.totalOvertimeTime)}
+                            </td>
+                            <td className="p-2 font-semibold">
+                              {formatTimeDuration(shift.totalWorkingTime)}
+                            </td>
                             <td className="p-2 text-green-600 font-semibold">
                               ${(shift.overtimeCompensation || 0).toFixed(2)}
                             </td>
@@ -243,7 +266,9 @@ export default function DailyReportsPage() {
 
                 {/* Sales Attribution */}
                 <div>
-                  <h4 className="font-semibold mb-3 text-[#4b3526]">Sales Attribution</h4>
+                  <h4 className="font-semibold mb-3 text-[#4b3526]">
+                    Sales Attribution
+                  </h4>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
@@ -261,12 +286,16 @@ export default function DailyReportsPage() {
                           <tr key={sale.userId} className="border-b">
                             <td className="p-2 font-medium">{sale.userName}</td>
                             <td className="p-2">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                sale.userRole === 'SALES_PERSON' 
-                                  ? 'bg-green-100 text-green-800' 
-                                  : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                {sale.userRole === 'SALES_PERSON' ? 'Sales Person' : sale.userRole}
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  sale.userRole === "SALES_PERSON"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {sale.userRole === "SALES_PERSON"
+                                  ? "Sales Person"
+                                  : sale.userRole}
                               </span>
                             </td>
                             <td className="p-2">
@@ -289,13 +318,20 @@ export default function DailyReportsPage() {
                               ${(sale.addOnCommission || 0).toFixed(2)}
                             </td>
                             <td className="p-2 font-bold text-purple-600">
-                              ${((sale.services.total || 0) + (sale.addOns.total || 0)).toFixed(2)}
+                              $
+                              {(
+                                (sale.services.total || 0) +
+                                (sale.addOns.total || 0)
+                              ).toFixed(2)}
                             </td>
                           </tr>
                         ))}
                         {reportData.userSales.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="p-4 text-center text-gray-500">
+                            <td
+                              colSpan={6}
+                              className="p-4 text-center text-gray-500"
+                            >
                               No sales data available for this date
                             </td>
                           </tr>
@@ -307,26 +343,64 @@ export default function DailyReportsPage() {
                             <td className="p-2"></td>
                             <td className="p-2">
                               <div className="text-xs">
-                                {reportData.userSales.reduce((sum, sale) => sum + (sale.services.count || 0), 0)} sold
+                                {reportData.userSales.reduce(
+                                  (sum, sale) =>
+                                    sum + (sale.services.count || 0),
+                                  0
+                                )}{" "}
+                                sold
                               </div>
                               <div className="text-green-600">
-                                ${reportData.userSales.reduce((sum, sale) => sum + (sale.services.total || 0), 0).toFixed(2)}
+                                $
+                                {reportData.userSales
+                                  .reduce(
+                                    (sum, sale) =>
+                                      sum + (sale.services.total || 0),
+                                    0
+                                  )
+                                  .toFixed(2)}
                               </div>
                             </td>
                             <td className="p-2">
                               <div className="text-xs">
-                                {reportData.userSales.reduce((sum, sale) => sum + (sale.addOns.count || 0), 0)} sold
+                                {reportData.userSales.reduce(
+                                  (sum, sale) => sum + (sale.addOns.count || 0),
+                                  0
+                                )}{" "}
+                                sold
                               </div>
                               <div className="text-blue-600">
-                                ${reportData.userSales.reduce((sum, sale) => sum + (sale.addOns.total || 0), 0).toFixed(2)}
+                                $
+                                {reportData.userSales
+                                  .reduce(
+                                    (sum, sale) =>
+                                      sum + (sale.addOns.total || 0),
+                                    0
+                                  )
+                                  .toFixed(2)}
                               </div>
                             </td>
                             <td className="p-2 text-orange-600">
-                              ${reportData.userSales.reduce((sum, sale) => sum + (sale.addOnCommission || 0), 0).toFixed(2)}
+                              $
+                              {reportData.userSales
+                                .reduce(
+                                  (sum, sale) =>
+                                    sum + (sale.addOnCommission || 0),
+                                  0
+                                )
+                                .toFixed(2)}
                             </td>
                             <td className="p-2 text-purple-600">
-                              ${reportData.userSales.reduce((sum, sale) => 
-                                sum + (sale.services.total || 0) + (sale.addOns.total || 0), 0).toFixed(2)}
+                              $
+                              {reportData.userSales
+                                .reduce(
+                                  (sum, sale) =>
+                                    sum +
+                                    (sale.services.total || 0) +
+                                    (sale.addOns.total || 0),
+                                  0
+                                )
+                                .toFixed(2)}
                             </td>
                           </tr>
                         )}

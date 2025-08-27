@@ -286,7 +286,7 @@ export function AppointmentsCard({
       >
         <div className="flex flex-col space-y-2 relative">
           {/* Header Section */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               {/* Customer Info */}
               <div className="flex items-center gap-2">
@@ -297,7 +297,7 @@ export function AppointmentsCard({
                   <h3 className="font-semibold text-gray-900 text-sm truncate">
                     {appointment.customer.fName} {appointment.customer.lName}
                   </h3>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p className="text-xs text-gray-500 truncate break-all">
                     {appointment.customer.mobileNumber}
                   </p>
                 </div>
@@ -305,16 +305,16 @@ export function AppointmentsCard({
 
               {/* Customer Status Badges */}
               {appointment.customer.isBlacklisted && (
-                <div className="flex items-center gap-1 mt-1">
+                <div className="flex flex-wrap items-center gap-1 mt-1">
                   {appointment.customer.isBlacklisted && (
-                    <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[0.6rem] font-bold rounded-full animate-pulse">
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[0.6rem] font-bold rounded-full animate-pulse flex-shrink-0">
                       BLACKLISTED
                     </span>
                   )}
                   {/* Blacklist Toggle Button */}
                   {appointment.customer.isBlacklisted ? (
                     <button
-                      className="px-2 py-0.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 text-[0.6rem] rounded-full transition-all font-medium"
+                      className="px-2 py-0.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 text-[0.6rem] rounded-full transition-all font-medium flex-shrink-0"
                       onClick={handleBlacklistToggle}
                       disabled={isTogglingBlacklist}
                     >
@@ -322,7 +322,7 @@ export function AppointmentsCard({
                     </button>
                   ) : (
                     <button
-                      className="px-2 py-0.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-500 text-[0.6rem] rounded-full transition-all"
+                      className="px-2 py-0.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-500 text-[0.6rem] rounded-full transition-all flex-shrink-0"
                       onClick={handleBlacklistToggle}
                       disabled={isTogglingBlacklist}
                     >
@@ -363,11 +363,11 @@ export function AppointmentsCard({
 
           {/* OTP Display (only for completed) - Positioned absolutely */}
           {appointment.OTP && status === "completed" && (
-            <div className="absolute top-2 right-2 bg-gradient-to-br from-gray-900 to-gray-700 text-white px-2 py-1 rounded-lg text-center shadow-md z-10">
+            <div className="absolute top-2 right-2 bg-gradient-to-br from-gray-900 to-gray-700 text-white px-2 py-1 rounded-lg text-center shadow-md z-10 max-w-[80px] overflow-hidden">
               <div className="text-[0.6rem] text-gray-300 uppercase tracking-wider">
                 OTP
               </div>
-              <div className="text-sm font-bold tracking-wider font-mono">
+              <div className="text-sm font-bold tracking-wider font-mono truncate">
                 {appointment.OTP}
               </div>
             </div>
@@ -386,8 +386,8 @@ export function AppointmentsCard({
             )}
 
           {/* Vehicle & Service Card */}
-          <div className="bg-gray-50 rounded-lg p-2">
-            <div className="flex items-center gap-2">
+          <div className="bg-gray-50 rounded-lg p-2 overflow-hidden">
+            <div className="flex items-center gap-2 min-w-0">
               {/* Vehicle Logo */}
               <div className="flex-shrink-0">
                 {appointment.car.brand.logoUrl ? (
@@ -415,10 +415,10 @@ export function AppointmentsCard({
                 <h4 className="font-semibold text-gray-900 text-sm truncate">
                   {appointment.car.brand.name} {appointment.car.model.name}
                 </h4>
-                <p className="text-xs text-gray-600 truncate">
+                <p className="text-xs text-gray-600 truncate break-words">
                   {appointment.service.name}
                 </p>
-                <p className="text-[0.6rem] text-gray-500 mt-0.5">
+                <p className="text-[0.6rem] text-gray-500 mt-0.5 truncate">
                   {appointment.car.year} • {appointment.car.color}
                 </p>
               </div>
@@ -430,15 +430,17 @@ export function AppointmentsCard({
             {/* Status Badges */}
             <div className="flex flex-wrap items-center gap-1">
               {assignedTechnician && (
-                <div className="flex items-center text-[0.6rem] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">
-                  <FiUser className="mr-1 h-2 w-2" />
-                  {assignedTechnician.fName} {assignedTechnician.lName}
+                <div className="flex items-center text-[0.6rem] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
+                  <FiUser className="mr-1 h-2 w-2 flex-shrink-0" />
+                  <span className="truncate max-w-[120px]">
+                    {assignedTechnician.fName} {assignedTechnician.lName}
+                  </span>
                 </div>
               )}
 
               {timeDisplay ? (
                 <div
-                  className={`flex items-center text-[0.6rem] px-1.5 py-0.5 rounded-full font-bold ${
+                  className={`flex items-center text-[0.6rem] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0 ${
                     timeDisplay.isOverdue
                       ? "bg-red-100 text-red-700 animate-pulse"
                       : timeDisplay.time <= 300
@@ -446,40 +448,42 @@ export function AppointmentsCard({
                       : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  <FiClock className="mr-1 h-2 w-2" />
+                  <FiClock className="mr-1 h-2 w-2 flex-shrink-0" />
                   {timeDisplay.isCountUp ? "+" : ""}
                   {formatCountdown(timeDisplay.time)}
                 </div>
               ) : (
-                <div className="flex items-center text-[0.6rem] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded-full">
-                  <FiClock className="mr-1 h-2 w-2" />
-                  {currentStatus.timePrefix}
-                  {formatTime(
-                    status === "scheduled"
-                      ? appointment.createdAt
-                      : appointment.updatedAt
-                  )}
+                <div className="flex items-center text-[0.6rem] bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                  <FiClock className="mr-1 h-2 w-2 flex-shrink-0" />
+                  <span className="truncate">
+                    {currentStatus.timePrefix}
+                    {formatTime(
+                      status === "scheduled"
+                        ? appointment.createdAt
+                        : appointment.updatedAt
+                    )}
+                  </span>
                 </div>
               )}
 
               {appointment.isPaid && (
-                <div className="flex items-center text-[0.6rem] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">
-                  <FiDollarSign className="mr-1 h-2 w-2" />
+                <div className="flex items-center text-[0.6rem] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">
+                  <FiDollarSign className="mr-1 h-2 w-2 flex-shrink-0" />
                   PAID
                 </div>
               )}
 
               {appointment.isPulled && (
-                <div className="flex items-center text-[0.6rem] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">
-                  <FiTruck className="mr-1 h-2 w-2" />
+                <div className="flex items-center text-[0.6rem] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">
+                  <FiTruck className="mr-1 h-2 w-2 flex-shrink-0" />
                   PULLED
                 </div>
               )}
 
               {appointment.deliverTime && (
-                <div className="flex items-center text-[0.6rem] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">
-                  <FiTruck className="mr-1 h-2 w-2" />
-                  {appointment.deliverTime}
+                <div className="flex items-center text-[0.6rem] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
+                  <FiTruck className="mr-1 h-2 w-2 flex-shrink-0" />
+                  <span className="truncate max-w-[60px]">{appointment.deliverTime}</span>
                 </div>
               )}
             </div>
@@ -490,13 +494,13 @@ export function AppointmentsCard({
                 {appointment.addOns.map((addOn, index) => (
                   <div
                     key={addOn.id}
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded text-[0.6rem] font-semibold shadow-sm animate-pulse"
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 rounded text-[0.6rem] font-semibold shadow-sm animate-pulse flex-shrink-0"
                     style={{
                       animationDelay: `${index * 0.3}s`,
                       animationDuration: "2s",
                     }}
                   >
-                    {addOn.name}
+                    <span className="truncate max-w-[100px]">{addOn.name}</span>
                   </div>
                 ))}
               </div>
@@ -504,15 +508,17 @@ export function AppointmentsCard({
 
             {/* Meta Info */}
             {appointment.createdByUser && (
-              <div className="text-[0.6rem] text-gray-500 flex items-center bg-gray-50 px-2 py-1 rounded">
-                <FiUser className="mr-1 h-2 w-2" />
-                Created by {appointment.createdByUser.name || "Unknown"}
+              <div className="text-[0.6rem] text-gray-500 flex items-center bg-gray-50 px-2 py-1 rounded overflow-hidden">
+                <FiUser className="mr-1 h-2 w-2 flex-shrink-0" />
+                <span className="truncate">
+                  Created by {appointment.createdByUser.name || "Unknown"}
+                </span>
               </div>
             )}
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1">
             {/* Primary Action Button */}
             {(status === "scheduled" ||
               status === "stageOne" ||
@@ -520,7 +526,7 @@ export function AppointmentsCard({
               status === "stageThree") && (
               <Button
                 variant="default"
-                className={`flex-1 h-8 ${currentStatus.buttonColor} rounded-lg font-medium text-xs shadow-sm hover:shadow transition-all`}
+                className={`flex-1 min-w-0 h-8 ${currentStatus.buttonColor} rounded-lg font-medium text-xs shadow-sm hover:shadow transition-all`}
                 onClick={() =>
                   status === "scheduled"
                     ? handleStatusChangeClick(
@@ -537,19 +543,21 @@ export function AppointmentsCard({
               >
                 {movingItemId === appointment.id ? (
                   <>
-                    <FaDotCircle className="h-3 w-3 animate-spin mr-1.5" />
-                    Moving...
+                    <FaDotCircle className="h-3 w-3 animate-spin mr-1" />
+                    <span className="truncate">Moving...</span>
                   </>
                 ) : (
                   <>
-                    <FiArrowRight className="h-3 w-3 mr-1.5" />
-                    {status === "scheduled"
-                      ? "Phase 1"
-                      : status === "stageOne"
-                      ? "Phase 2"
-                      : status === "stageTwo"
-                      ? "Phase 3"
-                      : "Complete"}
+                    <FiArrowRight className="h-3 w-3 mr-1 flex-shrink-0" />
+                    <span className="truncate">
+                      {status === "scheduled"
+                        ? "Phase 1"
+                        : status === "stageOne"
+                        ? "Phase 2"
+                        : status === "stageTwo"
+                        ? "Phase 3"
+                        : "Complete"}
+                    </span>
                   </>
                 )}
               </Button>
@@ -564,7 +572,7 @@ export function AppointmentsCard({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-8 w-8 bg-emerald-400 hover:bg-emerald-500 text-white border-0 rounded-lg shadow-sm hover:shadow"
+                  className="h-8 w-8 bg-emerald-400 hover:bg-emerald-500 text-white border-0 rounded-lg shadow-sm hover:shadow flex-shrink-0"
                   onClick={() => setIsImageDialogOpen(true)}
                   disabled={!!movingItemId}
                   title="Add Images"
@@ -578,7 +586,7 @@ export function AppointmentsCard({
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-8 w-8 bg-blue-400 hover:bg-blue-500 text-white border-0 rounded-lg shadow-sm hover:shadow"
+                    className="h-8 w-8 bg-blue-400 hover:bg-blue-500 text-white border-0 rounded-lg shadow-sm hover:shadow flex-shrink-0"
                     onClick={() => setIsTechnicianDialogOpen(true)}
                     disabled={!!movingItemId}
                     title="Assign Technician"
@@ -590,7 +598,7 @@ export function AppointmentsCard({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-8 w-8 bg-orange-400 hover:bg-orange-500 text-white border-0 rounded-lg shadow-sm hover:shadow"
+                  className="h-8 w-8 bg-orange-400 hover:bg-orange-500 text-white border-0 rounded-lg shadow-sm hover:shadow flex-shrink-0"
                   onClick={() => setIsEditDialogOpen(true)}
                   disabled={!!movingItemId}
                   title="Edit Order"
@@ -605,7 +613,7 @@ export function AppointmentsCard({
               <Button
                 variant="outline"
                 size="icon"
-                className="h-8 w-8 bg-red-400 hover:bg-red-500 text-white border-0 rounded-lg shadow-sm hover:shadow"
+                className="h-8 w-8 bg-red-400 hover:bg-red-500 text-white border-0 rounded-lg shadow-sm hover:shadow flex-shrink-0"
                 onClick={handleCancelClick}
                 disabled={!!movingItemId || isCancelling}
                 title="Cancel Order"
