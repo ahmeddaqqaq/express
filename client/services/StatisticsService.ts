@@ -267,4 +267,24 @@ export class StatisticsService {
             },
         });
     }
+    /**
+     * @returns any Returns number of completed visits for a specific customer
+     * @throws ApiError
+     */
+    public static statisticsControllerGetNumberOfVisitsPerCustomer({
+        customerId,
+    }: {
+        customerId: string,
+    }): CancelablePromise<{
+        customerId?: string;
+        visitCount?: number;
+    }> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/customer/{customerId}/visits',
+            path: {
+                'customerId': customerId,
+            },
+        });
+    }
 }

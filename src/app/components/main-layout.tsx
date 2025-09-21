@@ -15,7 +15,7 @@ import {
   FiGrid,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
-import { FaCarAlt } from "react-icons/fa";
+import { FaCarAlt, FaIdCard } from "react-icons/fa";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -79,6 +79,11 @@ export default function MainLayout({
       name: "Vehicles",
       path: "/vehicles",
       icon: <FaCarAlt className="h-5 w-5" />,
+    },
+    {
+      name: "Subscription",
+      path: "/subscription",
+      icon: <FaIdCard className="h-5 w-5" />,
     },
   ];
 

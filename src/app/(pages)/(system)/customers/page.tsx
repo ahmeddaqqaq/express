@@ -8,6 +8,7 @@ import {
   CarService,
   CustomerResponse,
   CustomerService,
+  StatisticsService,
 } from "../../../../../client";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,7 +74,8 @@ export default function Customers() {
   const [customers, setCustomers] = useState<CustomerResponse[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCarDialogOpen, setIsCarDialogOpen] = useState(false);
-  const [isEditCustomerDialogOpen, setIsEditCustomerDialogOpen] = useState(false);
+  const [isEditCustomerDialogOpen, setIsEditCustomerDialogOpen] =
+    useState(false);
   const [isEditCarDialogOpen, setIsEditCarDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] =
     useState<CustomerResponse | null>(null);
@@ -89,7 +91,8 @@ export default function Customers() {
   const [modelTotalCount, setModelTotalCount] = useState(0);
   const modelItemsPerPage = 10;
   const [models, setModels] = useState<any[]>([]);
-  
+  const [actualVisitCount, setActualVisitCount] = useState<number | null>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
@@ -236,17 +239,22 @@ export default function Customers() {
     }
 
     // Use brand models with client-side search and pagination
-    const selectedBrand = brands.find(b => b.id === brandId);
+    const selectedBrand = brands.find((b) => b.id === brandId);
     if (selectedBrand?.models) {
       // Filter models based on search query
-      const filteredModels = selectedBrand.models.filter(model => 
-        !modelSearchQuery || model.name.toLowerCase().includes(modelSearchQuery.toLowerCase())
+      const filteredModels = selectedBrand.models.filter(
+        (model) =>
+          !modelSearchQuery ||
+          model.name.toLowerCase().includes(modelSearchQuery.toLowerCase())
       );
 
       // Apply pagination
       const skip = (modelCurrentPage - 1) * modelItemsPerPage;
-      const paginatedModels = filteredModels.slice(skip, skip + modelItemsPerPage);
-      
+      const paginatedModels = filteredModels.slice(
+        skip,
+        skip + modelItemsPerPage
+      );
+
       setModels(paginatedModels);
       setModelTotalCount(filteredModels.length);
     } else {
@@ -264,7 +272,12 @@ export default function Customers() {
     if (selectedBrandId) {
       fetchModels(selectedBrandId);
     }
-  }, [editCarForm.watch("brandId"), modelSearchQuery, modelCurrentPage, brands]);
+  }, [
+    editCarForm.watch("brandId"),
+    modelSearchQuery,
+    modelCurrentPage,
+    brands,
+  ]);
 
   const totalPages = Math.ceil(totalCustomers / itemsPerPage);
 
@@ -281,9 +294,23 @@ export default function Customers() {
     }
   };
 
-  function openCustomerDrawer(customer: CustomerResponse) {
+  async function openCustomerDrawer(customer: CustomerResponse) {
     setSelectedCustomer(customer);
     setIsDrawerOpen(true);
+
+    // Fetch actual visit count from API
+    try {
+      const visitResponse =
+        await StatisticsService.statisticsControllerGetNumberOfVisitsPerCustomer(
+          {
+            customerId: customer.id,
+          }
+        );
+      setActualVisitCount(visitResponse.visitCount || 0);
+    } catch (error) {
+      console.error("Error fetching visit count:", error);
+      setActualVisitCount(null);
+    }
   }
 
   const openEditCustomerDialog = (customer: CustomerResponse) => {
@@ -324,7 +351,8 @@ export default function Customers() {
       fetchCustomers();
       // Update selected customer in drawer if open
       if (isDrawerOpen) {
-        const updatedCustomers = await CustomerService.customerControllerFindMany({});
+        const updatedCustomers =
+          await CustomerService.customerControllerFindMany({});
         const updatedCustomer = updatedCustomers.data.find(
           (c) => c.id === selectedCustomer!.id
         );
@@ -356,7 +384,8 @@ export default function Customers() {
       fetchCustomers();
       // Update selected customer in drawer if open
       if (isDrawerOpen) {
-        const updatedCustomers = await CustomerService.customerControllerFindMany({});
+        const updatedCustomers =
+          await CustomerService.customerControllerFindMany({});
         const updatedCustomer = updatedCustomers.data.find(
           (c) => c.id === selectedCustomer!.id
         );
@@ -459,7 +488,6 @@ export default function Customers() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Mobile</TableHead>
-            <TableHead>Visits</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Blacklist</TableHead>
             <TableHead>Actions</TableHead>
@@ -492,7 +520,6 @@ export default function Customers() {
                   </div>
                 </TableCell>
                 <TableCell>{customer.mobileNumber}</TableCell>
-                <TableCell>{customer.count}</TableCell>
                 <TableCell>
                   <span
                     className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -521,9 +548,11 @@ export default function Customers() {
                       onClick={async (e) => {
                         e.stopPropagation();
                         try {
-                          await CustomerService.customerControllerToggleBlacklist({
-                            requestBody: { id: customer.id }
-                          });
+                          await CustomerService.customerControllerToggleBlacklist(
+                            {
+                              requestBody: { id: customer.id },
+                            }
+                          );
                           await fetchCustomers();
                         } catch (error) {
                           console.error("Error toggling blacklist:", error);
@@ -536,14 +565,16 @@ export default function Customers() {
                           : "text-red-600 hover:text-red-700"
                       }`}
                     >
-                      {customer.isBlacklisted ? "Remove from Blacklist" : "Add to Blacklist"}
+                      {customer.isBlacklisted
+                        ? "Remove from Blacklist"
+                        : "Add to Blacklist"}
                     </Button>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="icon"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -561,7 +592,7 @@ export default function Customers() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="text-center">
+              <TableCell colSpan={5} className="text-center">
                 No Customers Found
               </TableCell>
             </TableRow>
@@ -635,17 +666,23 @@ export default function Customers() {
                   </div>
 
                   {/* Blacklist Status */}
-                  <div className={`mb-6 p-4 rounded-lg border-2 ${
-                    selectedCustomer.isBlacklisted 
-                      ? "bg-red-50 border-red-200" 
-                      : "bg-green-50 border-green-200"
-                  }`}>
+                  <div
+                    className={`mb-6 p-4 rounded-lg border-2 ${
+                      selectedCustomer.isBlacklisted
+                        ? "bg-red-50 border-red-200"
+                        : "bg-green-50 border-green-200"
+                    }`}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         {selectedCustomer.isBlacklisted ? (
-                          <span className="text-red-600 font-bold text-lg">⚠️ BLACKLISTED</span>
+                          <span className="text-red-600 font-bold text-lg">
+                            ⚠️ BLACKLISTED
+                          </span>
                         ) : (
-                          <span className="text-green-600 font-medium">✅ Normal Customer</span>
+                          <span className="text-green-600 font-medium">
+                            ✅ Normal Customer
+                          </span>
                         )}
                       </div>
                       <Button
@@ -653,13 +690,20 @@ export default function Customers() {
                         size="sm"
                         onClick={async () => {
                           try {
-                            await CustomerService.customerControllerToggleBlacklist({
-                              requestBody: { id: selectedCustomer.id }
-                            });
+                            await CustomerService.customerControllerToggleBlacklist(
+                              {
+                                requestBody: { id: selectedCustomer.id },
+                              }
+                            );
                             await fetchCustomers();
                             // Update selected customer in drawer
-                            const updatedCustomers = await CustomerService.customerControllerFindMany({});
-                            const updatedCustomer = updatedCustomers.data.find(c => c.id === selectedCustomer.id);
+                            const updatedCustomers =
+                              await CustomerService.customerControllerFindMany(
+                                {}
+                              );
+                            const updatedCustomer = updatedCustomers.data.find(
+                              (c) => c.id === selectedCustomer.id
+                            );
                             if (updatedCustomer) {
                               setSelectedCustomer(updatedCustomer);
                             }
@@ -674,7 +718,9 @@ export default function Customers() {
                             : "text-red-600 border-red-600 hover:bg-red-50"
                         }`}
                       >
-                        {selectedCustomer.isBlacklisted ? "Remove from Blacklist" : "Add to Blacklist"}
+                        {selectedCustomer.isBlacklisted
+                          ? "Remove from Blacklist"
+                          : "Add to Blacklist"}
                       </Button>
                     </div>
                   </div>
@@ -697,7 +743,9 @@ export default function Customers() {
                     <div className="p-3 bg-gray-50 rounded-lg">
                       <p className="text-sm text-gray-500">Total Visits</p>
                       <p className="text-xl font-bold">
-                        {selectedCustomer.count}
+                        {actualVisitCount !== null
+                          ? actualVisitCount
+                          : selectedCustomer.count}
                       </p>
                     </div>
                     <div className="p-3 bg-gray-50 rounded-lg">
@@ -892,13 +940,14 @@ export default function Customers() {
       </Drawer>
 
       {/* Edit Customer Dialog */}
-      <Dialog open={isEditCustomerDialogOpen} onOpenChange={setIsEditCustomerDialogOpen}>
+      <Dialog
+        open={isEditCustomerDialogOpen}
+        onOpenChange={setIsEditCustomerDialogOpen}
+      >
         <DialogContent className="min-w-[500px]">
           <DialogHeader>
             <DialogTitle>Edit Customer</DialogTitle>
-            <DialogDescription>
-              Update customer information
-            </DialogDescription>
+            <DialogDescription>Update customer information</DialogDescription>
           </DialogHeader>
           <Form {...editForm}>
             <form
@@ -958,9 +1007,7 @@ export default function Customers() {
         <DialogContent className="min-w-[500px]">
           <DialogHeader>
             <DialogTitle>Edit Vehicle</DialogTitle>
-            <DialogDescription>
-              Update vehicle information
-            </DialogDescription>
+            <DialogDescription>Update vehicle information</DialogDescription>
           </DialogHeader>
           <Form {...editCarForm}>
             <form
@@ -1031,7 +1078,11 @@ export default function Customers() {
                         itemsPerPage={modelItemsPerPage}
                         onPageChange={setModelCurrentPage}
                         disabled={!selectedBrandId}
-                        emptyMessage={!selectedBrandId ? "Select a brand first" : "No models found."}
+                        emptyMessage={
+                          !selectedBrandId
+                            ? "Select a brand first"
+                            : "No models found."
+                        }
                       />
                       <FormMessage />
                     </FormItem>

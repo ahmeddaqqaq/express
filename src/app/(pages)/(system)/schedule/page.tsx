@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FiPlus, FiCalendar, FiCheckCircle } from "react-icons/fi";
+import { QrCode } from "lucide-react";
 import { TransactionResponse, TransactionService } from "../../../../../client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
@@ -13,16 +14,24 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { getCurrentBusinessDate, getBusinessDayString, getBusinessDayInfo } from "@/lib/date-utils";
+import {
+  getCurrentBusinessDate,
+  getBusinessDayString,
+  getBusinessDayInfo,
+} from "@/lib/date-utils";
 import { AddTicketDialog } from "./components/schedule/add-ticket-dialog";
 import { ScheduleColumns } from "./components/schedule/schedule-columns";
 import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-drawer";
+import ScanQrDialog from "./components/scan-qr-dialog";
+import SubscriptionDialog from "./components/subscription-dialog";
 
 export default function Schedule() {
   const [currentDate, setCurrentDate] = useState<string>(
     getBusinessDayString()
   );
-  const [selectedDate, setSelectedDate] = useState<Date>(getCurrentBusinessDate());
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    getCurrentBusinessDate()
+  );
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [scheduled, setScheduled] = useState<TransactionResponse[]>([]);
   const [stageOne, setStageOne] = useState<TransactionResponse[]>([]);
@@ -34,9 +43,12 @@ export default function Schedule() {
   const [movingItemId, setMovingItemId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCompletedDrawerOpen, setIsCompletedDrawerOpen] = useState(false);
+  const [isScanQrDialogOpen, setIsScanQrDialogOpen] = useState(false);
+  const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleSuccess = () => {
+    console.log("handleSuccess called, refreshing kanban...");
     setRefreshKey((prev) => prev + 1);
   };
 
@@ -123,11 +135,11 @@ export default function Schedule() {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      timeZone: 'Asia/Amman',
-      hour: "2-digit", 
+    return date.toLocaleTimeString("en-US", {
+      timeZone: "Asia/Amman",
+      hour: "2-digit",
       minute: "2-digit",
-      hour12: true
+      hour12: true,
     });
   };
 
@@ -253,15 +265,15 @@ export default function Schedule() {
     <div className="p-2">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <div className="text-2xl font-bold text-gray-800">
-            Tickets ({format(new Date(currentDate), "MMMM d, yyyy")})
-          </div>
+          <div className="text-2xl font-bold text-gray-800">Tickets</div>
           {currentDate === getBusinessDayString() && (
-            <div className={`text-sm px-2 py-1 rounded-full font-medium ${
-              getBusinessDayInfo().isOvernightPeriod 
-                ? 'bg-purple-100 text-purple-800' 
-                : 'bg-blue-100 text-blue-800'
-            }`}>
+            <div
+              className={`text-sm px-2 py-1 rounded-full font-medium ${
+                getBusinessDayInfo().isOvernightPeriod
+                  ? "bg-purple-100 text-purple-800"
+                  : "bg-blue-100 text-blue-800"
+              }`}
+            >
               {getBusinessDayInfo().displayText}
             </div>
           )}
@@ -271,7 +283,7 @@ export default function Schedule() {
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-60 justify-start text-left font-normal",
+                    "w-72 justify-start text-left font-normal",
                     !selectedDate && "text-muted-foreground"
                   )}
                 >
@@ -317,6 +329,10 @@ export default function Schedule() {
           </div>
         </div>
         <div className="flex gap-3">
+          <Button onClick={() => setIsSubscriptionDialogOpen(true)}>
+            <FiPlus />
+            <span>SUBSCRIPTION</span>
+          </Button>
           <Button
             variant="outline"
             onClick={() => setIsCompletedDrawerOpen(true)}
@@ -326,6 +342,14 @@ export default function Schedule() {
             <span>
               Completed ({completed.length}) | Cancelled ({cancelled.length})
             </span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsScanQrDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Scan</span>
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
@@ -362,6 +386,17 @@ export default function Schedule() {
         movingItemId={movingItemId}
         handleStatusChange={handleStatusChange}
         formatTime={formatTime}
+      />
+
+      <ScanQrDialog
+        open={isScanQrDialogOpen}
+        onOpenChange={setIsScanQrDialogOpen}
+        onSuccess={handleSuccess}
+      />
+
+      <SubscriptionDialog
+        open={isSubscriptionDialogOpen}
+        onOpenChange={setIsSubscriptionDialogOpen}
       />
     </div>
   );
