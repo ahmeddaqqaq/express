@@ -54,7 +54,6 @@ export type { PeakHoursResponse } from './models/PeakHoursResponse';
 export { PriceByCarType } from './models/PriceByCarType';
 export type { PurchaseSubscriptionDto } from './models/PurchaseSubscriptionDto';
 export type { RemainingServiceDto } from './models/RemainingServiceDto';
-export type { RenewSubscriptionDto } from './models/RenewSubscriptionDto';
 export type { ResetPasswordDto } from './models/ResetPasswordDto';
 export type { RevenueSummary } from './models/RevenueSummary';
 export type { SalesManyResponse } from './models/SalesManyResponse';
