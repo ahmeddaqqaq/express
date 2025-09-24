@@ -58,7 +58,7 @@ interface QRSubscriptionData {
     usageHistory: Array<any>;
   }>;
 }
-import { Html5QrcodeScanner } from "html5-qrcode";
+import jsQR from "jsqr";
 
 interface ConfirmationModalProps {
   open: boolean;
@@ -137,107 +137,142 @@ export default function ScanQrDialog({
     serviceName: string;
   }>({ open: false, serviceId: "", serviceName: "" });
 
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
-  const scannerContainerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Clean up scanner when dialog closes or component unmounts
+    // Clean up camera when dialog closes or component unmounts
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch((error) => {
-          console.error("Failed to clear scanner", error);
-        });
-        scannerRef.current = null;
-      }
+      stopCamera();
     };
   }, []);
 
   useEffect(() => {
-    if (open && scanning && scannerContainerRef.current) {
-      startScanner();
+    if (scanning && videoRef.current) {
+      startCamera();
     } else {
-      stopScanner();
+      stopCamera();
     }
-  }, [open, scanning]);
+  }, [scanning]);
 
-  const startScanner = () => {
-    if (!scannerContainerRef.current) return;
-
-    scannerContainerRef.current.innerHTML = "";
-    setError("");
+  const startCamera = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
 
     try {
-      scannerRef.current = new Html5QrcodeScanner(
-        "scan-qr-container",
-        {
-          fps: 10,
-          qrbox: function (viewfinderWidth, viewfinderHeight) {
-            const minEdgePercentage = 0.7;
-            const qrboxSize = Math.floor(
-              Math.min(viewfinderWidth, viewfinderHeight) * minEdgePercentage
-            );
-            return {
-              width: qrboxSize,
-              height: qrboxSize,
-            };
-          },
-          aspectRatio: 1.0,
-          supportedScanTypes: [],
-          rememberLastUsedCamera: true,
-          showTorchButtonIfSupported: true,
-          showZoomSliderIfSupported: true,
-        },
-        false
-      );
+      setError("");
 
-      scannerRef.current.render(
-        (decodedText) => {
-          setScannedCode(decodedText);
+      const constraints = {
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      videoRef.current.srcObject = stream;
+      
+      await new Promise((resolve) => {
+        videoRef.current!.onloadedmetadata = resolve;
+      });
+      
+      await videoRef.current.play();
+      
+      // Start QR code detection
+      scanForQRCode();
+    } catch (error: any) {
+      console.error("Failed to start camera:", error);
+      
+      if (error.name === 'NotAllowedError') {
+        setError("Camera permission denied. Please allow camera access in your browser.");
+        setScanning(false);
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        setError("No camera found. Please ensure your device has a camera.");
+        setScanning(false);
+      } else if (error.name === 'NotReadableError') {
+        setError("Camera is being used by another application. Please close other camera apps and try again.");
+        setScanning(false);
+      } else if (error.name === 'OverconstrainedError') {
+        setError("Camera constraints not supported. Trying with basic settings...");
+        // Try again with basic constraints
+        try {
+          const basicStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          streamRef.current = basicStream;
+          videoRef.current.srcObject = basicStream;
+          await videoRef.current.play();
+          scanForQRCode();
+          return;
+        } catch (retryError) {
+          setError("Camera not supported on this device.");
           setScanning(false);
-          setError("");
-          fetchSubscriptionData(decodedText);
-        },
-        (errorMessage) => {
-          if (
-            !errorMessage.includes("No MultiFormat Readers") &&
-            !errorMessage.includes("QR code parse error")
-          ) {
-            console.error("QR Scan error:", errorMessage);
-          }
         }
-      );
-
-      // Apply custom styles to make camera full width
-      setTimeout(() => {
-        const scannerContainer = document.getElementById("scan-qr-container");
-        if (scannerContainer) {
-          const videoElements = scannerContainer.querySelectorAll("video");
-          videoElements.forEach((video) => {
-            video.style.width = "100%";
-            video.style.height = "100%";
-            video.style.objectFit = "cover";
-          });
-
-          const readerDiv = scannerContainer.querySelector(
-            "#html5-qrcode-scanner"
-          );
-          if (readerDiv) {
-            (readerDiv as HTMLElement).style.width = "100%";
-          }
-        }
-      }, 500);
-    } catch (error) {
-      console.error("Failed to initialize scanner:", error);
-      setError("Failed to access camera. Please check permissions.");
+      } else {
+        setError(`Camera error: ${error.message || error.toString()}`);
+        setScanning(false);
+      }
     }
   };
 
-  const stopScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear().catch((error) => {
-        console.error("Failed to clear scanner", error);
-      });
-      scannerRef.current = null;
+  const scanForQRCode = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    // Check if we should continue scanning
+    if (!scanning) {
+      return;
+    }
+
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    const video = videoRef.current;
+
+    if (!context || video.readyState !== video.HAVE_ENOUGH_DATA) {
+      // Continue trying until video is ready
+      animationRef.current = requestAnimationFrame(scanForQRCode);
+      return;
+    }
+
+    try {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (code) {
+        setScannedCode(code.data);
+        setScanning(false);
+        setError("");
+        fetchSubscriptionData(code.data);
+        return;
+      }
+    } catch (error) {
+      console.log("QR scan frame error:", error);
+      // Don't stop scanning on frame errors, just continue
+    }
+
+    // Continue scanning only if still in scanning mode
+    if (scanning) {
+      animationRef.current = requestAnimationFrame(scanForQRCode);
+    }
+  };
+
+  const stopCamera = () => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
   };
 
@@ -350,7 +385,7 @@ export default function ScanQrDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <QrCode className="h-5 w-5" />
@@ -362,7 +397,7 @@ export default function ScanQrDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-6 flex-1 flex flex-col min-h-0">
             {error && (
               <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                 <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
@@ -383,23 +418,28 @@ export default function ScanQrDialog({
 
             {!subscriptionData && (
               <div className="space-y-4">
-                <div
-                  id="scan-qr-container"
-                  ref={scannerContainerRef}
-                  className="w-full h-96 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center"
-                >
-                  {!scanning ? (
+                <div className="w-full h-96 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center relative">
+                  {scanning ? (
+                    <>
+                      <video
+                        ref={videoRef}
+                        className="w-full h-full object-cover"
+                        playsInline
+                        muted
+                        autoPlay
+                      />
+                      <canvas
+                        ref={canvasRef}
+                        className="hidden"
+                      />
+                    </>
+                  ) : (
                     <div className="text-gray-500 dark:text-gray-400 text-center">
                       <Camera className="h-12 w-12 mx-auto mb-3 opacity-50" />
                       <p className="text-lg font-medium mb-2">Ready to Scan</p>
                       <p className="text-sm">
                         Click "Start Camera" to begin scanning
                       </p>
-                    </div>
-                  ) : (
-                    <div className="text-gray-500 dark:text-gray-400 text-center">
-                      <Camera className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>Initializing camera...</p>
                     </div>
                   )}
                 </div>

@@ -8,6 +8,7 @@ import type { AssignQRCodeDto } from '../models/AssignQRCodeDto';
 import type { CreateSubscriptionDto } from '../models/CreateSubscriptionDto';
 import type { CustomerSubscriptionResponseDto } from '../models/CustomerSubscriptionResponseDto';
 import type { PurchaseSubscriptionDto } from '../models/PurchaseSubscriptionDto';
+import type { RenewSubscriptionDto } from '../models/RenewSubscriptionDto';
 import type { SubscriptionResponseDto } from '../models/SubscriptionResponseDto';
 import type { UpdateSubscriptionDto } from '../models/UpdateSubscriptionDto';
 import type { UseServiceDto } from '../models/UseServiceDto';
@@ -121,6 +122,27 @@ export class SubscriptionService {
         });
     }
     /**
+     * Get subscriptions expiring soon (within 3 days by default)
+     * @returns any List of subscriptions expiring soon
+     * @throws ApiError
+     */
+    public static subscriptionControllerGetExpiringSoon({
+        days,
+    }: {
+        /**
+         * Number of days ahead to check (default: 3)
+         */
+        days?: number,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/subscription/expiring-soon',
+            query: {
+                'days': days,
+            },
+        });
+    }
+    /**
      * Get all subscriptions for a customer
      * @returns CustomerSubscriptionResponseDto
      * @throws ApiError
@@ -156,6 +178,27 @@ export class SubscriptionService {
             errors: {
                 400: `Service not available or no remaining uses`,
                 404: `QR code or service not found`,
+            },
+        });
+    }
+    /**
+     * Renew a customer subscription for 30 days
+     * @returns any Subscription renewed successfully. Service counters reset and expiry extended by 30 days.
+     * @throws ApiError
+     */
+    public static subscriptionControllerRenewSubscription({
+        requestBody,
+    }: {
+        requestBody: RenewSubscriptionDto,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/subscription/renew',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Cannot renew inactive subscription or invalid subscription plan`,
+                404: `Customer subscription not found`,
             },
         });
     }
