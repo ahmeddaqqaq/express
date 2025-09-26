@@ -160,6 +160,28 @@ export class SubscriptionService {
         });
     }
     /**
+     * Renew a customer subscription by QR code ID
+     * @returns any Subscription renewed successfully
+     * @throws ApiError
+     */
+    public static subscriptionControllerRenewSubscription({
+        qrCodeId,
+    }: {
+        qrCodeId: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/express/subscription/renew/{qrCodeId}',
+            path: {
+                'qrCodeId': qrCodeId,
+            },
+            errors: {
+                400: `Subscription is not active`,
+                404: `Subscription not found for QR code`,
+            },
+        });
+    }
+    /**
      * Generate new QR codes
      * @returns any QR codes generated successfully
      * @throws ApiError
