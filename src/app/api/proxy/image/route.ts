@@ -9,8 +9,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Image key is required' }, { status: 400 });
     }
 
+    // Get the API base URL, prioritizing production URL
+    const apiBaseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://lionsinternationalco.com'
+      : (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://lionsinternationalco.com');
+
     // Construct the image URL
-    const imageUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://lionsinternationalco.com'}/express/images/serve/${key}`;
+    const imageUrl = `${apiBaseUrl}/express/images/serve/${key}`;
+    
+    console.log('Proxying image request:', {
+      key,
+      imageUrl,
+      apiBaseUrl,
+      environment: process.env.NODE_ENV,
+      hasCookies: !!request.headers.get('cookie')
+    });
     
     // Forward all cookies and headers from the original request
     const imageResponse = await fetch(imageUrl, {
@@ -22,8 +35,19 @@ export async function GET(request: NextRequest) {
       credentials: 'include',
     });
 
+    console.log('Image response status:', imageResponse.status, imageResponse.statusText);
+
     if (!imageResponse.ok) {
-      return NextResponse.json({ error: 'Failed to fetch image' }, { status: imageResponse.status });
+      console.error('Failed to fetch image:', {
+        status: imageResponse.status,
+        statusText: imageResponse.statusText,
+        url: imageUrl
+      });
+      return NextResponse.json({ 
+        error: 'Failed to fetch image', 
+        status: imageResponse.status,
+        url: imageUrl 
+      }, { status: imageResponse.status });
     }
 
     const imageBuffer = await imageResponse.arrayBuffer();
@@ -41,6 +65,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error proxying image:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }

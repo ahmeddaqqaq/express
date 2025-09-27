@@ -192,6 +192,11 @@ export default function AllNotesTab({ refreshKey }: AllNotesTabProps) {
                             alt={`Note image ${index + 1}`}
                             className="w-16 h-16 object-cover rounded-md border cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => openImageDialog(note)}
+                            onError={(e) => {
+                              console.error('Failed to load image:', image.key, e);
+                              const target = e.target as HTMLImageElement;
+                              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAyNEgyNFY0NEgyMFYyNFoiIGZpbGw9IiM5Q0EzQUYiLz4KPHA+dGggZD0iTTQwIDI0SDQ0VjQ0SDQwVjI0WiIgZmlsbD0iIzlDQTNBRiIvPgo8L3N2Zz4K';
+                            }}
                           />
                         ))}
                         {note.images.length > 3 && (
@@ -245,6 +250,11 @@ export default function AllNotesTab({ refreshKey }: AllNotesTabProps) {
                       src={`/api/proxy/image?key=${image.key}`}
                       alt={`Note image ${index + 1}`}
                       className="w-full h-auto rounded-md border"
+                      onError={(e) => {
+                        console.error('Failed to load modal image:', image.key, e);
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik04MCA4MEg5MFYxMjBIODBWODBaIiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0xMTAgODBIMTIwVjEyMEgxMTBWODBaIiBmaWxsPSIjOUNBM0FGIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMTQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOUNBM0FGIiBmb250LXNpemU9IjEyIj5JbWFnZSBub3QgZm91bmQ8L3RleHQ+Cjwvc3ZnPgo=';
+                      }}
                     />
                   ))}
                 </div>
