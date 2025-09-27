@@ -13,6 +13,7 @@ import {
   FiFileText,
   FiMenu,
   FiGrid,
+  FiEdit3,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { FaCarAlt, FaIdCard } from "react-icons/fa";
@@ -84,6 +85,11 @@ export default function MainLayout({
       name: "Subscription",
       path: "/subscription",
       icon: <FaIdCard className="h-5 w-5" />,
+    },
+    {
+      name: "Notes",
+      path: "/notes",
+      icon: <FiEdit3 className="h-5 w-5" />,
     },
   ];
 
