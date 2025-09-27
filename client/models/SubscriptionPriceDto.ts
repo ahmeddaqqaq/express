@@ -11,6 +11,10 @@ export type SubscriptionPriceDto = {
      * Price for this car type
      */
     price: number;
+    /**
+     * POS service ID for this car type
+     */
+    posServiceId: number;
 };
 export namespace SubscriptionPriceDto {
     /**

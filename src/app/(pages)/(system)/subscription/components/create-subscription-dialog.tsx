@@ -134,7 +134,21 @@ export default function CreateSubscriptionDialog({
       ...prev,
       prices: prev.prices.some((p) => p.carType === carType)
         ? prev.prices.map((p) => (p.carType === carType ? { ...p, price } : p))
-        : [...prev.prices, { carType, price }],
+        : [...prev.prices, { carType, price, posServiceId: 0 }],
+    }));
+  };
+
+  const updatePosServiceId = (
+    carType: SubscriptionPriceDto.carType,
+    posServiceId: number
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      prices: prev.prices.some((p) => p.carType === carType)
+        ? prev.prices.map((p) =>
+            p.carType === carType ? { ...p, posServiceId } : p
+          )
+        : [...prev.prices, { carType, price: 0, posServiceId }],
     }));
   };
 
@@ -143,6 +157,13 @@ export default function CreateSubscriptionDialog({
   ): number => {
     const price = formData.prices.find((p) => p.carType === carType);
     return price?.price ?? 0;
+  };
+
+  const getPosServiceIdForCarType = (
+    carType: SubscriptionPriceDto.carType
+  ): number => {
+    const price = formData.prices.find((p) => p.carType === carType);
+    return price?.posServiceId ?? 0;
   };
 
   // Validation
@@ -177,6 +198,14 @@ export default function CreateSubscriptionDialog({
       return "At least one car type must have a price greater than 0";
     }
 
+    // Validate posServiceId for prices > 0
+    const invalidPosServiceId = formData.prices.find(
+      (p) => p.price > 0 && (!p.posServiceId || p.posServiceId <= 0)
+    );
+    if (invalidPosServiceId) {
+      return "POS Service ID is required for all car types with prices greater than 0";
+    }
+
     return null;
   };
 
@@ -207,6 +236,7 @@ export default function CreateSubscriptionDialog({
           .map((p) => ({
             carType: p.carType,
             price: Number(p.price),
+            posServiceId: Number(p.posServiceId),
           })),
       };
 
@@ -237,7 +267,7 @@ export default function CreateSubscriptionDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="min-w-4xl max-w-6xl max-h-[90vh] flex flex-col">
+      <DialogContent className="min-w-5xl max-w-6xl max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0 pb-4">
           <DialogTitle className="text-xl">
             {success ? "Subscription Created!" : "Create New Subscription"}
@@ -282,30 +312,10 @@ export default function CreateSubscriptionDialog({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="maxUses" className="text-sm font-medium">
-                      Max Uses Per Service
-                    </Label>
-                    <Input
-                      id="maxUses"
-                      type="text"
-                      placeholder="e.g., 10"
-                      value={formData.maxUsesPerService ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "") {
-                          handleFieldChange("maxUsesPerService", undefined);
-                        } else {
-                          const parsed = parseInt(value, 10);
-                          if (!isNaN(parsed) && parsed > 0) {
-                            handleFieldChange("maxUsesPerService", parsed);
-                          }
-                        }
-                      }}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="description" className="text-sm font-medium">
+                    <Label
+                      htmlFor="description"
+                      className="text-sm font-medium"
+                    >
                       Description
                     </Label>
                     <Textarea
@@ -322,28 +332,11 @@ export default function CreateSubscriptionDialog({
                       className="text-sm resize-none"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="endDate" className="text-sm font-medium">
-                      End Date
-                    </Label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                      value={formData.endDate ?? ""}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          "endDate",
-                          e.target.value || undefined
-                        )
-                      }
-                      className="h-9 text-sm"
-                    />
-                  </div>
                 </div>
               </div>
 
               {/* Services */}
-              <div className="col-span-5 flex flex-col min-h-0">
+              <div className="col-span-4 flex flex-col min-h-0">
                 <h3 className="text-base font-medium mb-3">
                   Services Included *
                 </h3>
@@ -401,7 +394,7 @@ export default function CreateSubscriptionDialog({
               </div>
 
               {/* Pricing */}
-              <div className="col-span-3">
+              <div className="col-span-4">
                 <h3 className="text-base font-medium mb-3">Pricing *</h3>
                 <div className="space-y-2">
                   {Object.values(SubscriptionPriceDto.carType).map(
@@ -410,10 +403,12 @@ export default function CreateSubscriptionDialog({
                         key={carType}
                         className="flex items-center gap-2 text-sm p-2 border rounded"
                       >
-                        <Label className="w-20 font-medium text-sm">{carType}</Label>
+                        <Label className="w-24 font-medium text-sm">
+                          {carType}
+                        </Label>
                         <Input
                           type="text"
-                          placeholder="0.00"
+                          placeholder="Price"
                           value={getPriceForCarType(carType) || ""}
                           onChange={(e) => {
                             const value = e.target.value;
@@ -423,6 +418,23 @@ export default function CreateSubscriptionDialog({
                               const parsed = parseFloat(value);
                               if (!isNaN(parsed) && parsed >= 0) {
                                 updatePrice(carType, parsed);
+                              }
+                            }
+                          }}
+                          className="h-7 text-sm flex-1"
+                        />
+                        <Input
+                          type="text"
+                          placeholder="POS ID"
+                          value={getPosServiceIdForCarType(carType) || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "") {
+                              updatePosServiceId(carType, 0);
+                            } else {
+                              const parsed = parseInt(value);
+                              if (!isNaN(parsed) && parsed >= 0) {
+                                updatePosServiceId(carType, parsed);
                               }
                             }
                           }}
