@@ -2,7 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CustomerVisitsResponse } from '../models/CustomerVisitsResponse';
 import type { DailyReportResponseDto } from '../models/DailyReportResponseDto';
+import type { DailySubscriptionRevenueResponse } from '../models/DailySubscriptionRevenueResponse';
+import type { SubscriptionServicesUsageResponse } from '../models/SubscriptionServicesUsageResponse';
+import type { SubscriptionStatisticsResponse } from '../models/SubscriptionStatisticsResponse';
+import type { UserAddOnSalesResponse } from '../models/UserAddOnSalesResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -175,7 +180,7 @@ export class StatisticsService {
         });
     }
     /**
-     * @returns any Returns user add-on sales statistics
+     * @returns UserAddOnSalesResponse Returns user add-on sales statistics
      * @throws ApiError
      */
     public static statisticsControllerGetUserAddOnSales({
@@ -186,12 +191,7 @@ export class StatisticsService {
         range?: 'day' | 'month' | 'year' | 'all',
         customStart?: string,
         customEnd?: string,
-    }): CancelablePromise<Array<{
-        userId?: string;
-        userName?: string;
-        totalAddOnRevenue?: number;
-        addOnCount?: number;
-    }>> {
+    }): CancelablePromise<Array<UserAddOnSalesResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/statistics/userAddOnSales',
@@ -268,22 +268,88 @@ export class StatisticsService {
         });
     }
     /**
-     * @returns any Returns number of completed visits for a specific customer
+     * @returns CustomerVisitsResponse Returns number of completed visits for a specific customer
      * @throws ApiError
      */
     public static statisticsControllerGetNumberOfVisitsPerCustomer({
         customerId,
     }: {
         customerId: string,
-    }): CancelablePromise<{
-        customerId?: string;
-        visitCount?: number;
-    }> {
+    }): CancelablePromise<CustomerVisitsResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/statistics/customer/{customerId}/visits',
             path: {
                 'customerId': customerId,
+            },
+        });
+    }
+    /**
+     * @returns SubscriptionStatisticsResponse Returns subscription statistics including total, active, activated, and expired counts
+     * @throws ApiError
+     */
+    public static statisticsControllerGetSubscriptionStatistics({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<SubscriptionStatisticsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/subscriptions/stats',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
+            },
+        });
+    }
+    /**
+     * @returns DailySubscriptionRevenueResponse Returns daily subscription revenue data with date and revenue amount
+     * @throws ApiError
+     */
+    public static statisticsControllerGetDailySubscriptionRevenue({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<Array<DailySubscriptionRevenueResponse>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/subscriptions/daily-revenue',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
+            },
+        });
+    }
+    /**
+     * @returns SubscriptionServicesUsageResponse Returns subscription services usage statistics showing allocated, used, and unused counts
+     * @throws ApiError
+     */
+    public static statisticsControllerGetSubscriptionServicesUsage({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<Array<SubscriptionServicesUsageResponse>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/subscriptions/services-usage',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
             },
         });
     }

@@ -5,8 +5,7 @@
 export type CardStatsResponse = {
     activeCustomers: number;
     completedTransactions: number;
-    newCustomersToday: number;
-    completedTransactionsToday: number;
+    newCustomers: number;
     scheduledTransactions: number;
     inProgressTransaction: number;
 };
