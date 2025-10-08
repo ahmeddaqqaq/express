@@ -72,6 +72,7 @@ export function AppointmentsCard({
   const [assignedTechnician, setAssignedTechnician] = useState<any>(null);
   const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
   const [isTogglingBlacklist, setIsTogglingBlacklist] = useState(false);
+  const [isNotesDialogOpen, setIsNotesDialogOpen] = useState(false);
 
   const currentStatus = statusConfigs[status];
   const showInfoButton = true; // Show on all statuses
@@ -378,30 +379,24 @@ export function AppointmentsCard({
             appointment.notes.trim() !== "" &&
             appointment.notes !== "No Notes" && (
               <div
-                className={`${
-                  appointment.isSubscription
-                    ? "bg-blue-100 border border-blue-300 text-blue-900"
-                    : "bg-amber-50 border border-amber-200 text-amber-800"
-                } px-2 py-1.5 rounded-lg`}
+                className="bg-amber-50 border border-amber-200 text-amber-800 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors"
+                onClick={() => setIsNotesDialogOpen(true)}
               >
                 <div className="flex items-center gap-1">
-                  <span
-                    className={`text-xs ${
-                      appointment.isSubscription
-                        ? "text-blue-400"
-                        : "text-amber-600"
-                    }`}
-                  >
-                    {appointment.isSubscription ? "⭐" : "⚠️"}
-                  </span>
-                  {appointment.isSubscription ? (
-                    <span className="font-medium text-xs">Radiant Club</span>
-                  ) : (
-                    <span className="font-medium text-xs">Has notes</span>
-                  )}
+                  <span className="text-amber-600 text-xs">⚠️</span>
+                  <span className="font-medium text-xs">Has notes</span>
                 </div>
               </div>
             )}
+
+          {appointment.isSubscription && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-800 px-2 py-1.5 rounded-lg">
+              <div className="flex items-center gap-1">
+                <span className="text-blue-600 text-xs">⭐</span>
+                <span className="font-medium text-xs">Radiant Club</span>
+              </div>
+            </div>
+          )}
 
           {/* Vehicle & Service Card */}
           <div className="bg-gray-50 rounded-lg p-2 overflow-hidden">
@@ -779,6 +774,25 @@ export function AppointmentsCard({
                   Cancel Order
                 </>
               )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Notes Dialog */}
+      <AlertDialog open={isNotesDialogOpen} onOpenChange={setIsNotesDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Appointment Notes</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="mt-2 text-gray-700 whitespace-pre-wrap">
+                {appointment.notes}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setIsNotesDialogOpen(false)}>
+              Close
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
