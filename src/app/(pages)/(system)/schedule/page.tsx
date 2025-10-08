@@ -95,12 +95,13 @@ export default function Schedule() {
         setCompleted(completedRes);
         setCancelled(cancelledRes);
 
-        // Calculate subscription count from all active stages
+        // Calculate subscription count from all stages including completed
         const subscriptionTotal = [
           ...scheduledRes,
           ...stageOneRes,
           ...stageTwoRes,
           ...stageThreeRes,
+          ...completedRes,
         ].filter((a) => a.isSubscription).length;
         setSubscriptionCount(subscriptionTotal);
       } catch (error) {
@@ -351,7 +352,7 @@ export default function Schedule() {
             className="flex items-center gap-2"
           >
             <FiCheckCircle className="w-4 h-4 text-green-600" />
-            <span>({completed.length})</span>
+            <span>({completed.filter((a) => !a.isSubscription).length})</span>
             |
             <FiX className="w-4 h-4 text-red-600" />
             <span>({cancelled.length})</span>
