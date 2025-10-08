@@ -22,6 +22,7 @@ import {
   SubscriptionStatisticsResponse,
   SubscriptionServicesUsageResponse,
 } from "../../../../../client";
+import { FaCheckCircle } from "react-icons/fa";
 
 const MotionCard = motion(Card);
 const MotionDiv = motion.div;
@@ -46,6 +47,8 @@ export default function Dashboard() {
   const [revenue, setRevenue] = useState<RevenueSummary>();
   const [subscriptionStats, setSubscriptionStats] =
     useState<SubscriptionStatisticsResponse>();
+  const [subscriptionStatsAllTime, setSubscriptionStatsAllTime] =
+    useState<SubscriptionStatisticsResponse>();
   const [subscriptionServicesUsage, setSubscriptionServicesUsage] =
     useState<SubscriptionServicesUsageResponse[]>();
 
@@ -59,20 +62,23 @@ export default function Dashboard() {
       try {
         console.log("Fetching data for business date:", currentBusinessDate);
 
-        const [cardStats, revenueData] = await Promise.all([
+        const [cardStats, revenueData, subscriptionData] = await Promise.all([
           StatisticsService.statisticsControllerGetCardStats({
             range: timeRange,
           }),
           StatisticsService.statisticsControllerGetRevenueStatistics({
             range: timeRange,
           }),
-          StatisticsService.statisticsControllerGetUserAddOnSales({
+          StatisticsService.statisticsControllerGetSubscriptionStatistics({
             range: timeRange,
           }),
         ]);
 
         setStats(cardStats as unknown as CardStatsResponse);
         setRevenue(revenueData as unknown as RevenueSummary);
+        setSubscriptionStats(
+          subscriptionData as unknown as SubscriptionStatisticsResponse
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -82,9 +88,9 @@ export default function Dashboard() {
   }, [timeRange]);
 
   useEffect(() => {
-    async function fetchSubscriptionData() {
+    async function fetchSubscriptionAllTimeData() {
       try {
-        const [subscriptionData, servicesUsageData] = await Promise.all([
+        const [subscriptionDataAllTime, servicesUsageData] = await Promise.all([
           StatisticsService.statisticsControllerGetSubscriptionStatistics({
             range: "all",
           }),
@@ -93,21 +99,21 @@ export default function Dashboard() {
           }),
         ]);
 
-        console.log("Subscription Data:", subscriptionData);
+        console.log("Subscription Data All Time:", subscriptionDataAllTime);
         console.log("Services Usage Data:", servicesUsageData);
 
-        setSubscriptionStats(
-          subscriptionData as unknown as SubscriptionStatisticsResponse
+        setSubscriptionStatsAllTime(
+          subscriptionDataAllTime as unknown as SubscriptionStatisticsResponse
         );
         setSubscriptionServicesUsage(
           servicesUsageData as unknown as SubscriptionServicesUsageResponse[]
         );
       } catch (error) {
-        console.error("Error fetching subscription data:", error);
+        console.error("Error fetching subscription all-time data:", error);
       }
     }
 
-    fetchSubscriptionData();
+    fetchSubscriptionAllTimeData();
   }, []);
 
   const handleTimeRangeChange = (range: "day" | "month" | "year" | "all") => {
@@ -161,7 +167,7 @@ export default function Dashboard() {
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {stats && (
               <>
@@ -214,6 +220,19 @@ export default function Dashboard() {
                 />
               </>
             )}
+
+            {subscriptionStats && (
+              <EnhancedStatCard
+                title="Subscriptions"
+                isSubscription={true}
+                value={
+                  subscriptionStats.totalSubscriptions?.toLocaleString() || "0"
+                }
+                change={subscriptionStats.totalSubscriptions || 0}
+                icon={<FiAward className="h-5 w-5" />}
+                description={`${timeRange} subscriptions`}
+              />
+            )}
           </MotionDiv>
         </div>
 
@@ -226,16 +245,64 @@ export default function Dashboard() {
             animate="visible"
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
           >
-            {subscriptionStats && (
-              <EnhancedStatCard
-                title="Total Subscriptions"
-                value={
-                  subscriptionStats.totalSubscriptions?.toLocaleString() || "0"
-                }
-                change={subscriptionStats.totalSubscriptions || 0}
-                icon={<FiAward className="h-5 w-5" />}
-                description="All subscriptions"
-              />
+            {subscriptionStatsAllTime && (
+              <>
+                <EnhancedStatCard
+                  title="Total Subscriptions"
+                  isSubscription={true}
+                  value={
+                    subscriptionStatsAllTime.totalSubscriptions?.toLocaleString() ||
+                    "0"
+                  }
+                  change={subscriptionStatsAllTime.totalSubscriptions || 0}
+                  icon={<FiAward className="h-5 w-5" />}
+                  description="All subscriptions"
+                />
+                <EnhancedStatCard
+                  title="Active Subscriptions"
+                  isSubscription={true}
+                  value={
+                    subscriptionStatsAllTime.activeSubscriptions?.toLocaleString() ||
+                    "0"
+                  }
+                  change={subscriptionStatsAllTime.activeSubscriptions || 0}
+                  icon={<FaCheckCircle className="h-5 w-5" />}
+                  description="Currently active"
+                />
+                <EnhancedStatCard
+                  title="Activated"
+                  isSubscription={true}
+                  value={
+                    subscriptionStatsAllTime.activatedSubscriptions?.toLocaleString() ||
+                    "0"
+                  }
+                  change={subscriptionStatsAllTime.activatedSubscriptions || 0}
+                  icon={<FiTrendingUp className="h-5 w-5" />}
+                  description="Been activated"
+                />
+                <EnhancedStatCard
+                  title="Expired"
+                  isSubscription={true}
+                  value={
+                    subscriptionStatsAllTime.expiredSubscriptions?.toLocaleString() ||
+                    "0"
+                  }
+                  change={subscriptionStatsAllTime.expiredSubscriptions || 0}
+                  icon={<FiTrendingDown className="h-5 w-5" />}
+                  description="Expired subscriptions"
+                />
+                <EnhancedStatCard
+                  title="Pending Activation"
+                  isSubscription={true}
+                  value={
+                    subscriptionStatsAllTime.pendingActivation?.toLocaleString() ||
+                    "0"
+                  }
+                  change={subscriptionStatsAllTime.pendingActivation || 0}
+                  icon={<FiClock className="h-5 w-5" />}
+                  description="Awaiting activation"
+                />
+              </>
             )}
 
             {subscriptionServicesUsage &&
@@ -297,6 +364,7 @@ function EnhancedStatCard({
   icon,
   description,
   isCurrency = false,
+  isSubscription = false,
 }: {
   title: string;
   value: string;
@@ -304,6 +372,7 @@ function EnhancedStatCard({
   icon: ReactNode;
   description: string;
   isCurrency?: boolean;
+  isSubscription?: boolean;
 }) {
   const isPositive = change >= 0;
 
@@ -323,27 +392,31 @@ function EnhancedStatCard({
           <div className="p-3 rounded-full bg-muted">{icon}</div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">{description}</p>
-          <div
-            className={`flex items-center text-sm ${
-              isPositive ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {isPositive ? (
-              <FiTrendingUp className="mr-1 h-4 w-4" />
-            ) : (
-              <FiTrendingDown className="mr-1 h-4 w-4" />
-            )}
-            {!isCurrency && change > 0 ? "+" : ""}
-            {isCurrency
-              ? `$${change.toLocaleString()}`
-              : change.toLocaleString()}
-            {!isCurrency ? " Today" : ""}
+      {isSubscription ? (
+        <div />
+      ) : (
+        <CardContent className="pt-0">
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">{description}</p>
+            <div
+              className={`flex items-center text-sm ${
+                isPositive ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {isPositive ? (
+                <FiTrendingUp className="mr-1 h-4 w-4" />
+              ) : (
+                <FiTrendingDown className="mr-1 h-4 w-4" />
+              )}
+              {!isCurrency && change > 0 ? "+" : ""}
+              {isCurrency
+                ? `$${change.toLocaleString()}`
+                : change.toLocaleString()}
+              {!isCurrency ? " Today" : ""}
+            </div>
           </div>
-        </div>
-      </CardContent>
+        </CardContent>
+      )}
     </MotionCard>
   );
 }
