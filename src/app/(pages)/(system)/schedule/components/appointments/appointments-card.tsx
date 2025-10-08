@@ -380,7 +380,7 @@ export function AppointmentsCard({
               <div
                 className={`${
                   appointment.isSubscription
-                    ? "bg-amber-100 border border-amber-300 text-amber-900"
+                    ? "bg-blue-100 border border-blue-300 text-blue-900"
                     : "bg-amber-50 border border-amber-200 text-amber-800"
                 } px-2 py-1.5 rounded-lg`}
               >
@@ -388,13 +388,17 @@ export function AppointmentsCard({
                   <span
                     className={`text-xs ${
                       appointment.isSubscription
-                        ? "text-amber-700"
+                        ? "text-blue-400"
                         : "text-amber-600"
                     }`}
                   >
                     {appointment.isSubscription ? "⭐" : "⚠️"}
                   </span>
-                  <span className="font-medium text-xs">Has notes</span>
+                  {appointment.isSubscription ? (
+                    <span className="font-medium text-xs">Radiant Club</span>
+                  ) : (
+                    <span className="font-medium text-xs">Has notes</span>
+                  )}
                 </div>
               </div>
             )}
