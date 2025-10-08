@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FiPlus, FiCalendar, FiCheckCircle } from "react-icons/fi";
+import { FiPlus, FiCalendar, FiCheckCircle, FiX } from "react-icons/fi";
 import { QrCode } from "lucide-react";
 import { TransactionResponse, TransactionService } from "../../../../../client";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { ScheduleColumns } from "./components/schedule/schedule-columns";
 import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-drawer";
 import ScanQrDialog from "./components/scan-qr-dialog";
 import SubscriptionDialog from "./components/subscription-dialog";
+import { FaTicket } from "react-icons/fa6";
 
 export default function Schedule() {
   const [currentDate, setCurrentDate] = useState<string>(
@@ -39,12 +40,14 @@ export default function Schedule() {
   const [stageThree, setStageThree] = useState<TransactionResponse[]>([]);
   const [completed, setCompleted] = useState<TransactionResponse[]>([]);
   const [cancelled, setCancelled] = useState<TransactionResponse[]>([]);
+  const [subscriptionCount, setSubscriptionCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [movingItemId, setMovingItemId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCompletedDrawerOpen, setIsCompletedDrawerOpen] = useState(false);
   const [isScanQrDialogOpen, setIsScanQrDialogOpen] = useState(false);
-  const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false);
+  const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] =
+    useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleSuccess = () => {
@@ -91,6 +94,15 @@ export default function Schedule() {
         setStageThree(stageThreeRes);
         setCompleted(completedRes);
         setCancelled(cancelledRes);
+
+        // Calculate subscription count from all active stages
+        const subscriptionTotal = [
+          ...scheduledRes,
+          ...stageOneRes,
+          ...stageTwoRes,
+          ...stageThreeRes,
+        ].filter((a) => a.isSubscription).length;
+        setSubscriptionCount(subscriptionTotal);
       } catch (error) {
         console.error("Error fetching appointments:", error);
         setScheduled([]);
@@ -339,9 +351,13 @@ export default function Schedule() {
             className="flex items-center gap-2"
           >
             <FiCheckCircle className="w-4 h-4 text-green-600" />
-            <span>
-              Completed ({completed.length}) | Cancelled ({cancelled.length})
-            </span>
+            <span>({completed.length})</span>
+            |
+            <FiX className="w-4 h-4 text-red-600" />
+            <span>({cancelled.length})</span>
+            |
+            <FaTicket className="w-4 h-4 text-amber-900" />
+            <span>({subscriptionCount})</span>
           </Button>
           <Button
             variant="outline"
