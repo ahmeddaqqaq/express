@@ -377,9 +377,23 @@ export function AppointmentsCard({
           {appointment.notes &&
             appointment.notes.trim() !== "" &&
             appointment.notes !== "No Notes" && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 px-2 py-1.5 rounded-lg">
+              <div
+                className={`${
+                  appointment.isSubscription
+                    ? "bg-amber-100 border border-amber-300 text-amber-900"
+                    : "bg-amber-50 border border-amber-200 text-amber-800"
+                } px-2 py-1.5 rounded-lg`}
+              >
                 <div className="flex items-center gap-1">
-                  <span className="text-amber-600 text-xs">⚠️</span>
+                  <span
+                    className={`text-xs ${
+                      appointment.isSubscription
+                        ? "text-amber-700"
+                        : "text-amber-600"
+                    }`}
+                  >
+                    {appointment.isSubscription ? "⭐" : "⚠️"}
+                  </span>
                   <span className="font-medium text-xs">Has notes</span>
                 </div>
               </div>
@@ -483,7 +497,9 @@ export function AppointmentsCard({
               {appointment.deliverTime && (
                 <div className="flex items-center text-[0.6rem] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
                   <FiTruck className="mr-1 h-2 w-2 flex-shrink-0" />
-                  <span className="truncate max-w-[60px]">{appointment.deliverTime}</span>
+                  <span className="truncate max-w-[60px]">
+                    {appointment.deliverTime}
+                  </span>
                 </div>
               )}
             </div>
