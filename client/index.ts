@@ -53,6 +53,7 @@ export type { EditScheduledTransactionDto } from './models/EditScheduledTransact
 export { ImageResponse } from './models/ImageResponse';
 export type { InvoiceResponse } from './models/InvoiceResponse';
 export { ModelResponse } from './models/ModelResponse';
+export type { NewCustomerResponse } from './models/NewCustomerResponse';
 export type { PeakAnalysisResponse } from './models/PeakAnalysisResponse';
 export type { PeakDaysResponse } from './models/PeakDaysResponse';
 export type { PeakHoursResponse } from './models/PeakHoursResponse';
@@ -63,6 +64,7 @@ export type { ResetPasswordDto } from './models/ResetPasswordDto';
 export type { RevenueSummary } from './models/RevenueSummary';
 export type { SalesManyResponse } from './models/SalesManyResponse';
 export type { SalesResponse } from './models/SalesResponse';
+export type { ServiceCarTypeRevenueResponse } from './models/ServiceCarTypeRevenueResponse';
 export { ServicePriceDto } from './models/ServicePriceDto';
 export type { ServiceResponse } from './models/ServiceResponse';
 export type { ServiceRevenue } from './models/ServiceRevenue';

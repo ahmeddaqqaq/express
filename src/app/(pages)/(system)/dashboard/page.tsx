@@ -9,6 +9,7 @@ import {
   FiAward,
   FiClock,
   FiActivity,
+  FiX,
 } from "react-icons/fi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,8 +22,24 @@ import {
   StatisticsService,
   SubscriptionStatisticsResponse,
   SubscriptionServicesUsageResponse,
+  NewCustomerResponse,
+  ServiceCarTypeRevenueResponse,
 } from "../../../../../client";
 import { FaCheckCircle } from "react-icons/fa";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const MotionCard = motion(Card);
 const MotionDiv = motion.div;
@@ -56,6 +73,16 @@ export default function Dashboard() {
     "day"
   );
   const currentBusinessDate = getCurrentBusinessDate();
+
+  // New customers dialog
+  const [showNewCustomers, setShowNewCustomers] = useState(false);
+  const [newCustomers, setNewCustomers] = useState<NewCustomerResponse[]>([]);
+  const [loadingNewCustomers, setLoadingNewCustomers] = useState(false);
+
+  // Service revenue dialog
+  const [showServiceRevenue, setShowServiceRevenue] = useState(false);
+  const [serviceRevenue, setServiceRevenue] = useState<ServiceCarTypeRevenueResponse[]>([]);
+  const [loadingServiceRevenue, setLoadingServiceRevenue] = useState(false);
 
   useEffect(() => {
     async function fetchAllData() {
@@ -118,6 +145,36 @@ export default function Dashboard() {
 
   const handleTimeRangeChange = (range: "day" | "month" | "year" | "all") => {
     setTimeRange(range);
+  };
+
+  const handleNewCustomersClick = async () => {
+    setShowNewCustomers(true);
+    setLoadingNewCustomers(true);
+    try {
+      const data = await StatisticsService.statisticsControllerGetNewCustomers({
+        range: timeRange,
+      });
+      setNewCustomers(data);
+    } catch (error) {
+      console.error("Error fetching new customers:", error);
+    } finally {
+      setLoadingNewCustomers(false);
+    }
+  };
+
+  const handleServiceRevenueClick = async () => {
+    setShowServiceRevenue(true);
+    setLoadingServiceRevenue(true);
+    try {
+      const data = await StatisticsService.statisticsControllerGetServiceCarTypeRevenue({
+        range: timeRange,
+      });
+      setServiceRevenue(data);
+    } catch (error) {
+      console.error("Error fetching service revenue:", error);
+    } finally {
+      setLoadingServiceRevenue(false);
+    }
   };
 
   return (
@@ -184,6 +241,7 @@ export default function Dashboard() {
                   change={stats.newCustomers || 0}
                   icon={<FiTrendingUp className="h-5 w-5" />}
                   description={`New in ${timeRange}`}
+                  onClick={handleNewCustomersClick}
                 />
               </>
             )}
@@ -199,6 +257,7 @@ export default function Dashboard() {
                     revenue.services?.length || 0
                   } different services`}
                   isCurrency
+                  onClick={handleServiceRevenueClick}
                 />
                 <EnhancedStatCard
                   title="Add-On Revenue"
@@ -352,6 +411,88 @@ export default function Dashboard() {
               ))}
           </MotionDiv>
         </div>
+
+        {/* New Customers Dialog */}
+        <Dialog open={showNewCustomers} onOpenChange={setShowNewCustomers}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>New Customers ({timeRange})</DialogTitle>
+            </DialogHeader>
+            {loadingNewCustomers ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              </div>
+            ) : newCustomers.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No new customers in this period
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Mobile Number</TableHead>
+                    <TableHead>Created At</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {newCustomers.map((customer) => (
+                    <TableRow key={customer.id}>
+                      <TableCell>
+                        {customer.fName} {customer.lName}
+                      </TableCell>
+                      <TableCell>{customer.mobileNumber}</TableCell>
+                      <TableCell>
+                        {new Date(customer.createdAt).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Service Revenue Dialog */}
+        <Dialog open={showServiceRevenue} onOpenChange={setShowServiceRevenue}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Service Revenue by Car Type ({timeRange})</DialogTitle>
+            </DialogHeader>
+            {loadingServiceRevenue ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              </div>
+            ) : serviceRevenue.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No service revenue data in this period
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Service Name</TableHead>
+                    <TableHead>Car Type</TableHead>
+                    <TableHead>Completed Count</TableHead>
+                    <TableHead>Total Revenue</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {serviceRevenue.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">
+                        {item.serviceName}
+                      </TableCell>
+                      <TableCell>{item.carType}</TableCell>
+                      <TableCell>{item.completedCount}</TableCell>
+                      <TableCell>${item.totalRevenue.toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
@@ -365,6 +506,7 @@ function EnhancedStatCard({
   description,
   isCurrency = false,
   isSubscription = false,
+  onClick,
 }: {
   title: string;
   value: string;
@@ -373,13 +515,17 @@ function EnhancedStatCard({
   description: string;
   isCurrency?: boolean;
   isSubscription?: boolean;
+  onClick?: () => void;
 }) {
   const isPositive = change >= 0;
 
   return (
     <MotionCard
       variants={cardVariants}
-      className="border bg-white dark:bg-gray-950"
+      className={`border bg-white dark:bg-gray-950 ${
+        onClick ? "cursor-pointer hover:shadow-lg transition-shadow" : ""
+      }`}
+      onClick={onClick}
     >
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">

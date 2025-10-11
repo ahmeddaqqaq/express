@@ -139,6 +139,27 @@ export class SubscriptionService {
         });
     }
     /**
+     * Delete a customer subscription
+     * @returns any Customer subscription deleted successfully
+     * @throws ApiError
+     */
+    public static subscriptionControllerDeleteCustomerSubscription({
+        customerSubscriptionId,
+    }: {
+        customerSubscriptionId: string,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/express/subscription/customer-subscription/{customerSubscriptionId}',
+            path: {
+                'customerSubscriptionId': customerSubscriptionId,
+            },
+            errors: {
+                404: `Customer subscription not found`,
+            },
+        });
+    }
+    /**
      * Use a service from subscription via QR code
      * @returns any Service used successfully
      * @throws ApiError

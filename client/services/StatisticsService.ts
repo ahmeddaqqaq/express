@@ -5,6 +5,8 @@
 import type { CustomerVisitsResponse } from '../models/CustomerVisitsResponse';
 import type { DailyReportResponseDto } from '../models/DailyReportResponseDto';
 import type { DailySubscriptionRevenueResponse } from '../models/DailySubscriptionRevenueResponse';
+import type { NewCustomerResponse } from '../models/NewCustomerResponse';
+import type { ServiceCarTypeRevenueResponse } from '../models/ServiceCarTypeRevenueResponse';
 import type { SubscriptionServicesUsageResponse } from '../models/SubscriptionServicesUsageResponse';
 import type { SubscriptionStatisticsResponse } from '../models/SubscriptionStatisticsResponse';
 import type { UserAddOnSalesResponse } from '../models/UserAddOnSalesResponse';
@@ -346,6 +348,52 @@ export class StatisticsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/statistics/subscriptions/services-usage',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
+            },
+        });
+    }
+    /**
+     * @returns NewCustomerResponse Returns new customers filtered by date range with their first name, last name, and mobile number
+     * @throws ApiError
+     */
+    public static statisticsControllerGetNewCustomers({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<Array<NewCustomerResponse>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/newCustomers',
+            query: {
+                'range': range,
+                'customStart': customStart,
+                'customEnd': customEnd,
+            },
+        });
+    }
+    /**
+     * @returns ServiceCarTypeRevenueResponse Returns completed service revenue grouped by service and car type
+     * @throws ApiError
+     */
+    public static statisticsControllerGetServiceCarTypeRevenue({
+        range = 'all',
+        customStart,
+        customEnd,
+    }: {
+        range?: 'day' | 'month' | 'year' | 'all',
+        customStart?: string,
+        customEnd?: string,
+    }): CancelablePromise<Array<ServiceCarTypeRevenueResponse>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/statistics/serviceCarTypeRevenue',
             query: {
                 'range': range,
                 'customStart': customStart,
