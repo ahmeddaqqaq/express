@@ -9,7 +9,6 @@ import {
   FiAward,
   FiClock,
   FiActivity,
-  FiX,
 } from "react-icons/fi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,7 +80,9 @@ export default function Dashboard() {
 
   // Service revenue dialog
   const [showServiceRevenue, setShowServiceRevenue] = useState(false);
-  const [serviceRevenue, setServiceRevenue] = useState<ServiceCarTypeRevenueResponse[]>([]);
+  const [serviceRevenue, setServiceRevenue] = useState<
+    ServiceCarTypeRevenueResponse[]
+  >([]);
   const [loadingServiceRevenue, setLoadingServiceRevenue] = useState(false);
 
   useEffect(() => {
@@ -166,9 +167,10 @@ export default function Dashboard() {
     setShowServiceRevenue(true);
     setLoadingServiceRevenue(true);
     try {
-      const data = await StatisticsService.statisticsControllerGetServiceCarTypeRevenue({
-        range: timeRange,
-      });
+      const data =
+        await StatisticsService.statisticsControllerGetServiceCarTypeRevenue({
+          range: timeRange,
+        });
       setServiceRevenue(data);
     } catch (error) {
       console.error("Error fetching service revenue:", error);
@@ -457,7 +459,9 @@ export default function Dashboard() {
         <Dialog open={showServiceRevenue} onOpenChange={setShowServiceRevenue}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Service Revenue by Car Type ({timeRange})</DialogTitle>
+              <DialogTitle>
+                Service Revenue by Car Type ({timeRange})
+              </DialogTitle>
             </DialogHeader>
             {loadingServiceRevenue ? (
               <div className="flex justify-center py-8">
@@ -485,7 +489,9 @@ export default function Dashboard() {
                       </TableCell>
                       <TableCell>{item.carType}</TableCell>
                       <TableCell>{item.completedCount}</TableCell>
-                      <TableCell>${item.totalRevenue.toLocaleString()}</TableCell>
+                      <TableCell>
+                        ${item.totalRevenue.toLocaleString()}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
