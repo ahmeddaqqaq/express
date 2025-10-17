@@ -46,8 +46,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { SearchSelect } from "@/app/components/search-select";
 import { Textarea } from "@/components/ui/textarea";
+import { CustomerSearchField } from "../schedule/components/customer-search-field";
 
 const scheduleFormSchema = z.object({
   customerId: z.string().min(1, "Please select a customer"),
@@ -69,6 +69,10 @@ export default function Bookings() {
     useState<ReservationResponseDto | null>(null);
   const [customers, setCustomers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
+  const [customerCurrentPage, setCustomerCurrentPage] = useState(1);
+  const [customerTotalCount, setCustomerTotalCount] = useState(0);
+  const customerItemsPerPage = 10;
 
   const scheduleForm = useForm<z.infer<typeof scheduleFormSchema>>({
     resolver: zodResolver(scheduleFormSchema),
@@ -89,8 +93,11 @@ export default function Bookings() {
 
   useEffect(() => {
     fetchBookings();
-    fetchCustomers();
   }, []);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [customerSearchQuery, customerCurrentPage]);
 
   async function fetchBookings() {
     setIsLoading(true);
@@ -108,10 +115,18 @@ export default function Bookings() {
 
   async function fetchCustomers() {
     try {
-      const resp = await CustomerService.customerControllerFindMany({});
+      const skip = (customerCurrentPage - 1) * customerItemsPerPage;
+      const resp = await CustomerService.customerControllerFindMany({
+        skip,
+        take: customerItemsPerPage,
+        search: customerSearchQuery || "",
+      });
       setCustomers(resp.data);
+      setCustomerTotalCount(resp.rows || resp.data.length);
     } catch (error) {
       console.error("Error fetching customers:", error);
+      setCustomers([]);
+      setCustomerTotalCount(0);
     }
   }
 
@@ -254,25 +269,14 @@ export default function Bookings() {
                 onSubmit={scheduleForm.handleSubmit(onScheduleSubmit)}
                 className="space-y-4"
               >
-                <FormField
-                  control={scheduleForm.control}
-                  name="customerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Customer</FormLabel>
-                      <SearchSelect
-                        options={customers.map((customer) => ({
-                          value: customer.id,
-                          label: `${customer.fName} ${customer.lName}`,
-                        }))}
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Select customer..."
-                        searchPlaceholder="Search customers..."
-                      />
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                <CustomerSearchField
+                  customers={customers}
+                  searchQuery={customerSearchQuery}
+                  onSearchChange={setCustomerSearchQuery}
+                  currentPage={customerCurrentPage}
+                  totalCount={customerTotalCount}
+                  itemsPerPage={customerItemsPerPage}
+                  onPageChange={setCustomerCurrentPage}
                 />
                 <FormField
                   control={scheduleForm.control}
