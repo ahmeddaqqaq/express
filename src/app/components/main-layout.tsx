@@ -14,6 +14,7 @@ import {
   FiMenu,
   FiGrid,
   FiEdit3,
+  FiBookmark,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { FaCarAlt, FaIdCard } from "react-icons/fa";
@@ -64,6 +65,11 @@ export default function MainLayout({
       name: "Schedule Table",
       path: "/schedule-table",
       icon: <FiGrid className="h-5 w-5" />,
+    },
+    {
+      name: "Bookings",
+      path: "/bookings",
+      icon: <FiBookmark className="h-5 w-5" />,
     },
     {
       name: "Settings",
