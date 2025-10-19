@@ -65,6 +65,7 @@ export default function DailyReportsPage() {
   const [reportData, setReportData] = useState<DailyReportResponseDto | null>(
     null
   );
+  const [subscriptionRevenue, setSubscriptionRevenue] = useState<number>(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
@@ -77,10 +78,34 @@ export default function DailyReportsPage() {
     setIsGenerating(true);
     try {
       const dateString = formatDateForAPI(selectedDate);
+
+      // Fetch daily report
       const data = await StatisticsService.statisticsControllerGetDailyReport({
         date: dateString,
       });
       setReportData(data);
+
+      // Fetch subscription revenue for the selected date
+      try {
+        const subRevenue =
+          await StatisticsService.statisticsControllerGetDailySubscriptionRevenue(
+            {
+              range: "day",
+            }
+          );
+
+        // Find the revenue for the selected date
+        const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+        const matchingRevenue = subRevenue.find(
+          (item) => item.date === selectedDateStr
+        );
+        const revenue = matchingRevenue ? matchingRevenue.revenue : 0;
+        setSubscriptionRevenue(revenue);
+      } catch (error) {
+        console.error("Error fetching subscription revenue:", error);
+        setSubscriptionRevenue(0);
+      }
+
       toast.success("Report generated successfully!");
     } catch (error) {
       toast.error("Failed to generate report");
@@ -185,9 +210,9 @@ export default function DailyReportsPage() {
                 {/* Cash Summary */}
                 <div>
                   <h4 className="font-semibold mb-3 text-[#4b3526]">
-                    Cash Summary
+                    Revenue Summary
                   </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="bg-green-50 p-3 rounded-lg">
                       <p className="text-sm text-gray-600">Services Cash</p>
                       <p className="text-lg font-semibold text-green-600">
@@ -200,10 +225,21 @@ export default function DailyReportsPage() {
                         ${reportData.cashSummary.addOnsCash.toFixed(2)}
                       </p>
                     </div>
+                    <div className="bg-indigo-50 p-3 rounded-lg">
+                      <p className="text-sm text-gray-600">
+                        Subscription Revenue
+                      </p>
+                      <p className="text-lg font-semibold text-indigo-600">
+                        ${subscriptionRevenue.toFixed(2)}
+                      </p>
+                    </div>
                     <div className="bg-purple-50 p-3 rounded-lg">
-                      <p className="text-sm text-gray-600">Total Cash</p>
+                      <p className="text-sm text-gray-600">Total Revenue</p>
                       <p className="text-lg font-semibold text-purple-600">
-                        ${reportData.cashSummary.totalCash.toFixed(2)}
+                        $
+                        {(
+                          reportData.cashSummary.totalCash + subscriptionRevenue
+                        ).toFixed(2)}
                       </p>
                     </div>
                     <div className="bg-orange-50 p-3 rounded-lg">

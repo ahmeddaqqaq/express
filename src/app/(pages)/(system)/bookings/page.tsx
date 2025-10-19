@@ -250,7 +250,10 @@ export default function Bookings() {
     <div className="p-2">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Scheduled Bookings</h1>
-        <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+        <Dialog
+          open={isScheduleDialogOpen}
+          onOpenChange={setIsScheduleDialogOpen}
+        >
           <DialogTrigger asChild>
             <Button>
               <FiPlus className="w-5 h-5 text-white mr-2" />
@@ -328,7 +331,7 @@ export default function Bookings() {
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">
-                    {booking.customer?.fName} {booking.customer?.lName}
+                    {booking.customer.firstName} {booking.customer.lastName}
                   </CardTitle>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -337,7 +340,9 @@ export default function Bookings() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openUpdateDialog(booking)}>
+                      <DropdownMenuItem
+                        onClick={() => openUpdateDialog(booking)}
+                      >
                         Update
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -367,9 +372,13 @@ export default function Bookings() {
                   <p className="text-sm text-gray-500">Status</p>
                   <p className="text-sm">
                     {booking.markAsDone ? (
-                      <span className="text-green-600 font-medium">Completed</span>
+                      <span className="text-green-600 font-medium">
+                        Completed
+                      </span>
                     ) : (
-                      <span className="text-orange-600 font-medium">Pending</span>
+                      <span className="text-orange-600 font-medium">
+                        Pending
+                      </span>
                     )}
                   </p>
                 </div>

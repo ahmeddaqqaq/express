@@ -399,214 +399,251 @@ export default function Customers() {
   };
 
   return (
-    <div className="p-2">
-      <div className="flex justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
-        <div className="relative">
+    <div className="p-6">
+      {/* Page Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage customer information and vehicles
+            </p>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <FiPlus className="w-4 h-4" />
+                Create Customer
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Customer</DialogTitle>
+                <DialogDescription>
+                  Fill in the required details to register a new customer
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="fName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <Input {...field} placeholder="First Name" />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <Input {...field} placeholder="Last Name" />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="mobileNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mobile Number</FormLabel>
+                        <Input {...field} placeholder="07XXXXXXXX" />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit">Create Customer</Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FiSearch className="text-gray-400" />
+            <FiSearch className="text-muted-foreground h-4 w-4" />
           </div>
           <Input
             type="text"
-            placeholder="Search customers..."
-            className="pl-10 pr-4 py-2 w-64"
+            placeholder="Search customers by name or phone..."
+            className="pl-10"
             value={searchQuery}
             onChange={handleSearch}
           />
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <FiPlus className="w-5 h-5 text-white" />
-              <span className="font-medium text-white">CREATE CUSTOMER</span>
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Customer</DialogTitle>
-              <DialogDescription>
-                Fill in the required details to register a new customer
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                <FormField
-                  control={form.control}
-                  name="fName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <Input {...field} placeholder="First Name" />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <Input {...field} placeholder="Last Name" />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="mobileNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mobile Number</FormLabel>
-                      <Input {...field} placeholder="07XXXXXXXX" />
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">Create Customer</Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
       </div>
 
-      {/* Customer Table */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Mobile</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Blacklist</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {customers.length > 0 ? (
-            customers.map((customer) => (
-              <TableRow
-                key={customer.id}
-                className="cursor-pointer hover:bg-gray-50"
-                onClick={() => openCustomerDrawer(customer)}
-              >
-                <TableCell>
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <span className="text-blue-600 font-medium">
-                        {customer.fName.charAt(0)}
-                        {customer.lName.charAt(0)}
-                      </span>
-                    </div>
-                    <div className="ml-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {customer.fName} {customer.lName}
+      {/* Table Section */}
+      <div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="font-semibold">Name</TableHead>
+              <TableHead className="font-semibold">Mobile</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
+              <TableHead className="font-semibold">Blacklist</TableHead>
+              <TableHead className="font-semibold">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {customers.length > 0 ? (
+              customers.map((customer, index) => (
+                <TableRow
+                  key={customer.id}
+                  className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                    index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                  }`}
+                  onClick={() => openCustomerDrawer(customer)}
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span className="text-blue-600 font-medium text-sm">
+                          {customer.fName.charAt(0)}
+                          {customer.lName.charAt(0)}
+                        </span>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        ID: {customer.id}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {customer.fName} {customer.lName}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          ID: {customer.id}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>{customer.mobileNumber}</TableCell>
-                <TableCell>
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      customer.isActive
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {customer.isActive ? "Active" : "Inactive"}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {customer.mobileNumber}
+                  </TableCell>
+                  <TableCell>
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        customer.isBlacklisted
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-500"
+                      className={`px-2.5 py-1 inline-flex text-xs font-semibold rounded-full ${
+                        customer.isActive
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {customer.isBlacklisted ? "BLACKLISTED" : "Normal"}
+                      {customer.isActive ? "Active" : "Inactive"}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        try {
-                          await CustomerService.customerControllerToggleBlacklist(
-                            {
-                              requestBody: { id: customer.id },
-                            }
-                          );
-                          await fetchCustomers();
-                        } catch (error) {
-                          console.error("Error toggling blacklist:", error);
-                          alert("Failed to toggle blacklist status");
-                        }
-                      }}
-                      className={`text-xs ${
-                        customer.isBlacklisted
-                          ? "text-green-600 hover:text-green-700"
-                          : "text-red-600 hover:text-red-700"
-                      }`}
-                    >
-                      {customer.isBlacklisted
-                        ? "Remove from Blacklist"
-                        : "Add to Blacklist"}
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditCustomerDialog(customer);
-                      }}
-                    >
-                      <FiEdit2 className="text-blue-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <FaTrash className="text-red-500" />
-                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2.5 py-1 inline-flex text-xs font-semibold rounded-full ${
+                          customer.isBlacklisted
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {customer.isBlacklisted ? "Blacklisted" : "Normal"}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            await CustomerService.customerControllerToggleBlacklist(
+                              {
+                                requestBody: { id: customer.id },
+                              }
+                            );
+                            await fetchCustomers();
+                          } catch (error) {
+                            console.error("Error toggling blacklist:", error);
+                            alert("Failed to toggle blacklist status");
+                          }
+                        }}
+                        className={`text-xs h-7 ${
+                          customer.isBlacklisted
+                            ? "text-green-600 hover:text-green-700 hover:bg-green-50"
+                            : "text-red-600 hover:text-red-700 hover:bg-red-50"
+                        }`}
+                      >
+                        {customer.isBlacklisted ? "Remove" : "Blacklist"}
+                      </Button>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditCustomerDialog(customer);
+                        }}
+                      >
+                        <FiEdit2 className="h-4 w-4 text-blue-600" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <FaTrash className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12">
+                  <div className="flex justify-center items-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                   </div>
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center">
-                No Customers Found
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-12">
+                  <div className="text-muted-foreground">
+                    <p className="text-lg font-medium">No customers found</p>
+                    <p className="text-sm mt-1">
+                      Try adjusting your search query
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-      <div className="flex items-center justify-between mt-4 px-2">
-        <div className="text-sm text-gray-500">
-          Showing <span className="font-medium">1</span> to{" "}
-          <span className="font-medium">10</span> of{" "}
-          <span className="font-medium">{customers.length}</span> results
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-6 mb-8">
+        <div className="text-sm text-muted-foreground">
+          Showing{" "}
+          <span className="font-medium text-foreground">
+            {totalCustomers === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
+          </span>{" "}
+          to{" "}
+          <span className="font-medium text-foreground">
+            {Math.min(currentPage * itemsPerPage, totalCustomers)}
+          </span>{" "}
+          of{" "}
+          <span className="font-medium text-foreground">{totalCustomers}</span>{" "}
+          customers
         </div>
-        <div className="flex space-x-2">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -615,6 +652,9 @@ export default function Customers() {
           >
             Previous
           </Button>
+          <div className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages || 1}
+          </div>
           <Button
             variant="outline"
             size="sm"

@@ -140,7 +140,7 @@ export default async function middleware(req: NextRequest) {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 15 * 60, // 15 minutes
+        maxAge: 7 * 24 * 60 * 60, // 7 days
         path: "/",
       });
       response.cookies.set("refresh_token", newTokens.refresh_token, {
@@ -176,7 +176,7 @@ export default async function middleware(req: NextRequest) {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
-            maxAge: 15 * 60, // 15 minutes
+            maxAge: 7 * 24 * 60 * 60, // 7 days
             path: "/",
           });
           response.cookies.set("refresh_token", newTokens.refresh_token, {

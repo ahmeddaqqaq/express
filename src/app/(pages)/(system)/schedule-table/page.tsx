@@ -46,7 +46,8 @@ export default function TransactionTable() {
   const [isLoading, setIsLoading] = useState(false);
   const [totalTransaction, setTotalTransaction] = useState(0);
 
-  const [selectedTransactionAssignments, setSelectedTransactionAssignments] = useState<any[]>([]);
+  const [selectedTransactionAssignments, setSelectedTransactionAssignments] =
+    useState<any[]>([]);
 
   useEffect(() => {
     fetchTransactions();
@@ -97,7 +98,10 @@ export default function TransactionTable() {
       },
     };
 
-    const currentStatus = statusMap[status as string] || { color: "bg-gray-100 text-gray-800", text: "Unknown" };
+    const currentStatus = statusMap[status as string] || {
+      color: "bg-gray-100 text-gray-800",
+      text: "Unknown",
+    };
     return (
       <span
         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${currentStatus.color}`}
@@ -120,20 +124,21 @@ export default function TransactionTable() {
   async function openTransactionDrawer(transaction: TransactionResponse) {
     setSelectedTransaction(transaction);
     setIsDrawerOpen(true);
-    
+
     // Fetch technician assignments for this transaction
     try {
-      const assignments = await TransactionService.transactionControllerGetTransactionAssignments({
-        id: transaction.id
-      });
+      const assignments =
+        await TransactionService.transactionControllerGetTransactionAssignments(
+          {
+            id: transaction.id,
+          }
+        );
       setSelectedTransactionAssignments(assignments);
     } catch (error) {
       console.error("Error fetching assignments:", error);
       setSelectedTransactionAssignments([]);
     }
   }
-
-
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -260,20 +265,24 @@ export default function TransactionTable() {
                   </h3>
 
                   <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
-                    {selectedTransactionAssignments && selectedTransactionAssignments.length > 0 ? (
+                    {selectedTransactionAssignments &&
+                    selectedTransactionAssignments.length > 0 ? (
                       selectedTransactionAssignments
-                        .filter(assignment => assignment.isActive)
+                        .filter((assignment) => assignment.isActive)
                         .map((assignment) => {
                           const phaseLabels = {
-                            scheduled: 'Scheduled',
-                            stageOne: 'Phase 1',
-                            stageTwo: 'Phase 2',
-                            stageThree: 'Phase 3',
-                            completed: 'Completed',
+                            scheduled: "Scheduled",
+                            stageOne: "Phase 1",
+                            stageTwo: "Phase 2",
+                            stageThree: "Phase 3",
+                            completed: "Completed",
                           };
-                          
+
                           return (
-                            <div key={assignment.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                            <div
+                              key={assignment.id}
+                              className="flex items-center justify-between p-3 bg-white rounded-lg border"
+                            >
                               <div className="flex items-center space-x-3">
                                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                                   <span className="text-blue-600 text-sm font-medium">
@@ -283,21 +292,29 @@ export default function TransactionTable() {
                                 </div>
                                 <div>
                                   <p className="font-medium text-sm">
-                                    {assignment.technician?.fName} {assignment.technician?.lName}
+                                    {assignment.technician?.fName}{" "}
+                                    {assignment.technician?.lName}
                                   </p>
                                   <p className="text-xs text-gray-500">
-                                    {phaseLabels[assignment.phase as keyof typeof phaseLabels] || assignment.phase}
+                                    {phaseLabels[
+                                      assignment.phase as keyof typeof phaseLabels
+                                    ] || assignment.phase}
                                   </p>
                                 </div>
                               </div>
                               <div className="text-xs text-gray-500">
-                                {assignment.assignedAt && new Date(assignment.assignedAt).toLocaleDateString()}
+                                {assignment.assignedAt &&
+                                  new Date(
+                                    assignment.assignedAt
+                                  ).toLocaleDateString()}
                               </div>
                             </div>
                           );
                         })
                     ) : (
-                      <p className="text-gray-500 text-sm">No technicians assigned</p>
+                      <p className="text-gray-500 text-sm">
+                        No technicians assigned
+                      </p>
                     )}
                   </div>
                 </div>
@@ -348,11 +365,13 @@ export default function TransactionTable() {
         </TableHeader>
         <TableBody>
           {transactions.length > 0 ? (
-            transactions.map((transaction) => (
+            transactions.map((transaction, index) => (
               <TableRow
                 onClick={() => openTransactionDrawer(transaction)}
                 key={transaction.id}
-                className="hover:bg-gray-50"
+                className={`cursor-pointer hover:bg-gray-100 ${
+                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                }`}
               >
                 <TableCell className="font-medium hover:underline cursor-pointer">
                   {transaction.id.slice(0, 8)}...
@@ -439,7 +458,6 @@ export default function TransactionTable() {
           </Button>
         </div>
       </div>
-
     </div>
   );
 }

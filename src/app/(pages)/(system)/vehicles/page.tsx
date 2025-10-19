@@ -233,7 +233,7 @@ export default function VehiclesPage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="p-2">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Vehicle Management</h1>
         <div className="relative">
@@ -361,19 +361,20 @@ export default function VehiclesPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {brand.logoUrl && (
-                      <img 
-                        src={brand.logoUrl} 
+                      <img
+                        src={brand.logoUrl}
                         alt={brand.name}
                         className="h-10 w-10 object-contain"
                         onError={(e) => {
-                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.style.display = "none";
                         }}
                       />
                     )}
                     <div>
                       <CardTitle>{brand.name}</CardTitle>
                       <CardDescription>
-                        {models.filter((m) => m.brandId === brand.id).length} models
+                        {models.filter((m) => m.brandId === brand.id).length}{" "}
+                        models
                       </CardDescription>
                     </div>
                   </div>

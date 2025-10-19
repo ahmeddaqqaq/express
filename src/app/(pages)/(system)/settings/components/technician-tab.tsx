@@ -83,7 +83,7 @@ export default function TechniciansTab() {
     fName: "",
     lName: "",
   });
-  
+
   // Audit log state
   const [auditLogs, setAuditLogs] = useState<AuditLogResponse[]>([]);
   const [showAuditLogs, setShowAuditLogs] = useState(false);
@@ -91,26 +91,28 @@ export default function TechniciansTab() {
   const [auditLogPage, setAuditLogPage] = useState(1);
   const [auditLogTotalCount, setAuditLogTotalCount] = useState(0);
   const auditLogItemsPerPage = 10;
-  
+
   // Time tracking state
-  const [dailyWorkingHours, setDailyWorkingHours] = useState<{[key: string]: any}>({});
+  const [dailyWorkingHours, setDailyWorkingHours] = useState<{
+    [key: string]: any;
+  }>({});
   const [timeTrackingLoading, setTimeTrackingLoading] = useState(false);
 
   // Helper function to format time duration
   const formatDuration = (timeString: string | undefined) => {
-    if (!timeString || timeString === '0' || timeString === '00:00:00') {
-      return '0h 0m';
+    if (!timeString || timeString === "0" || timeString === "00:00:00") {
+      return "0h 0m";
     }
-    
+
     // Handle different time formats
-    if (timeString.includes(':')) {
+    if (timeString.includes(":")) {
       // Format: HH:MM:SS or HH:MM
-      const parts = timeString.split(':');
+      const parts = timeString.split(":");
       const hours = parseInt(parts[0]) || 0;
       const minutes = parseInt(parts[1]) || 0;
       return `${hours}h ${minutes}m`;
     }
-    
+
     // Handle other formats or just return as is
     return timeString;
   };
@@ -118,23 +120,27 @@ export default function TechniciansTab() {
   // Helper function to format dates safely
   const formatDate = (log: AuditLogResponse) => {
     // Try different possible timestamp fields
-    const timestamp = log.timeStamp || (log as any).timestamp || (log as any).createdAt || (log as any).updatedAt;
-    
+    const timestamp =
+      log.timeStamp ||
+      (log as any).timestamp ||
+      (log as any).createdAt ||
+      (log as any).updatedAt;
+
     if (!timestamp) {
-      console.warn('No timestamp found in log:', log);
-      return 'No Date';
+      console.warn("No timestamp found in log:", log);
+      return "No Date";
     }
-    
+
     try {
       const date = new Date(timestamp);
       if (isNaN(date.getTime())) {
-        console.warn('Invalid date:', timestamp);
-        return 'Invalid Date';
+        console.warn("Invalid date:", timestamp);
+        return "Invalid Date";
       }
       return date.toLocaleString();
     } catch (error) {
-      console.error('Date formatting error:', error, 'Date string:', timestamp);
-      return 'Invalid Date';
+      console.error("Date formatting error:", error, "Date string:", timestamp);
+      return "Invalid Date";
     }
   };
 
@@ -315,21 +321,27 @@ export default function TechniciansTab() {
       });
       setAuditLogs(response.data);
       setAuditLogTotalCount(response.rows);
-      console.log('Fetched audit logs from database:', response.data);
-      
+      console.log("Fetched audit logs from database:", response.data);
+
       // Debug: Log the first audit log to see all fields
       if (response.data.length > 0) {
-        console.log('First audit log full object:', response.data[0]);
-        console.log('Available fields:', Object.keys(response.data[0]));
-        console.log('timeStamp field:', response.data[0].timeStamp, typeof response.data[0].timeStamp);
+        console.log("First audit log full object:", response.data[0]);
+        console.log("Available fields:", Object.keys(response.data[0]));
+        console.log(
+          "timeStamp field:",
+          response.data[0].timeStamp,
+          typeof response.data[0].timeStamp
+        );
       }
     } catch (error) {
-      console.error('Failed to fetch audit logs:', error);
+      console.error("Failed to fetch audit logs:", error);
       setAuditLogs([]);
       setAuditLogTotalCount(0);
-      
+
       // If no audit logs exist, let's create a test entry to verify the system works
-      console.log('No audit logs found. The backend might not be automatically creating audit logs.');
+      console.log(
+        "No audit logs found. The backend might not be automatically creating audit logs."
+      );
     } finally {
       setAuditLogsLoading(false);
     }
@@ -338,21 +350,25 @@ export default function TechniciansTab() {
   // Fetch daily working hours for a technician
   const fetchDailyWorkingHours = async (technicianId: string) => {
     try {
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-      const response = await TechnicianService.technicianControllerGetDailyWorkingHours({
-        id: technicianId,
-        date: today,
-      });
-      
-      setDailyWorkingHours(prev => ({
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+      const response =
+        await TechnicianService.technicianControllerGetDailyWorkingHours({
+          id: technicianId,
+          date: today,
+        });
+
+      setDailyWorkingHours((prev) => ({
         ...prev,
-        [technicianId]: response
+        [technicianId]: response,
       }));
-      
-      console.log(`Daily working hours for technician ${technicianId}:`, response);
+
+      console.log(
+        `Daily working hours for technician ${technicianId}:`,
+        response
+      );
       return response;
     } catch (error) {
-      console.error('Failed to fetch daily working hours:', error);
+      console.error("Failed to fetch daily working hours:", error);
       return null;
     }
   };
@@ -363,7 +379,7 @@ export default function TechniciansTab() {
       fetchAuditLogs();
     }
   };
-  
+
   // Refresh time tracking for selected technician
   const refreshTimeTracking = async (technicianId: string) => {
     setTimeTrackingLoading(true);
@@ -371,7 +387,7 @@ export default function TechniciansTab() {
       await fetchTechnicians(); // Refresh technician data
       await fetchDailyWorkingHours(technicianId); // Fetch detailed daily hours
     } catch (error) {
-      console.error('Failed to refresh time tracking:', error);
+      console.error("Failed to refresh time tracking:", error);
     } finally {
       setTimeTrackingLoading(false);
     }
@@ -438,49 +454,50 @@ export default function TechniciansTab() {
             }}
             disabled={auditLogsLoading}
           >
-            {auditLogsLoading ? "Loading..." : (showAuditLogs ? "Hide" : "Show")} Audit Logs
+            {auditLogsLoading ? "Loading..." : showAuditLogs ? "Hide" : "Show"}{" "}
+            Audit Logs
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <FiPlus className="mr-2" />
-              Add Technician
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Technician</DialogTitle>
-              <DialogDescription>
-                Fill in the details to create a new technician
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="fName">First Name *</Label>
-                <Input
-                  id="fName"
-                  name="fName"
-                  value={newTechnician.fName}
-                  onChange={handleInputChange}
-                  placeholder="First name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="lName">Last Name *</Label>
-                <Input
-                  id="lName"
-                  name="lName"
-                  value={newTechnician.lName}
-                  onChange={handleInputChange}
-                  placeholder="Last name"
-                />
-              </div>
-              <Button onClick={createTechnician} disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Technician"}
+            <DialogTrigger asChild>
+              <Button>
+                <FiPlus className="mr-2" />
+                Add Technician
               </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Technician</DialogTitle>
+                <DialogDescription>
+                  Fill in the details to create a new technician
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fName">First Name *</Label>
+                  <Input
+                    id="fName"
+                    name="fName"
+                    value={newTechnician.fName}
+                    onChange={handleInputChange}
+                    placeholder="First name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lName">Last Name *</Label>
+                  <Input
+                    id="lName"
+                    name="lName"
+                    value={newTechnician.lName}
+                    onChange={handleInputChange}
+                    placeholder="Last name"
+                  />
+                </div>
+                <Button onClick={createTechnician} disabled={isLoading}>
+                  {isLoading ? "Creating..." : "Create Technician"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -501,7 +518,8 @@ export default function TechniciansTab() {
               </div>
             ) : auditLogs.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                No audit logs found. Actions will appear here after technician activities.
+                No audit logs found. Actions will appear here after technician
+                activities.
               </div>
             ) : (
               <>
@@ -531,7 +549,7 @@ export default function TechniciansTab() {
                     </TableBody>
                   </Table>
                 </div>
-                
+
                 {/* Pagination for audit logs */}
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
                   <div className="text-sm text-gray-500">
@@ -543,9 +561,13 @@ export default function TechniciansTab() {
                     </span>{" "}
                     to{" "}
                     <span className="font-medium">
-                      {Math.min(auditLogPage * auditLogItemsPerPage, auditLogTotalCount)}
+                      {Math.min(
+                        auditLogPage * auditLogItemsPerPage,
+                        auditLogTotalCount
+                      )}
                     </span>{" "}
-                    of <span className="font-medium">{auditLogTotalCount}</span> audit logs
+                    of <span className="font-medium">{auditLogTotalCount}</span>{" "}
+                    audit logs
                   </div>
                   <div className="flex space-x-2">
                     <Button
@@ -559,7 +581,12 @@ export default function TechniciansTab() {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={auditLogPage >= Math.ceil(auditLogTotalCount / auditLogItemsPerPage) || auditLogsLoading}
+                      disabled={
+                        auditLogPage >=
+                          Math.ceil(
+                            auditLogTotalCount / auditLogItemsPerPage
+                          ) || auditLogsLoading
+                      }
                       onClick={() => setAuditLogPage(auditLogPage + 1)}
                     >
                       Next
@@ -586,7 +613,8 @@ export default function TechniciansTab() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Current Status</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Current Activity</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -599,6 +627,18 @@ export default function TechniciansTab() {
                 >
                   <TableCell>
                     {tech.fName} {tech.lName}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={tech.status ? "default" : "secondary"}
+                      className={
+                        tech.status
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }
+                    >
+                      {tech.status ? "Active" : "Archived"}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -794,19 +834,47 @@ export default function TechniciansTab() {
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg flex items-center gap-2">
                             <FiActivity className="h-4 w-4" />
-                            Current Status
+                            Status
                           </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant={getStatusBadgeVariant(
-                                selectedTechnician.lastAction || "N/A"
-                              )}
-                              className="text-sm"
-                            >
-                              {selectedTechnician.lastAction || "Undefined"}
-                            </Badge>
+                        <CardContent className="space-y-3">
+                          <div>
+                            <Label className="text-sm font-medium text-gray-500">
+                              Account Status
+                            </Label>
+                            <div className="mt-1">
+                              <Badge
+                                variant={
+                                  selectedTechnician.status
+                                    ? "default"
+                                    : "secondary"
+                                }
+                                className={
+                                  selectedTechnician.status
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }
+                              >
+                                {selectedTechnician.status
+                                  ? "Active"
+                                  : "Archived"}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-500">
+                              Current Activity
+                            </Label>
+                            <div className="mt-1">
+                              <Badge
+                                variant={getStatusBadgeVariant(
+                                  selectedTechnician.lastAction || "N/A"
+                                )}
+                                className="text-sm"
+                              >
+                                {selectedTechnician.lastAction || "Undefined"}
+                              </Badge>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -822,7 +890,9 @@ export default function TechniciansTab() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => refreshTimeTracking(selectedTechnician.id)}
+                              onClick={() =>
+                                refreshTimeTracking(selectedTechnician.id)
+                              }
                               disabled={timeTrackingLoading}
                               className="h-8 w-8 p-0"
                             >
@@ -844,7 +914,11 @@ export default function TechniciansTab() {
                                 </span>
                               </div>
                               <span className="text-sm font-semibold text-blue-700">
-                                {formatDuration(dailyWorkingHours[selectedTechnician.id]?.shiftTime || selectedTechnician.totalShiftTime)}
+                                {formatDuration(
+                                  dailyWorkingHours[selectedTechnician.id]
+                                    ?.shiftTime ||
+                                    selectedTechnician.totalShiftTime
+                                )}
                               </span>
                             </div>
 
@@ -856,7 +930,11 @@ export default function TechniciansTab() {
                                 </span>
                               </div>
                               <span className="text-sm font-semibold text-orange-700">
-                                {formatDuration(dailyWorkingHours[selectedTechnician.id]?.breakTime || selectedTechnician.totalBreakTime)}
+                                {formatDuration(
+                                  dailyWorkingHours[selectedTechnician.id]
+                                    ?.breakTime ||
+                                    selectedTechnician.totalBreakTime
+                                )}
                               </span>
                             </div>
 
@@ -868,17 +946,27 @@ export default function TechniciansTab() {
                                 </span>
                               </div>
                               <span className="text-sm font-semibold text-purple-700">
-                                {formatDuration(dailyWorkingHours[selectedTechnician.id]?.overtimeTime || selectedTechnician.totalOvertimeTime)}
+                                {formatDuration(
+                                  dailyWorkingHours[selectedTechnician.id]
+                                    ?.overtimeTime ||
+                                    selectedTechnician.totalOvertimeTime
+                                )}
                               </span>
                             </div>
-                            
+
                             {/* Daily Working Hours Details */}
                             {dailyWorkingHours[selectedTechnician.id] && (
                               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                                <h4 className="text-sm font-medium text-gray-800 mb-2">Today's Details</h4>
+                                <h4 className="text-sm font-medium text-gray-800 mb-2">
+                                  Today's Details
+                                </h4>
                                 <div className="text-xs text-gray-600">
                                   <pre className="whitespace-pre-wrap">
-                                    {JSON.stringify(dailyWorkingHours[selectedTechnician.id], null, 2)}
+                                    {JSON.stringify(
+                                      dailyWorkingHours[selectedTechnician.id],
+                                      null,
+                                      2
+                                    )}
                                   </pre>
                                 </div>
                               </div>
@@ -978,7 +1066,10 @@ export default function TechniciansTab() {
             </DrawerContent>
           </Drawer>
 
-          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialog
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+          >
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Technician</AlertDialogTitle>
