@@ -12,7 +12,11 @@ export type CashSummary = {
      */
     addOnsCash: number;
     /**
-     * Total cash (services + add-ons)
+     * Total revenue from subscriptions
+     */
+    subscriptionCash: number;
+    /**
+     * Total cash (services + add-ons + subscriptions)
      */
     totalCash: number;
     /**
