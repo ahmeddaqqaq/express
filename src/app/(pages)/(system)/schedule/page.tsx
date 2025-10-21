@@ -3,9 +3,23 @@
 import { useEffect, useState } from "react";
 import { FiPlus, FiCalendar, FiCheckCircle, FiX } from "react-icons/fi";
 import { QrCode } from "lucide-react";
-import { TransactionResponse, TransactionService } from "../../../../../client";
+import {
+  TransactionResponse,
+  TransactionService,
+  ReservationsService,
+  ReservationResponseDto,
+  CustomerService,
+} from "../../../../../client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -25,6 +39,35 @@ import { CompletedTicketsDrawer } from "./components/schedule/completed-tickets-
 import ScanQrDialog from "./components/scan-qr-dialog";
 import SubscriptionDialog from "./components/subscription-dialog";
 import { FaTicket } from "react-icons/fa6";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { CustomerSearchField } from "./components/customer-search-field";
+
+const scheduleFormSchema = z.object({
+  customerId: z.string().min(1, "Please select a customer"),
+  datetime: z.string().min(1, "Please select a date and time"),
+  notes: z.string().optional(),
+});
 
 export default function Schedule() {
   const [currentDate, setCurrentDate] = useState<string>(
@@ -49,11 +92,118 @@ export default function Schedule() {
   const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] =
     useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [bookings, setBookings] = useState<ReservationResponseDto[]>([]);
+  const [isBookingDrawerOpen, setIsBookingDrawerOpen] = useState(false);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
+    null
+  );
+  const [isScanFromBookingOpen, setIsScanFromBookingOpen] = useState(false);
+  const [isAddBookingDialogOpen, setIsAddBookingDialogOpen] = useState(false);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState("");
+  const [customerCurrentPage, setCustomerCurrentPage] = useState(1);
+  const [customerTotalCount, setCustomerTotalCount] = useState(0);
+  const customerItemsPerPage = 10;
+
+  const scheduleForm = useForm<z.infer<typeof scheduleFormSchema>>({
+    resolver: zodResolver(scheduleFormSchema),
+    defaultValues: {
+      customerId: "",
+      datetime: "",
+      notes: "",
+    },
+  });
 
   const handleSuccess = () => {
     console.log("handleSuccess called, refreshing kanban...");
     setRefreshKey((prev) => prev + 1);
   };
+
+  const fetchBookings = async () => {
+    setIsLoadingBookings(true);
+    try {
+      const resp = await ReservationsService.reservationControllerFindAll({});
+      setBookings(resp);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      toast.error("Failed to load bookings");
+      setBookings([]);
+    } finally {
+      setIsLoadingBookings(false);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const skip = (customerCurrentPage - 1) * customerItemsPerPage;
+      const resp = await CustomerService.customerControllerFindMany({
+        skip,
+        take: customerItemsPerPage,
+        search: customerSearchQuery || "",
+      });
+      setCustomers(resp.data);
+      setCustomerTotalCount(resp.rows || resp.data.length);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      setCustomers([]);
+      setCustomerTotalCount(0);
+    }
+  };
+
+  const onScheduleSubmit = async (
+    values: z.infer<typeof scheduleFormSchema>
+  ) => {
+    try {
+      await ReservationsService.reservationControllerCreate({
+        requestBody: {
+          customerId: values.customerId,
+          datetime: values.datetime,
+          notes: values.notes || "",
+        },
+      });
+
+      setIsAddBookingDialogOpen(false);
+      scheduleForm.reset();
+      fetchBookings();
+      toast.success("Booking scheduled successfully!");
+    } catch (error: any) {
+      console.error("Error creating booking:", error);
+      const errorMessage =
+        error?.body?.message ||
+        error?.message ||
+        "Failed to create booking. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleBookingScanSuccess = async () => {
+    if (selectedBookingId) {
+      try {
+        await ReservationsService.reservationControllerUpdate({
+          id: selectedBookingId,
+          requestBody: {
+            markAsDone: true,
+          },
+        });
+        toast.success("Booking marked as completed!");
+        fetchBookings();
+        setSelectedBookingId(null);
+      } catch (error: any) {
+        console.error("Error marking booking as done:", error);
+        const errorMessage =
+          error?.body?.message ||
+          error?.message ||
+          "Failed to mark booking as completed";
+        toast.error(errorMessage);
+      }
+    }
+    handleSuccess();
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [customerSearchQuery, customerCurrentPage]);
 
   useEffect(() => {
     async function fetchAllData() {
@@ -278,7 +428,6 @@ export default function Schedule() {
     <div className="p-2">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          <div className="text-2xl font-bold text-gray-800">Tickets</div>
           {currentDate === getBusinessDayString() && (
             <div
               className={`text-sm px-2 py-1 rounded-full font-medium ${
@@ -342,6 +491,101 @@ export default function Schedule() {
           </div>
         </div>
         <div className="flex gap-3">
+          <Drawer
+            open={isBookingDrawerOpen}
+            onOpenChange={setIsBookingDrawerOpen}
+            direction="left"
+          >
+            <DrawerTrigger asChild>
+              <Button variant="outline" onClick={fetchBookings}>
+                <FiCalendar className="w-4 h-4 mr-2" />
+                <span>BOOKINGS</span>
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent className="h-full flex flex-col">
+              <DrawerHeader className="flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <DrawerTitle>Scheduled Bookings</DrawerTitle>
+                    <DrawerDescription>
+                      View all scheduled bookings
+                    </DrawerDescription>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setIsAddBookingDialogOpen(true)}
+                  >
+                    <FiPlus className="w-4 h-4" />
+                  </Button>
+                </div>
+              </DrawerHeader>
+              <div className="flex-1 px-4 pb-4 overflow-y-auto">
+                {isLoadingBookings ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4b3526]"></div>
+                  </div>
+                ) : bookings.length > 0 ? (
+                  <div className="space-y-4">
+                    {bookings.map((booking) => (
+                      <Card key={booking.id} className="border bg-white">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg">
+                            {booking.customer.firstName}{" "}
+                            {booking.customer.lastName}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div>
+                            <p className="text-sm text-gray-500">Date & Time</p>
+                            <p className="font-medium">
+                              {new Date(booking.datetime).toLocaleString()}
+                            </p>
+                          </div>
+                          {booking.notes && (
+                            <div>
+                              <p className="text-sm text-gray-500">Notes</p>
+                              <p className="text-sm">{booking.notes}</p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-gray-500">Status</p>
+                            <p className="text-sm">
+                              {booking.markAsDone ? (
+                                <span className="text-green-600 font-medium">
+                                  Completed
+                                </span>
+                              ) : (
+                                <span className="text-orange-600 font-medium">
+                                  Pending
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                          {!booking.markAsDone && (
+                            <Button
+                              onClick={() => {
+                                setSelectedBookingId(booking.id);
+                                setIsScanFromBookingOpen(true);
+                              }}
+                              className="w-full"
+                              size="sm"
+                            >
+                              <QrCode className="w-4 h-4 mr-2" />
+                              Scan QR
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <p>No bookings found</p>
+                  </div>
+                )}
+              </div>
+            </DrawerContent>
+          </Drawer>
           <Button onClick={() => setIsSubscriptionDialogOpen(true)}>
             <FiPlus />
             <span>SUBSCRIPTION</span>
@@ -411,10 +655,78 @@ export default function Schedule() {
         onSuccess={handleSuccess}
       />
 
+      <ScanQrDialog
+        open={isScanFromBookingOpen}
+        onOpenChange={setIsScanFromBookingOpen}
+        onSuccess={handleBookingScanSuccess}
+      />
+
       <SubscriptionDialog
         open={isSubscriptionDialogOpen}
         onOpenChange={setIsSubscriptionDialogOpen}
       />
+
+      <Dialog
+        open={isAddBookingDialogOpen}
+        onOpenChange={setIsAddBookingDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Schedule New Booking</DialogTitle>
+            <DialogDescription>
+              Fill in the details to schedule a new booking
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...scheduleForm}>
+            <form
+              onSubmit={scheduleForm.handleSubmit(onScheduleSubmit)}
+              className="space-y-4"
+            >
+              <CustomerSearchField
+                customers={customers}
+                searchQuery={customerSearchQuery}
+                onSearchChange={setCustomerSearchQuery}
+                currentPage={customerCurrentPage}
+                totalCount={customerTotalCount}
+                itemsPerPage={customerItemsPerPage}
+                onPageChange={setCustomerCurrentPage}
+              />
+              <FormField
+                control={scheduleForm.control}
+                name="datetime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date & Time</FormLabel>
+                    <Input type="datetime-local" {...field} />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={scheduleForm.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes (Optional)</FormLabel>
+                    <Textarea {...field} placeholder="Add any notes..." />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddBookingDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Schedule Booking</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
