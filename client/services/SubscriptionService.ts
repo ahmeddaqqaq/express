@@ -8,6 +8,7 @@ import type { AssignQRCodeDto } from '../models/AssignQRCodeDto';
 import type { CreateSubscriptionDto } from '../models/CreateSubscriptionDto';
 import type { CustomerSubscriptionResponseDto } from '../models/CustomerSubscriptionResponseDto';
 import type { PurchaseSubscriptionDto } from '../models/PurchaseSubscriptionDto';
+import type { SubscriptionLogListResponseDto } from '../models/SubscriptionLogListResponseDto';
 import type { SubscriptionResponseDto } from '../models/SubscriptionResponseDto';
 import type { UpdateSubscriptionDto } from '../models/UpdateSubscriptionDto';
 import type { UseServiceDto } from '../models/UseServiceDto';
@@ -118,6 +119,33 @@ export class SubscriptionService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/subscription/pending-activations',
+        });
+    }
+    /**
+     * Get all subscription logs with pagination
+     * @returns SubscriptionLogListResponseDto List of subscription logs with pagination
+     * @throws ApiError
+     */
+    public static subscriptionControllerGetSubscriptionLogs({
+        skip,
+        take,
+    }: {
+        /**
+         * Number of records to skip (default: 0)
+         */
+        skip?: number,
+        /**
+         * Number of records to take (default: 10)
+         */
+        take?: number,
+    }): CancelablePromise<SubscriptionLogListResponseDto> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/express/subscription/logs',
+            query: {
+                'skip': skip,
+                'take': take,
+            },
         });
     }
     /**

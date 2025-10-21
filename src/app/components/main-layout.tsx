@@ -15,6 +15,7 @@ import {
   FiGrid,
   FiEdit3,
   FiBookmark,
+  FiList,
 } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { FaCarAlt, FaIdCard } from "react-icons/fa";
@@ -91,6 +92,12 @@ export default function MainLayout({
       name: "Subscription",
       path: "/subscription",
       icon: <FaIdCard className="h-5 w-5" />,
+    },
+    {
+      name: "Subscription Logs",
+      path: "/subscription-logs",
+      icon: <FiList className="h-5 w-5" />,
+      adminOnly: true,
     },
     {
       name: "Notes",

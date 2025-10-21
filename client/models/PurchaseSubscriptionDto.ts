@@ -15,5 +15,9 @@ export type PurchaseSubscriptionDto = {
      * Subscription ID
      */
     subscriptionId: string;
+    /**
+     * User ID who purchased (optional)
+     */
+    purchasedById?: string;
 };
 

@@ -11,5 +11,9 @@ export type ActivateSubscriptionDto = {
      * QR Code ID to activate
      */
     qrCodeId: string;
+    /**
+     * User ID who activated (optional)
+     */
+    activatedById?: string;
 };
 
