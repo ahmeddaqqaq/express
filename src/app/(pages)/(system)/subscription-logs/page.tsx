@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SubscriptionService, SubscriptionLogResponseDto } from "../../../../../client";
+import {
+  SubscriptionService,
+  SubscriptionLogResponseDto,
+} from "../../../../../client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -23,10 +26,11 @@ export default function SubscriptionLogsPage() {
     setIsLoading(true);
     try {
       const skip = (currentPage - 1) * itemsPerPage;
-      const response = await SubscriptionService.subscriptionControllerGetSubscriptionLogs({
-        skip,
-        take: itemsPerPage,
-      });
+      const response =
+        await SubscriptionService.subscriptionControllerGetSubscriptionLogs({
+          skip,
+          take: itemsPerPage,
+        });
       setLogs(response.data);
       setTotal(response.total);
     } catch (error) {
@@ -64,7 +68,9 @@ export default function SubscriptionLogsPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-[#4b3526]">Subscription Logs</h1>
+          <h1 className="text-3xl font-bold text-[#4b3526]">
+            Subscription Logs
+          </h1>
           <p className="text-gray-600 mt-2">
             View all subscription purchase and activation history
           </p>
@@ -90,11 +96,21 @@ export default function SubscriptionLogsPage() {
                   <thead>
                     <tr className="border-b bg-gray-50">
                       <th className="text-left p-3 font-semibold">Action</th>
-                      <th className="text-left p-3 font-semibold">Purchased By</th>
-                      <th className="text-left p-3 font-semibold">Purchased At</th>
-                      <th className="text-left p-3 font-semibold">Activated By</th>
-                      <th className="text-left p-3 font-semibold">Activated At</th>
-                      <th className="text-left p-3 font-semibold">Created At</th>
+                      <th className="text-left p-3 font-semibold">
+                        Purchased By
+                      </th>
+                      <th className="text-left p-3 font-semibold">
+                        Purchased At
+                      </th>
+                      <th className="text-left p-3 font-semibold">
+                        Activated By
+                      </th>
+                      <th className="text-left p-3 font-semibold">
+                        Activated At
+                      </th>
+                      <th className="text-left p-3 font-semibold">
+                        Created At
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -113,9 +129,8 @@ export default function SubscriptionLogsPage() {
                           {log.purchasedBy ? (
                             <div>
                               <p className="font-medium">
-                                {log.purchasedBy.firstName} {log.purchasedBy.lastName}
+                                {log.purchasedBy.name}
                               </p>
-                              <p className="text-xs text-gray-500">{log.purchasedBy.email}</p>
                             </div>
                           ) : (
                             "-"
@@ -126,9 +141,8 @@ export default function SubscriptionLogsPage() {
                           {log.activatedBy ? (
                             <div>
                               <p className="font-medium">
-                                {log.activatedBy.firstName} {log.activatedBy.lastName}
+                                {log.activatedBy.name}
                               </p>
-                              <p className="text-xs text-gray-500">{log.activatedBy.email}</p>
                             </div>
                           ) : (
                             "-"
@@ -147,13 +161,16 @@ export default function SubscriptionLogsPage() {
                 <div className="flex items-center justify-between mt-6 pt-4 border-t">
                   <div className="text-sm text-gray-600">
                     Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                    {Math.min(currentPage * itemsPerPage, total)} of {total} logs
+                    {Math.min(currentPage * itemsPerPage, total)} of {total}{" "}
+                    logs
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
                       disabled={currentPage === 1}
                     >
                       <FiChevronLeft className="h-4 w-4" />
