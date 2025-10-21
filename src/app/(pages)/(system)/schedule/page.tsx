@@ -428,17 +428,23 @@ export default function Schedule() {
     <div className="p-2">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
-          {currentDate === getBusinessDayString() && (
-            <div
-              className={`text-sm px-2 py-1 rounded-full font-medium ${
-                getBusinessDayInfo().isOvernightPeriod
-                  ? "bg-purple-100 text-purple-800"
-                  : "bg-blue-100 text-blue-800"
-              }`}
-            >
-              {getBusinessDayInfo().displayText}
+          <div className="flex flex-col gap-1 items-center">
+            {currentDate === getBusinessDayString() && (
+              <div
+                className={`text-sm px-2 py-1 rounded-full font-medium ${
+                  getBusinessDayInfo().isOvernightPeriod
+                    ? "bg-purple-100 text-purple-800"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
+                {getBusinessDayInfo().displayText}
+              </div>
+            )}
+
+            <div className="text-red-500 rounded-full cursor-pointer text-[7px]">
+              Gharam Is Here
             </div>
-          )}
+          </div>
           <div className="flex items-center gap-2">
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
