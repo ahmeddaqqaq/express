@@ -11,6 +11,7 @@ import type { CustomerSubscriptionResponseDto } from '../models/CustomerSubscrip
 import type { PurchaseSubscriptionDto } from '../models/PurchaseSubscriptionDto';
 import type { SubscriptionLogListResponseDto } from '../models/SubscriptionLogListResponseDto';
 import type { SubscriptionResponseDto } from '../models/SubscriptionResponseDto';
+import type { UpdateDurationDto } from '../models/UpdateDurationDto';
 import type { UpdateSubscriptionDto } from '../models/UpdateSubscriptionDto';
 import type { UseServiceDto } from '../models/UseServiceDto';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -313,6 +314,32 @@ export class SubscriptionService {
             },
             errors: {
                 404: `No active subscription found for QR code`,
+            },
+        });
+    }
+    /**
+     * Update subscription duration
+     * @returns SubscriptionResponseDto Subscription duration updated successfully
+     * @throws ApiError
+     */
+    public static subscriptionControllerUpdateDuration({
+        id,
+        requestBody,
+    }: {
+        id: string,
+        requestBody: UpdateDurationDto,
+    }): CancelablePromise<SubscriptionResponseDto> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/express/subscription/{id}/duration',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Invalid duration value`,
+                404: `Subscription not found`,
             },
         });
     }

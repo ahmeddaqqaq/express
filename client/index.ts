@@ -97,6 +97,7 @@ export type { TransactionManyResponse } from './models/TransactionManyResponse';
 export { TransactionResponse } from './models/TransactionResponse';
 export type { UpdateCustomerDto } from './models/UpdateCustomerDto';
 export type { UpdateDailyNoteDto } from './models/UpdateDailyNoteDto';
+export type { UpdateDurationDto } from './models/UpdateDurationDto';
 export type { UpdateReservationDto } from './models/UpdateReservationDto';
 export type { UpdateSalesDto } from './models/UpdateSalesDto';
 export type { UpdateSubscriptionDto } from './models/UpdateSubscriptionDto';
