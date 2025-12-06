@@ -22,6 +22,10 @@ export type UpdateSubscriptionDto = {
      */
     maxUsesPerService?: number;
     /**
+     * Duration in days for customer subscriptions
+     */
+    durationInDays?: number;
+    /**
      * Services included in subscription
      */
     services: Array<SubscriptionServiceDto>;

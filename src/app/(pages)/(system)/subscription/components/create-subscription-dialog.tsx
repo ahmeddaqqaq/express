@@ -49,6 +49,7 @@ export default function CreateSubscriptionDialog({
     description: undefined,
     endDate: undefined,
     maxUsesPerService: undefined,
+    durationInDays: undefined,
     services: [],
     prices: [],
   });
@@ -78,6 +79,7 @@ export default function CreateSubscriptionDialog({
         description: undefined,
         endDate: undefined,
         maxUsesPerService: undefined,
+        durationInDays: undefined,
         services: [],
         prices: [],
       });
@@ -227,6 +229,7 @@ export default function CreateSubscriptionDialog({
         description: formData.description?.trim() || undefined,
         endDate: formData.endDate || undefined,
         maxUsesPerService: formData.maxUsesPerService || undefined,
+        durationInDays: formData.durationInDays || undefined,
         services: formData.services.map((s) => ({
           serviceId: s.serviceId,
           usageCount: s.usageCount,
@@ -330,6 +333,32 @@ export default function CreateSubscriptionDialog({
                       }
                       rows={3}
                       className="text-sm resize-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label
+                      htmlFor="durationInDays"
+                      className="text-sm font-medium"
+                    >
+                      Duration (Days)
+                    </Label>
+                    <Input
+                      id="durationInDays"
+                      type="number"
+                      placeholder="e.g., 30"
+                      value={formData.durationInDays ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === "") {
+                          handleFieldChange("durationInDays", undefined);
+                        } else {
+                          const parsed = parseInt(value);
+                          if (!isNaN(parsed) && parsed > 0) {
+                            handleFieldChange("durationInDays", parsed);
+                          }
+                        }
+                      }}
+                      className="h-9 text-sm"
                     />
                   </div>
                 </div>

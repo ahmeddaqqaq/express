@@ -18,6 +18,7 @@ export type { AuditLogManyResponse } from './models/AuditLogManyResponse';
 export type { AuditLogResponse } from './models/AuditLogResponse';
 export type { BrandManyResponse } from './models/BrandManyResponse';
 export type { BrandResponse } from './models/BrandResponse';
+export type { BulkUpdateSubscriptionDto } from './models/BulkUpdateSubscriptionDto';
 export type { CalculateTotalDto } from './models/CalculateTotalDto';
 export type { CancelTransactionDto } from './models/CancelTransactionDto';
 export type { CarBrandDto } from './models/CarBrandDto';

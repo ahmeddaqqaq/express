@@ -5,6 +5,7 @@
 import type { ActivateSubscriptionDto } from '../models/ActivateSubscriptionDto';
 import type { AllCustomerSubscriptionsResponseDto } from '../models/AllCustomerSubscriptionsResponseDto';
 import type { AssignQRCodeDto } from '../models/AssignQRCodeDto';
+import type { BulkUpdateSubscriptionDto } from '../models/BulkUpdateSubscriptionDto';
 import type { CreateSubscriptionDto } from '../models/CreateSubscriptionDto';
 import type { CustomerSubscriptionResponseDto } from '../models/CustomerSubscriptionResponseDto';
 import type { PurchaseSubscriptionDto } from '../models/PurchaseSubscriptionDto';
@@ -392,6 +393,27 @@ export class SubscriptionService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/express/subscription',
+        });
+    }
+    /**
+     * Bulk update subscription expiry dates
+     * @returns any Subscriptions updated successfully
+     * @throws ApiError
+     */
+    public static subscriptionControllerBulkUpdateExpiry({
+        requestBody,
+    }: {
+        requestBody: BulkUpdateSubscriptionDto,
+    }): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/express/subscription/bulk-update-expiry',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Invalid update data`,
+                404: `Subscription template not found`,
+            },
         });
     }
 }
