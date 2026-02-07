@@ -8,6 +8,7 @@ import {
 } from "../../../../../../../client";
 import { ImageDialog } from "./image-dialog";
 import { UploadedFile } from "./types";
+import { LazyImage } from "./lazy-image";
 
 interface PhaseImagesDisplayProps {
   appointment: TransactionResponse;
@@ -129,16 +130,16 @@ export function PhaseImagesDisplay({ appointment }: PhaseImagesDisplayProps) {
                         onClick={() => openImageDialog(images, index)}
                         title={image.uploadedBy && (image.uploadedBy as any).name ? `Uploaded by ${(image.uploadedBy as any).name}` : 'No uploader information'}
                       >
-                        <img
+                        <LazyImage
                           src={image.url || ""}
                           alt={`${phaseLabel} image ${index + 1}`}
                           className="w-full h-20 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all">
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all pointer-events-none">
                           <FiEye className="text-white opacity-0 group-hover:opacity-100 h-5 w-5" />
                         </div>
                         {image.uploadedBy && (image.uploadedBy as any).name && (
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs px-1 py-0.5 rounded-b">
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs px-1 py-0.5 rounded-b pointer-events-none">
                             {(image.uploadedBy as any).name}
                           </div>
                         )}

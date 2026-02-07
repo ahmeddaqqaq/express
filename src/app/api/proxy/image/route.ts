@@ -17,14 +17,6 @@ export async function GET(request: NextRequest) {
     // Construct the image URL
     const imageUrl = `${apiBaseUrl}/express/images/serve/${key}`;
     
-    console.log('Proxying image request:', {
-      key,
-      imageUrl,
-      apiBaseUrl,
-      environment: process.env.NODE_ENV,
-      hasCookies: !!request.headers.get('cookie')
-    });
-    
     // Forward all cookies and headers from the original request
     const imageResponse = await fetch(imageUrl, {
       headers: {
@@ -35,15 +27,8 @@ export async function GET(request: NextRequest) {
       credentials: 'include',
     });
 
-    console.log('Image response status:', imageResponse.status, imageResponse.statusText);
-
     if (!imageResponse.ok) {
-      console.error('Failed to fetch image:', {
-        status: imageResponse.status,
-        statusText: imageResponse.statusText,
-        url: imageUrl
-      });
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: 'Failed to fetch image', 
         status: imageResponse.status,
         url: imageUrl 

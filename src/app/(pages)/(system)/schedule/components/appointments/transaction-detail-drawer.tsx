@@ -33,6 +33,7 @@ import {
 } from "../../../../../../../client";
 import { ImageDialog } from "./image-dialog";
 import { UploadedFile } from "./types";
+import { LazyImage } from "./lazy-image";
 
 interface TransactionDetailDrawerProps {
   isOpen: boolean;
@@ -491,12 +492,15 @@ export function TransactionDetailDrawer({
                                       openImageDialog(images, index)
                                     }
                                   >
-                                    <img
-                                      src={image.url}
+                                    <LazyImage
+                                      src={image.url || ""}
                                       alt={`${phaseLabel} image ${index + 1}`}
                                       className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
+                                      onClick={() =>
+                                        openImageDialog(images, index)
+                                      }
                                     />
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all">
+                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded flex items-center justify-center transition-all pointer-events-none">
                                       <FiEye className="text-white opacity-0 group-hover:opacity-100 h-3 w-3" />
                                     </div>
                                   </div>
